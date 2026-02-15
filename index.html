@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vedic Jyotish — Birth Chart Calculator</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   FONTS
+   ═══════════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap');
+
+/* ═══════════════════════════════════════════════════════════════════
+   CSS VARIABLES — South Indian palette
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  --saffron:        #FF9933;
+  --saffron-light:  #FFB366;
+  --saffron-dark:   #E07800;
+  --maroon:         #800020;
+  --maroon-deep:    #5C0015;
+  --gold:           #D4A843;
+  --gold-light:     #F0D68A;
+  --cream:          #FFF8F0;
+  --cream-dark:     #F5EDE0;
+  --text-dark:      #2B1810;
+  --text-muted:     #6B5344;
+  --border:         #E0C8B0;
+  --white:          #FFFFFF;
+  --error:          #C0392B;
+  --success:        #27AE60;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--cream);
+  color: var(--text-dark);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(255,153,51,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 50%, rgba(128,0,32,0.04) 0%, transparent 50%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   HEADER
+   ═══════════════════════════════════════════════════════════════════ */
+.header {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.header-icon {
+  font-size: 2.4rem;
+  margin-bottom: 4px;
+}
+
+.header h1 {
+  font-family: 'Noto Serif', serif;
+  font-size: 1.8rem;
+  color: var(--maroon);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.header .subtitle {
+  font-family: 'Noto Serif', serif;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+/* decorative line */
+.divider {
+  width: 120px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--saffron), var(--maroon), var(--saffron), transparent);
+  margin: 12px auto 20px;
+  border-radius: 1px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CARD
+   ═══════════════════════════════════════════════════════════════════ */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--saffron);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(128,0,32,0.08), 0 1px 4px rgba(0,0,0,0.04);
+  width: 100%;
+  max-width: 560px;
+  padding: 32px 36px 28px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SECTION HEADINGS inside the card
+   ═══════════════════════════════════════════════════════════════════ */
+.section-title {
+  font-family: 'Noto Serif', serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--maroon);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin: 24px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-title:first-of-type { margin-top: 0; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   FORM FIELDS
+   ═══════════════════════════════════════════════════════════════════ */
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+  letter-spacing: 0.3px;
+}
+
+.field label .required {
+  color: var(--error);
+  margin-left: 2px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  padding: 10px 14px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.88rem;
+  color: var(--text-dark);
+  background: var(--cream);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: var(--saffron);
+  box-shadow: 0 0 0 3px rgba(255,153,51,0.15);
+}
+
+.field input::placeholder {
+  color: #B8A89A;
+}
+
+.field input[readonly] {
+  background: var(--cream-dark);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+/* two-column row */
+.row {
+  display: flex;
+  gap: 16px;
+}
+
+.row .field { flex: 1; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   COORDINATE DISPLAY
+   ═══════════════════════════════════════════════════════════════════ */
+.coord-bar {
+  display: flex;
+  gap: 12px;
+  background: var(--cream-dark);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+}
+
+.coord-bar .coord-item {
+  flex: 1;
+}
+
+.coord-bar .coord-item label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 3px;
+  display: block;
+}
+
+.coord-bar .coord-item .coord-value {
+  font-family: 'Noto Serif', serif;
+  font-size: 0.95rem;
+  color: var(--maroon);
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GEOCODE STATUS
+   ═══════════════════════════════════════════════════════════════════ */
+.geo-status {
+  font-size: 0.72rem;
+  margin-top: 4px;
+  min-height: 16px;
+}
+
+.geo-status.loading { color: var(--saffron-dark); }
+.geo-status.success { color: var(--success); }
+.geo-status.error   { color: var(--error); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   BUTTONS
+   ═══════════════════════════════════════════════════════════════════ */
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px 20px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.2s, opacity 0.2s;
+  letter-spacing: 0.3px;
+}
+
+.btn:active { transform: scale(0.98); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--saffron), var(--saffron-dark));
+  color: var(--white);
+  box-shadow: 0 3px 12px rgba(255,153,51,0.3);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 5px 18px rgba(255,153,51,0.4);
+}
+
+.btn-secondary {
+  background: var(--white);
+  color: var(--maroon);
+  border: 1.5px solid var(--maroon);
+}
+
+.btn-secondary:hover {
+  background: rgba(128,0,32,0.04);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   JSON OUTPUT PANEL
+   ═══════════════════════════════════════════════════════════════════ */
+.output-panel {
+  width: 100%;
+  max-width: 560px;
+  margin-top: 20px;
+  display: none;
+}
+
+.output-panel.visible { display: block; }
+
+.output-panel h3 {
+  font-family: 'Noto Serif', serif;
+  font-size: 0.85rem;
+  color: var(--maroon);
+  margin-bottom: 8px;
+}
+
+.output-panel pre {
+  background: var(--text-dark);
+  color: var(--gold-light);
+  font-family: 'Courier New', monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  padding: 18px 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--maroon-deep);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════════════════════════════ */
+.footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .card { padding: 24px 20px 20px; }
+  .row  { flex-direction: column; gap: 0; }
+  .actions { flex-direction: column; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ═══════════════════ HEADER ═══════════════════ -->
+<div class="header">
+  <div class="header-icon">&#x0B93;&#x0BAE;&#x0BCD;</div>
+  <h1>Vedic Jyotish</h1>
+  <p class="subtitle">Birth Chart &amp; Vimshottari Dasha Calculator</p>
+</div>
+<div class="divider"></div>
+
+<!-- ═══════════════════ FORM CARD ═══════════════════ -->
+<div class="card">
+  <form id="birthForm" novalidate>
+
+    <!-- ── Personal Details ── -->
+    <div class="section-title">Personal Details</div>
+
+    <div class="field">
+      <label for="fullName">Full Name <span class="required">*</span></label>
+      <input type="text" id="fullName" placeholder="e.g. Ramesh Kumar" required>
+    </div>
+
+    <div class="field">
+      <label for="gender">Gender</label>
+      <select id="gender">
+        <option value="">— Select —</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <!-- ── Date & Time of Birth ── -->
+    <div class="section-title">Date &amp; Time of Birth</div>
+
+    <div class="row">
+      <div class="field">
+        <label for="dob">Date of Birth <span class="required">*</span></label>
+        <input type="date" id="dob" required>
+      </div>
+      <div class="field">
+        <label for="tob">Time of Birth <span class="required">*</span></label>
+        <input type="time" id="tob" step="1" required>
+      </div>
+    </div>
+
+    <!-- ── Location Details ── -->
+    <div class="section-title">Birth Location</div>
+
+    <div class="field">
+      <label for="country">Country <span class="required">*</span></label>
+      <select id="country" required>
+        <option value="">— Select Country —</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="city">City / Place of Birth <span class="required">*</span></label>
+      <input type="text" id="city" placeholder="e.g. Chennai" required>
+      <div id="geoStatus" class="geo-status"></div>
+    </div>
+
+    <!-- Latitude & Longitude (read-only) -->
+    <div class="coord-bar">
+      <div class="coord-item">
+        <label>Latitude</label>
+        <div class="coord-value" id="latDisplay">—</div>
+        <input type="hidden" id="latitude" value="">
+      </div>
+      <div class="coord-item">
+        <label>Longitude</label>
+        <div class="coord-value" id="lonDisplay">—</div>
+        <input type="hidden" id="longitude" value="">
+      </div>
+      <div class="coord-item">
+        <label>UTC Offset</label>
+        <div class="coord-value" id="utcDisplay">—</div>
+        <input type="hidden" id="utcOffset" value="">
+      </div>
+    </div>
+
+    <!-- ── Actions ── -->
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">Generate Chart</button>
+      <button type="button" class="btn btn-secondary" id="btnReset">Reset</button>
+    </div>
+
+  </form>
+</div>
+
+<!-- ═══════════════════ JSON OUTPUT ═══════════════════ -->
+<div class="output-panel" id="outputPanel">
+  <h3>Captured Birth Data (JSON)</h3>
+  <pre id="jsonOutput"></pre>
+</div>
+
+<div class="footer">
+  Lahiri Ayanamsa &middot; Indian Astronomical Ephemeris &middot; South Indian Chart
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  "use strict";
+
+  // ── Country list (common countries, India first) ─────────────────
+  const COUNTRIES = [
+    "India","United States","United Kingdom","Canada","Australia",
+    "Sri Lanka","Nepal","Bangladesh","Pakistan","Singapore","Malaysia",
+    "United Arab Emirates","Saudi Arabia","Germany","France","Japan",
+    "South Korea","China","Indonesia","Thailand","South Africa",
+    "Brazil","Mexico","New Zealand","Philippines","Russia","Italy",
+    "Spain","Netherlands","Sweden","Switzerland","Afghanistan","Albania",
+    "Algeria","Argentina","Austria","Bahrain","Belgium","Bhutan",
+    "Cambodia","Chile","Colombia","Denmark","Egypt","Ethiopia",
+    "Finland","Greece","Hong Kong","Hungary","Iceland","Iran","Iraq",
+    "Ireland","Israel","Jamaica","Jordan","Kazakhstan","Kenya",
+    "Kuwait","Laos","Lebanon","Libya","Luxembourg","Maldives",
+    "Mauritius","Mongolia","Morocco","Myanmar","Nigeria","Norway",
+    "Oman","Peru","Poland","Portugal","Qatar","Romania","Seychelles",
+    "Taiwan","Tanzania","Trinidad and Tobago","Turkey","Uganda",
+    "Ukraine","Vietnam","Yemen","Zimbabwe"
+  ];
+
+  // Known UTC offsets for countries (used as fallback)
+  const COUNTRY_UTC = {
+    "India": 5.5, "Sri Lanka": 5.5, "Nepal": 5.75,
+    "Bangladesh": 6, "Pakistan": 5, "United States": -5,
+    "United Kingdom": 0, "Canada": -5, "Australia": 10,
+    "Singapore": 8, "Malaysia": 8, "United Arab Emirates": 4,
+    "Japan": 9, "South Korea": 9, "China": 8, "Germany": 1,
+    "France": 1, "Saudi Arabia": 3,
+  };
+
+  // ── Populate country dropdown ───────────────────────────────────
+  const countryEl = document.getElementById("country");
+  COUNTRIES.forEach(function (c) {
+    const opt = document.createElement("option");
+    opt.value = c;
+    opt.textContent = c;
+    countryEl.appendChild(opt);
+  });
+
+  // ── Geocoding via Nominatim (OpenStreetMap, free, no API key) ──
+  let geoTimer = null;
+  const cityEl      = document.getElementById("city");
+  const geoStatus   = document.getElementById("geoStatus");
+  const latDisplay   = document.getElementById("latDisplay");
+  const lonDisplay   = document.getElementById("lonDisplay");
+  const utcDisplay   = document.getElementById("utcDisplay");
+  const latInput     = document.getElementById("latitude");
+  const lonInput     = document.getElementById("longitude");
+  const utcInput     = document.getElementById("utcOffset");
+
+  function setCoords(lat, lon, utc) {
+    latInput.value = lat;
+    lonInput.value = lon;
+    utcInput.value = utc;
+    latDisplay.textContent = lat !== "" ? Number(lat).toFixed(4) + "°" : "—";
+    lonDisplay.textContent = lon !== "" ? Number(lon).toFixed(4) + "°" : "—";
+    utcDisplay.textContent = utc !== "" ? (utc >= 0 ? "+" : "") + utc : "—";
+  }
+
+  function geocodeCity() {
+    const city    = cityEl.value.trim();
+    const country = countryEl.value;
+    if (!city) { setCoords("", "", ""); geoStatus.textContent = ""; return; }
+
+    const query = country ? city + ", " + country : city;
+    geoStatus.textContent = "Looking up coordinates…";
+    geoStatus.className = "geo-status loading";
+
+    fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" +
+          encodeURIComponent(query))
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data && data.length > 0) {
+          var lat = parseFloat(data[0].lat);
+          var lon = parseFloat(data[0].lon);
+
+          // Estimate UTC offset from longitude (rough: lon/15), or use
+          // country table if available
+          var utc = COUNTRY_UTC[country];
+          if (utc === undefined) {
+            utc = Math.round(lon / 15 * 2) / 2; // round to nearest 0.5
+          }
+
+          setCoords(lat.toFixed(4), lon.toFixed(4), utc);
+          geoStatus.textContent = "Coordinates found: " + data[0].display_name.split(",").slice(0,3).join(",");
+          geoStatus.className = "geo-status success";
+        } else {
+          setCoords("", "", "");
+          geoStatus.textContent = "Location not found. Please check the city name.";
+          geoStatus.className = "geo-status error";
+        }
+      })
+      .catch(function () {
+        geoStatus.textContent = "Network error. Enter coordinates manually if needed.";
+        geoStatus.className = "geo-status error";
+      });
+  }
+
+  // Debounced geocoding on city input (500ms after typing stops)
+  cityEl.addEventListener("input", function () {
+    clearTimeout(geoTimer);
+    geoTimer = setTimeout(geocodeCity, 500);
+  });
+
+  // Also re-geocode when country changes
+  countryEl.addEventListener("change", function () {
+    if (cityEl.value.trim()) geocodeCity();
+  });
+
+  // ── Form submission → JSON ─────────────────────────────────────
+  const form        = document.getElementById("birthForm");
+  const outputPanel = document.getElementById("outputPanel");
+  const jsonOutput  = document.getElementById("jsonOutput");
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    // Validate required fields
+    var name = document.getElementById("fullName").value.trim();
+    var dob  = document.getElementById("dob").value;
+    var tob  = document.getElementById("tob").value;
+    var lat  = latInput.value;
+    var lon  = lonInput.value;
+
+    if (!name || !dob || !tob) {
+      alert("Please fill in Name, Date of Birth, and Time of Birth.");
+      return;
+    }
+    if (!lat || !lon) {
+      alert("Coordinates not resolved. Please enter a valid city or wait for lookup.");
+      return;
+    }
+
+    // Parse date and time
+    var dateParts = dob.split("-");  // YYYY-MM-DD
+    var timeParts = tob.split(":");  // HH:MM or HH:MM:SS
+
+    var birthData = {
+      name:       name,
+      gender:     document.getElementById("gender").value || null,
+      year:       parseInt(dateParts[0], 10),
+      month:      parseInt(dateParts[1], 10),
+      day:        parseInt(dateParts[2], 10),
+      hour:       parseInt(timeParts[0], 10),
+      minute:     parseInt(timeParts[1], 10),
+      second:     timeParts[2] ? parseInt(timeParts[2], 10) : 0,
+      country:    countryEl.value,
+      city:       cityEl.value.trim(),
+      latitude:   parseFloat(lat),
+      longitude:  parseFloat(lon),
+      utc_offset: parseFloat(utcInput.value),
+    };
+
+    // Display JSON
+    jsonOutput.textContent = JSON.stringify(birthData, null, 2);
+    outputPanel.classList.add("visible");
+    outputPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    // ── Send to backend ──────────────────────────────────────────
+    // Uncomment below when connecting to a Flask / FastAPI backend:
+    //
+    // fetch("/api/calculate", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify(birthData),
+    // })
+    // .then(r => r.json())
+    // .then(result => {
+    //   console.log("Chart:", result.chart);
+    //   console.log("Dasha:", result.dasha);
+    // })
+    // .catch(err => console.error("API error:", err));
+    //
+    // The backend would call:
+    //   chart_gen.calculate_positions(year, month, day, hour, minute,
+    //       second, utc_offset, latitude, longitude)
+    //   vims_engine.get_full_dasha_report(birth_datetime, moon_lon)
+
+    console.log("Birth data JSON:", birthData);
+  });
+
+  // ── Reset ──────────────────────────────────────────────────────
+  document.getElementById("btnReset").addEventListener("click", function () {
+    form.reset();
+    setCoords("", "", "");
+    geoStatus.textContent = "";
+    geoStatus.className = "geo-status";
+    outputPanel.classList.remove("visible");
+    jsonOutput.textContent = "";
+  });
+
+  // ── Default country to India ───────────────────────────────────
+  countryEl.value = "India";
+
+})();
+</script>
+
+</body>
+</html>
