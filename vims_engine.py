@@ -383,7 +383,7 @@ def get_pratyantardashas(antar_entry):
         prat_lord  = next(lords)
         prat_years = DASHA_YEARS[prat_lord]
 
-        full_prat_days = (antar_years * prat_years / TOTAL_CYCLE_YEARS) * 365.25
+        full_prat_days = full_antar_days * prat_years / TOTAL_CYCLE_YEARS
         prat_days      = full_prat_days * scale
         end_date       = cursor + timedelta(days=prat_days)
 

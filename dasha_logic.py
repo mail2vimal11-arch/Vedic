@@ -412,7 +412,7 @@ def generate_pratyantardashas(antardasha):
         prat_lord = next(lord_gen)
         prat_total_years = LORD_YEARS[prat_lord]
 
-        full_prat_days = (antar_total_years * prat_total_years / TOTAL_DASHA_YEARS) * 365.25
+        full_prat_days = full_antar_days * prat_total_years / TOTAL_DASHA_YEARS
         prat_days = full_prat_days * scale
         end_date = current_date + timedelta(days=prat_days)
 
