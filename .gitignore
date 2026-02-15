@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Distribution
+dist/
+build/
+*.egg-info/
+
+# Keep the ephe folder but ignore its binary contents
+# (user will manually add .se1 files)
+ephe/*.se1
+
+# Output files
+output/
+*.svg
