@@ -26,4 +26,6 @@ ephe/*.se1
 
 # Output files
 output/
-*.svg
+
+# Environment
+.env

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Vedic Astrology Birth Chart Calculator — Accurate sidereal planetary positions with Lahiri Ayanamsa, South Indian Rashi chart, and Vimshottari Dasha timeline.">
+    <title>Jyotish — Vedic Astrology Calculator</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9790;</text></svg>">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <div class="brand">
+                <span class="brand-icon">&#9790;</span>
+                <div>
+                    <h1 class="brand-name">Jyotish</h1>
+                    <p class="brand-tagline">Vedic Astrology Calculator</p>
+                </div>
+            </div>
+            <nav class="header-meta">
+                <span class="badge">Lahiri Ayanamsa</span>
+                <span class="badge badge-outline">Swiss Ephemeris</span>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- ===== BIRTH DATA FORM ===== -->
+        <section id="form-section" class="card form-card">
+            <div class="card-header">
+                <h2>Birth Details</h2>
+                <p class="card-subtitle">Enter the date, time, and place of birth for accurate chart calculation</p>
+            </div>
+
+            <form id="birthForm" novalidate>
+                <!-- Error Banner -->
+                <div id="errorBanner" class="error-banner" style="display:none;">
+                    <span class="error-icon">&#9888;</span>
+                    <span id="errorText"></span>
+                    <button type="button" class="error-close" onclick="this.parentElement.style.display='none'">&times;</button>
+                </div>
+
+                <!-- Row 1: Personal -->
+                <div class="form-row">
+                    <div class="form-group flex-2">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" name="name" placeholder="Enter name" autocomplete="name">
+                    </div>
+                    <div class="form-group flex-1">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="gender">
+                            <option value="">— Select —</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Row 2: Date & Time -->
+                <div class="form-row">
+                    <div class="form-group flex-1">
+                        <label for="birthDate">Date of Birth <span class="required">*</span></label>
+                        <input type="date" id="birthDate" name="birthDate" required>
+                    </div>
+                    <div class="form-group flex-1">
+                        <label for="birthTime">Time of Birth <span class="required">*</span></label>
+                        <input type="time" id="birthTime" name="birthTime" step="1" required>
+                    </div>
+                </div>
+
+                <!-- Row 3: Location -->
+                <div class="form-row">
+                    <div class="form-group flex-1">
+                        <label for="country">Country <span class="required">*</span></label>
+                        <select id="country" name="country" required>
+                            <option value="">— Select Country —</option>
+                        </select>
+                    </div>
+                    <div class="form-group flex-1">
+                        <label for="city">City <span class="required">*</span></label>
+                        <div class="input-with-btn">
+                            <input type="text" id="city" name="city" placeholder="Enter city name" required>
+                            <button type="button" id="lookupBtn" class="btn btn-sm" title="Lookup coordinates">
+                                &#128269; Lookup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 4: Coordinates -->
+                <div class="form-row">
+                    <div class="form-group flex-1">
+                        <label for="latitude">Latitude <span class="required">*</span></label>
+                        <input type="number" id="latitude" name="latitude" step="any" placeholder="e.g. 13.0827" required>
+                    </div>
+                    <div class="form-group flex-1">
+                        <label for="longitude">Longitude <span class="required">*</span></label>
+                        <input type="number" id="longitude" name="longitude" step="any" placeholder="e.g. 80.2707" required>
+                    </div>
+                    <div class="form-group flex-1">
+                        <label for="utcOffset">UTC Offset <span class="required">*</span></label>
+                        <input type="number" id="utcOffset" name="utcOffset" step="0.5" placeholder="e.g. 5.5" required>
+                    </div>
+                </div>
+
+                <div class="form-row form-actions">
+                    <button type="button" id="geolocateBtn" class="btn btn-outline">
+                        &#128205; Use My Location
+                    </button>
+                    <button type="submit" id="submitBtn" class="btn btn-primary">
+                        Generate Birth Chart
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ===== LOADING STATE ===== -->
+        <section id="loadingSection" class="card" style="display:none;">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p>Calculating planetary positions using Swiss Ephemeris...</p>
+                <p class="loading-sub">Computing sidereal longitudes with Lahiri Ayanamsa</p>
+            </div>
+        </section>
+
+        <!-- ===== RESULTS ===== -->
+        <section id="resultsSection" style="display:none;">
+
+            <!-- Birth Summary Banner -->
+            <div id="summaryBanner" class="card summary-card">
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <span class="summary-label">Name</span>
+                        <span class="summary-value" id="summaryName">—</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Date &amp; Time</span>
+                        <span class="summary-value" id="summaryDateTime">—</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Place</span>
+                        <span class="summary-value" id="summaryPlace">—</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Lagna (Ascendant)</span>
+                        <span class="summary-value" id="summaryLagna">—</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Moon Sign (Rashi)</span>
+                        <span class="summary-value" id="summaryMoonSign">—</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Nakshatra</span>
+                        <span class="summary-value" id="summaryNakshatra">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="tabs">
+                <button class="tab active" data-tab="chartTab">Rashi Chart</button>
+                <button class="tab" data-tab="planetsTab">Planets</button>
+                <button class="tab" data-tab="dashaTab">Dasha Timeline</button>
+                <button class="tab" data-tab="currentTab">Current Dasha</button>
+            </div>
+
+            <!-- Tab: Rashi Chart -->
+            <div id="chartTab" class="tab-panel active">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>South Indian Rashi Chart</h2>
+                        <div class="card-actions">
+                            <button class="btn btn-sm btn-outline" onclick="printChart()">&#128424; Print</button>
+                            <button class="btn btn-sm btn-outline" onclick="downloadSVG()">&#11015; Download SVG</button>
+                        </div>
+                    </div>
+                    <div id="chartContainer" class="chart-container">
+                        <!-- SVG will be injected here -->
+                    </div>
+                    <div class="chart-meta">
+                        <span>Ayanamsa: <strong id="chartAyanamsa">—</strong> (Lahiri)</span>
+                        <span>Julian Day: <strong id="chartJD">—</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Planetary Positions -->
+            <div id="planetsTab" class="tab-panel">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Planetary Positions</h2>
+                        <p class="card-subtitle">Sidereal longitudes computed with Lahiri Ayanamsa</p>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Planet</th>
+                                    <th>Rashi (Sign)</th>
+                                    <th>Sanskrit</th>
+                                    <th>Degrees</th>
+                                    <th>House</th>
+                                    <th>Lord</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="planetsTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Dasha Timeline -->
+            <div id="dashaTab" class="tab-panel">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Vimshottari Maha Dasha Timeline</h2>
+                        <p class="card-subtitle">120-year planetary period cycle based on Moon's Nakshatra at birth</p>
+                    </div>
+
+                    <!-- Dasha Balance at Birth -->
+                    <div id="dashaBalanceBox" class="info-box">
+                        <h3>Dasha Balance at Birth</h3>
+                        <div id="dashaBalanceContent"></div>
+                    </div>
+
+                    <!-- Visual Timeline -->
+                    <div id="dashaTimeline" class="dasha-timeline">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- Maha Dasha Table -->
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Dasha Lord</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Duration</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashaTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Antardasha Detail (toggleable) -->
+                    <div id="antardashaSection" style="display:none;">
+                        <h3 id="antardashaTitle" class="section-title"></h3>
+                        <div class="table-wrap">
+                            <table class="data-table data-table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Antardasha Lord</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Duration</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="antardashaTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Current Dasha -->
+            <div id="currentTab" class="tab-panel">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Currently Running Dasha</h2>
+                        <p class="card-subtitle" id="currentDateLabel">—</p>
+                    </div>
+                    <div id="currentDashaContent" class="current-dasha-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <p>&copy; <span id="copyrightYear"></span> Jyotish — Vedic Astrology Calculator</p>
+            <p class="footer-tech">Swiss Ephemeris &middot; Lahiri Ayanamsa &middot; Vimshottari Dasha</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
