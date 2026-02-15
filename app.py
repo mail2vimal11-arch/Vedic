@@ -321,6 +321,22 @@ def create_app():
         output_dir = app.config.get("OUTPUT_DIR", "output")
         return send_from_directory(output_dir, filename)
 
+    @app.route("/horoscope")
+    def serve_horoscope():
+        """Serve the pre-generated horoscope report for download."""
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        return send_from_directory(
+            base_dir, "horoscope_11Sep2009_Dubai.html",
+            as_attachment=True,
+            download_name="horoscope_11Sep2009_Dubai.html",
+        )
+
+    @app.route("/horoscope/view")
+    def view_horoscope():
+        """View the pre-generated horoscope report in browser."""
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        return send_from_directory(base_dir, "horoscope_11Sep2009_Dubai.html")
+
     # ----- Error handlers -----
 
     @app.errorhandler(404)
