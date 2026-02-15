@@ -9,8 +9,116 @@
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9790;</text></svg>">
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Inline Styles (no external dependencies) -->
+    <style>
+:root {
+    --color-bg: #faf8f4; --color-surface: #ffffff; --color-border: #e8e2d8; --color-border-lt: #f0ebe3;
+    --color-text: #2d2a26; --color-text-2: #5c5650; --color-text-3: #8a8279;
+    --color-saffron: #e8761c; --color-saffron-dk: #c4600f; --color-saffron-lt: #fdf0e3;
+    --color-maroon: #7a1f2e; --color-maroon-lt: #f5e6e9;
+    --color-gold: #b8860b; --color-gold-lt: #fef9e7; --color-temple: #8b4513;
+    --color-success: #2d7d46; --color-error: #c0392b; --color-warning: #d4a017;
+    --font-display: Georgia, serif; --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --radius: 8px; --radius-lg: 12px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow-md: 0 4px 12px rgba(0,0,0,0.08); --shadow-lg: 0 8px 24px rgba(0,0,0,0.10);
+    --max-width: 1100px; --header-height: 64px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+body { font-family: var(--font-body); color: var(--color-text); background: var(--color-bg); line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column; }
+.container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; width: 100%; }
+.site-header { background: linear-gradient(135deg, var(--color-maroon) 0%, var(--color-temple) 100%); color: #fff; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-md); }
+.header-inner { display: flex; align-items: center; justify-content: space-between; height: var(--header-height); }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-icon { font-size: 2rem; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
+.brand-name { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; letter-spacing: 0.02em; line-height: 1.2; }
+.brand-tagline { font-size: 0.72rem; opacity: 0.85; letter-spacing: 0.05em; text-transform: uppercase; }
+.header-meta { display: flex; gap: 8px; }
+.badge { font-size: 0.68rem; padding: 3px 10px; border-radius: 20px; background: rgba(255,255,255,0.18); color: rgba(255,255,255,0.9); letter-spacing: 0.02em; font-weight: 500; }
+.badge-outline { background: transparent; border: 1px solid rgba(255,255,255,0.3); }
+.card { background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--color-border); margin-bottom: 24px; overflow: hidden; }
+.card-header { padding: 24px 28px 8px; display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.card-header h2 { font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; color: var(--color-maroon); }
+.card-subtitle { font-size: 0.85rem; color: var(--color-text-3); }
+.card-actions { display: flex; gap: 8px; }
+.form-card { margin-top: 32px; }
+.form-card .card-header { border-bottom: 2px solid var(--color-saffron-lt); padding-bottom: 16px; margin-bottom: 4px; }
+form { padding: 20px 28px 28px; }
+.form-row { display: flex; gap: 16px; margin-bottom: 16px; }
+.form-group { display: flex; flex-direction: column; }
+.flex-1 { flex: 1; } .flex-2 { flex: 2; }
+label { font-size: 0.82rem; font-weight: 500; color: var(--color-text-2); margin-bottom: 5px; letter-spacing: 0.01em; }
+.required { color: var(--color-error); }
+input[type="text"], input[type="number"], input[type="date"], input[type="time"], select { padding: 10px 12px; border: 1px solid var(--color-border); border-radius: var(--radius); font-family: var(--font-body); font-size: 0.9rem; color: var(--color-text); background: var(--color-surface); transition: border-color 0.2s, box-shadow 0.2s; width: 100%; }
+input:focus, select:focus { outline: none; border-color: var(--color-saffron); box-shadow: 0 0 0 3px var(--color-saffron-lt); }
+.input-with-btn { display: flex; gap: 8px; } .input-with-btn input { flex: 1; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: var(--radius); font-family: var(--font-body); font-size: 0.88rem; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; white-space: nowrap; }
+.btn-primary { background: linear-gradient(135deg, var(--color-saffron), var(--color-saffron-dk)); color: #fff; box-shadow: 0 2px 6px rgba(232,118,28,0.3); }
+.btn-primary:hover { box-shadow: 0 4px 12px rgba(232,118,28,0.4); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.btn-outline { background: transparent; color: var(--color-text-2); border-color: var(--color-border); }
+.btn-outline:hover { background: var(--color-saffron-lt); color: var(--color-saffron-dk); border-color: var(--color-saffron); }
+.btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+.form-actions { justify-content: space-between; margin-top: 8px; }
+.error-banner { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius); color: var(--color-error); margin-bottom: 16px; font-size: 0.88rem; }
+.error-icon { font-size: 1.2rem; }
+.error-close { margin-left: auto; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--color-error); padding: 0 4px; }
+.loading-content { text-align: center; padding: 48px 24px; }
+.spinner { width: 48px; height: 48px; border: 4px solid var(--color-border); border-top-color: var(--color-saffron); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-sub { font-size: 0.82rem; color: var(--color-text-3); margin-top: 4px; }
+.summary-card { background: linear-gradient(135deg, var(--color-maroon) 0%, var(--color-temple) 100%); color: #fff; border: none; }
+.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; padding: 0; }
+.summary-item { padding: 18px 24px; border-right: 1px solid rgba(255,255,255,0.12); border-bottom: 1px solid rgba(255,255,255,0.12); }
+.summary-item:nth-child(3n) { border-right: none; } .summary-item:nth-child(n+4) { border-bottom: none; }
+.summary-label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; margin-bottom: 4px; }
+.summary-value { display: block; font-family: var(--font-display); font-size: 1.05rem; font-weight: 500; }
+.tabs { display: flex; gap: 2px; margin-bottom: 0; background: var(--color-border-lt); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 4px 4px 0; overflow-x: auto; }
+.tab { flex: 1; padding: 12px 20px; background: transparent; border: none; font-family: var(--font-body); font-size: 0.88rem; font-weight: 500; color: var(--color-text-3); cursor: pointer; border-radius: var(--radius) var(--radius) 0 0; transition: all 0.2s; white-space: nowrap; }
+.tab:hover { color: var(--color-text); background: rgba(255,255,255,0.5); }
+.tab.active { background: var(--color-surface); color: var(--color-saffron-dk); box-shadow: 0 -2px 0 var(--color-saffron) inset; }
+.tab-panel { display: none; } .tab-panel.active { display: block; }
+.tab-panel > .card { border-radius: 0 0 var(--radius-lg) var(--radius-lg); margin-top: 0; border-top: none; }
+.chart-container { display: flex; justify-content: center; padding: 24px; background: var(--color-bg); min-height: 300px; }
+.chart-container svg { max-width: 100%; height: auto; max-height: 520px; }
+.chart-meta { display: flex; justify-content: center; gap: 32px; padding: 12px 24px; font-size: 0.78rem; color: var(--color-text-3); border-top: 1px solid var(--color-border-lt); }
+.table-wrap { overflow-x: auto; padding: 0 4px 16px; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.data-table th { background: var(--color-saffron-lt); color: var(--color-temple); font-weight: 600; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--color-border); position: sticky; top: 0; }
+.data-table td { padding: 10px 14px; border-bottom: 1px solid var(--color-border-lt); vertical-align: middle; }
+.data-table tbody tr:hover { background: var(--color-gold-lt); }
+.data-table tbody tr.row-highlight { background: var(--color-saffron-lt); font-weight: 500; }
+.data-table-sm td, .data-table-sm th { padding: 7px 12px; font-size: 0.82rem; }
+.tag-retro { display: inline-block; font-size: 0.7rem; padding: 2px 7px; background: var(--color-maroon-lt); color: var(--color-maroon); border-radius: 10px; font-weight: 600; }
+.tag-direct { display: inline-block; font-size: 0.7rem; padding: 2px 7px; background: #e8f5e9; color: var(--color-success); border-radius: 10px; font-weight: 500; }
+.tag-birth { font-size: 0.68rem; padding: 2px 8px; background: var(--color-gold-lt); color: var(--color-gold); border-radius: 10px; font-weight: 600; }
+.dasha-timeline { display: flex; width: 100%; height: 44px; border-radius: var(--radius); overflow: hidden; margin: 16px 0 24px; box-shadow: var(--shadow-sm); }
+.dasha-bar { display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 600; color: #fff; cursor: pointer; transition: opacity 0.2s; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 4px; position: relative; }
+.dasha-bar:hover { opacity: 0.85; } .dasha-bar.active-bar { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.6); }
+.dasha-ketu { background: #607d8b; } .dasha-venus { background: #e91e63; } .dasha-sun { background: #ff9800; }
+.dasha-moon { background: #9c27b0; } .dasha-mars { background: #f44336; } .dasha-rahu { background: #3f51b5; }
+.dasha-jupiter { background: #ffc107; color: #333; } .dasha-saturn { background: #455a64; } .dasha-mercury { background: #4caf50; }
+.info-box { background: var(--color-gold-lt); border: 1px solid #f0e1a1; border-radius: var(--radius); padding: 16px 20px; margin: 16px 20px; }
+.info-box h3 { font-family: var(--font-display); font-size: 1rem; color: var(--color-gold); margin-bottom: 8px; }
+.info-box p { font-size: 0.85rem; color: var(--color-text-2); margin-bottom: 4px; }
+.section-title { font-family: var(--font-display); font-size: 1.1rem; color: var(--color-maroon); padding: 20px 20px 8px; }
+.current-dasha-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; padding: 20px 24px 28px; }
+.dasha-card { border-radius: var(--radius); padding: 20px; text-align: center; }
+.dasha-card-maha { background: linear-gradient(135deg, var(--color-maroon), var(--color-temple)); color: #fff; }
+.dasha-card-antar { background: linear-gradient(135deg, var(--color-saffron), var(--color-saffron-dk)); color: #fff; }
+.dasha-card-pratyantar { background: var(--color-gold-lt); border: 1px solid #f0e1a1; color: var(--color-text); }
+.dasha-card-level { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.8; margin-bottom: 6px; }
+.dasha-card-lord { font-family: var(--font-display); font-size: 1.6rem; font-weight: 600; margin-bottom: 8px; }
+.dasha-card-dates { font-size: 0.78rem; opacity: 0.85; }
+.btn-expand { background: none; border: none; color: var(--color-saffron); cursor: pointer; font-size: 0.82rem; font-weight: 500; padding: 4px 8px; border-radius: 4px; transition: background 0.2s; }
+.btn-expand:hover { background: var(--color-saffron-lt); }
+.site-footer { margin-top: auto; background: var(--color-text); color: rgba(255,255,255,0.6); padding: 20px 0; text-align: center; font-size: 0.78rem; }
+.footer-tech { margin-top: 4px; font-size: 0.7rem; opacity: 0.5; }
+@media print { .site-header, .site-footer, .tabs, .form-card, .card-actions, .btn-expand, #loadingSection { display: none !important; } .tab-panel { display: block !important; } .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; } .summary-card { color: #000; background: #f5f5f5 !important; } .summary-card .summary-label { color: #666; } body { background: #fff; } }
+@media (max-width: 768px) { .container { padding: 0 16px; } .header-inner { height: auto; padding: 12px 0; flex-direction: column; gap: 8px; } .header-meta { display: none; } .brand-name { font-size: 1.25rem; } .form-row { flex-direction: column; gap: 12px; } .form-actions { flex-direction: column; } .form-actions .btn { width: 100%; justify-content: center; } .summary-grid { grid-template-columns: repeat(2, 1fr); } .summary-item:nth-child(3n) { border-right: 1px solid rgba(255,255,255,0.12); } .summary-item:nth-child(2n) { border-right: none; } .summary-item:last-child { border-right: none; } .tabs { gap: 0; } .tab { padding: 10px 12px; font-size: 0.78rem; } .chart-container { padding: 12px; } .current-dasha-grid { grid-template-columns: 1fr; } .dasha-timeline { height: 36px; } .dasha-bar { font-size: 0.6rem; } .chart-meta { flex-direction: column; align-items: center; gap: 4px; } }
+@media (max-width: 480px) { .summary-grid { grid-template-columns: 1fr; } .summary-item { border-right: none !important; } }
+    </style>
 </head>
 <body>
 
@@ -304,6 +412,138 @@
         </div>
     </footer>
 
-    <script src="/static/js/app.js"></script>
+    <!-- Inline Script (no external dependencies) -->
+    <script>
+const COUNTRIES=[{name:"India",offset:5.5},{name:"United States",offset:-5},{name:"United Kingdom",offset:0},{name:"Canada",offset:-5},{name:"Australia",offset:10},{name:"Germany",offset:1},{name:"France",offset:1},{name:"Japan",offset:9},{name:"China",offset:8},{name:"Brazil",offset:-3},{name:"South Africa",offset:2},{name:"Russia",offset:3},{name:"Mexico",offset:-6},{name:"Indonesia",offset:7},{name:"South Korea",offset:9},{name:"Italy",offset:1},{name:"Spain",offset:1},{name:"Netherlands",offset:1},{name:"Saudi Arabia",offset:3},{name:"United Arab Emirates",offset:4},{name:"Turkey",offset:3},{name:"Thailand",offset:7},{name:"Singapore",offset:8},{name:"Malaysia",offset:8},{name:"Philippines",offset:8},{name:"Vietnam",offset:7},{name:"Egypt",offset:2},{name:"Nigeria",offset:1},{name:"Kenya",offset:3},{name:"Pakistan",offset:5},{name:"Bangladesh",offset:6},{name:"Sri Lanka",offset:5.5},{name:"Nepal",offset:5.75},{name:"Myanmar",offset:6.5},{name:"New Zealand",offset:12},{name:"Argentina",offset:-3},{name:"Chile",offset:-3},{name:"Colombia",offset:-5},{name:"Peru",offset:-5},{name:"Sweden",offset:1},{name:"Norway",offset:1},{name:"Denmark",offset:1},{name:"Finland",offset:2},{name:"Poland",offset:1},{name:"Portugal",offset:0},{name:"Greece",offset:2},{name:"Ireland",offset:0},{name:"Switzerland",offset:1},{name:"Austria",offset:1},{name:"Belgium",offset:1},{name:"Israel",offset:2},{name:"Iran",offset:3.5},{name:"Iraq",offset:3},{name:"Qatar",offset:3},{name:"Kuwait",offset:3},{name:"Oman",offset:4},{name:"Bahrain",offset:3},{name:"Jordan",offset:2},{name:"Lebanon",offset:2},{name:"Ghana",offset:0},{name:"Ethiopia",offset:3},{name:"Tanzania",offset:3},{name:"Uganda",offset:3},{name:"Morocco",offset:1},{name:"Tunisia",offset:1},{name:"Fiji",offset:12},{name:"Mauritius",offset:4},{name:"Jamaica",offset:-5},{name:"Trinidad and Tobago",offset:-4},{name:"Cambodia",offset:7},{name:"Laos",offset:7},{name:"Mongolia",offset:8},{name:"Afghanistan",offset:4.5},{name:"Bhutan",offset:6},{name:"Maldives",offset:5}];
+COUNTRIES.sort((a,b)=>a.name.localeCompare(b.name));
+const $=(sel)=>document.querySelector(sel);
+const $$=(sel)=>document.querySelectorAll(sel);
+
+document.addEventListener("DOMContentLoaded",()=>{populateCountries();bindEvents();setCurrentYear();});
+
+function setCurrentYear(){const el=$("#copyrightYear");if(el)el.textContent=new Date().getFullYear();}
+
+function populateCountries(){const select=$("#country");COUNTRIES.forEach((c)=>{const opt=document.createElement("option");opt.value=c.name;opt.textContent=c.name;opt.dataset.offset=c.offset;select.appendChild(opt);});}
+
+function bindEvents(){
+    $("#country").addEventListener("change",function(){const sel=this.options[this.selectedIndex];if(sel.dataset.offset!==undefined){$("#utcOffset").value=sel.dataset.offset;}});
+    $("#lookupBtn").addEventListener("click",lookupCity);
+    $("#city").addEventListener("keydown",(e)=>{if(e.key==="Enter"){e.preventDefault();lookupCity();}});
+    $("#geolocateBtn").addEventListener("click",geolocate);
+    $("#birthForm").addEventListener("submit",handleSubmit);
+    $$(".tab").forEach((tab)=>{tab.addEventListener("click",()=>switchTab(tab.dataset.tab));});
+}
+
+async function lookupCity(){
+    const city=$("#city").value.trim();const country=$("#country").value;
+    if(!city){showError("Please enter a city name.");return;}
+    const btn=$("#lookupBtn");btn.disabled=true;btn.textContent="...";
+    try{
+        const query=country?`${city}, ${country}`:city;
+        const url=`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
+        const resp=await fetch(url,{headers:{"Accept-Language":"en"}});const data=await resp.json();
+        if(data&&data.length>0){const result=data[0];$("#latitude").value=parseFloat(result.lat).toFixed(4);$("#longitude").value=parseFloat(result.lon).toFixed(4);hideError();}
+        else{showError(`Could not find coordinates for "${city}". Please enter latitude/longitude manually.`);}
+    }catch(err){showError("Geocoding service unavailable. Please enter coordinates manually.");}
+    finally{btn.disabled=false;btn.textContent="\u{1F50D} Lookup";}
+}
+
+function geolocate(){
+    if(!navigator.geolocation){showError("Geolocation is not supported by your browser.");return;}
+    const btn=$("#geolocateBtn");btn.disabled=true;btn.textContent="\u{1F4CD} Locating...";
+    navigator.geolocation.getCurrentPosition(
+        (pos)=>{$("#latitude").value=pos.coords.latitude.toFixed(4);$("#longitude").value=pos.coords.longitude.toFixed(4);btn.disabled=false;btn.textContent="\u{1F4CD} Use My Location";hideError();},
+        (err)=>{showError("Could not get your location. Please enter coordinates manually.");btn.disabled=false;btn.textContent="\u{1F4CD} Use My Location";},
+        {enableHighAccuracy:true,timeout:10000}
+    );
+}
+
+async function handleSubmit(e){
+    e.preventDefault();
+    const birthDate=$("#birthDate").value;const birthTime=$("#birthTime").value;
+    const lat=$("#latitude").value;const lon=$("#longitude").value;const utcOff=$("#utcOffset").value;
+    if(!birthDate||!birthTime){showError("Please enter both date and time of birth.");return;}
+    if(!lat||!lon){showError("Please enter birth coordinates (use city lookup or manual entry).");return;}
+    if(utcOff===""){showError("Please enter the UTC offset for the birth location.");return;}
+    const[year,month,day]=birthDate.split("-").map(Number);
+    const timeParts=birthTime.split(":");const hour=parseInt(timeParts[0]);const minute=parseInt(timeParts[1]);const second=timeParts[2]?parseInt(timeParts[2]):0;
+    const payload={name:$("#name").value.trim()||"Native",gender:$("#gender").value,year,month,day,hour,minute,second,latitude:parseFloat(lat),longitude:parseFloat(lon),utc_offset:parseFloat(utcOff),city:$("#city").value.trim(),country:$("#country").value};
+    hideError();$("#loadingSection").style.display="block";$("#resultsSection").style.display="none";
+    const submitBtn=$("#submitBtn");submitBtn.disabled=true;submitBtn.textContent="Calculating...";
+    try{
+        const resp=await fetch("/api/chart",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+        const data=await resp.json();
+        if(!resp.ok||!data.success){throw new Error(data.error||"Chart generation failed.");}
+        renderResults(data);
+    }catch(err){showError(err.message||"An error occurred. Please try again.");}
+    finally{$("#loadingSection").style.display="none";submitBtn.disabled=false;submitBtn.textContent="Generate Birth Chart";}
+}
+
+function renderResults(data){renderSummary(data);renderChart(data);renderPlanets(data);renderDasha(data);renderCurrentDasha(data);$("#resultsSection").style.display="block";switchTab("chartTab");$("#resultsSection").scrollIntoView({behavior:"smooth",block:"start"});}
+
+function renderSummary(data){
+    const b=data.birth_details;const c=data.chart;
+    $("#summaryName").textContent=b.name;
+    $("#summaryDateTime").textContent=`${b.date} at ${b.time}`;
+    $("#summaryPlace").textContent=[b.city,b.country].filter(Boolean).join(", ")||`${b.latitude}, ${b.longitude}`;
+    $("#summaryLagna").textContent=`${c.ascendant.sign} (${c.ascendant.sign_sanskrit}) ${c.ascendant.degrees}`;
+    const moon=c.planets.find((p)=>p.name==="Moon");
+    if(moon){$("#summaryMoonSign").textContent=`${moon.sign} (${moon.sign_sanskrit})`;}
+    const n=data.nakshatra;$("#summaryNakshatra").textContent=`${n.name} (Pada ${n.pada}) \u2014 Lord: ${n.lord}`;
+}
+
+function renderChart(data){
+    const container=$("#chartContainer");
+    if(data.svg_chart){container.innerHTML=data.svg_chart;}else{container.innerHTML='<p style="color:#999;padding:40px;">Chart SVG not available</p>';}
+    $("#chartAyanamsa").textContent=data.chart.ayanamsa;$("#chartJD").textContent=data.chart.julian_day;
+}
+
+function renderPlanets(data){
+    const tbody=$("#planetsTableBody");tbody.innerHTML="";
+    const asc=data.chart.ascendant;const ascRow=document.createElement("tr");ascRow.classList.add("row-highlight");
+    ascRow.innerHTML=`<td><strong>Ascendant (Lagna)</strong></td><td>${asc.sign}</td><td>${asc.sign_sanskrit}</td><td>${asc.degrees}</td><td>1</td><td>${asc.lord}</td><td>\u2014</td>`;
+    tbody.appendChild(ascRow);
+    data.chart.planets.forEach((p)=>{const tr=document.createElement("tr");const status=p.retrograde?'<span class="tag-retro">R</span>':'<span class="tag-direct">D</span>';tr.innerHTML=`<td><strong>${p.name}</strong></td><td>${p.sign}</td><td>${p.sign_sanskrit}</td><td>${p.degrees}</td><td>${p.house}</td><td>${p.lord}</td><td>${status}</td>`;tbody.appendChild(tr);});
+}
+
+function renderDasha(data){
+    const report=data.dasha_report;if(!report)return;
+    const bal=report.dasha_balance;const nak=report.nakshatra;const balBox=$("#dashaBalanceContent");
+    balBox.innerHTML=`<p><strong>Birth Nakshatra:</strong> ${nak.name} (#${nak.number}, Pada ${nak.pada})</p><p><strong>Nakshatra Lord:</strong> ${nak.lord}</p><p><strong>Starting Dasha:</strong> ${bal.lord} \u2014 Balance: ${bal.balance_ymd.years}y ${bal.balance_ymd.months}m ${bal.balance_ymd.days}d</p>`;
+    const timelineEl=$("#dashaTimeline");timelineEl.innerHTML="";
+    const totalYears=report.maha_dashas.reduce((s,d)=>s+d.duration_years,0);
+    const activeMaha=data.current_dasha?data.current_dasha.maha:null;
+    report.maha_dashas.forEach((md)=>{const pct=(md.duration_years/totalYears)*100;const bar=document.createElement("div");bar.className=`dasha-bar dasha-${md.maha_dasha_lord.toLowerCase()}`;if(md.maha_dasha_lord===activeMaha)bar.classList.add("active-bar");bar.style.width=`${pct}%`;bar.textContent=md.maha_dasha_lord.substring(0,3);bar.title=`${md.maha_dasha_lord}: ${md.start_date.substring(0,10)} to ${md.end_date.substring(0,10)} (${md.duration_ymd.years}y ${md.duration_ymd.months}m)`;bar.addEventListener("click",()=>showAntardashas(md));timelineEl.appendChild(bar);});
+    const tbody=$("#dashaTableBody");tbody.innerHTML="";
+    report.maha_dashas.forEach((md,i)=>{const tr=document.createElement("tr");if(md.maha_dasha_lord===activeMaha)tr.classList.add("row-highlight");const birthTag=md.is_birth_dasha?' <span class="tag-birth">Birth</span>':"";const dur=`${md.duration_ymd.years}y ${md.duration_ymd.months}m ${md.duration_ymd.days}d`;tr.innerHTML=`<td>${i+1}</td><td><strong>${md.maha_dasha_lord}</strong>${birthTag}</td><td>${formatDate(md.start_date)}</td><td>${formatDate(md.end_date)}</td><td>${dur}</td><td><button class="btn-expand" data-idx="${i}">View Bhukti \u25BC</button></td>`;tbody.appendChild(tr);});
+    $$(".btn-expand").forEach((btn)=>{btn.addEventListener("click",()=>{const idx=parseInt(btn.dataset.idx);showAntardashas(report.maha_dashas[idx]);});});
+    window._dashaReport=report;
+}
+
+function showAntardashas(mahaDasha){
+    const section=$("#antardashaSection");section.style.display="block";
+    $("#antardashaTitle").textContent=`Antardashas (Bhukti) within ${mahaDasha.maha_dasha_lord} Maha Dasha`;
+    const tbody=$("#antardashaTableBody");tbody.innerHTML="";
+    mahaDasha.antardashas.forEach((ad,i)=>{const tr=document.createElement("tr");const dur=`${ad.duration_ymd.years}y ${ad.duration_ymd.months}m ${ad.duration_ymd.days}d`;tr.innerHTML=`<td>${i+1}</td><td><strong>${ad.antar_dasha_lord}</strong></td><td>${formatDate(ad.start_date)}</td><td>${formatDate(ad.end_date)}</td><td>${dur}</td>`;tbody.appendChild(tr);});
+    section.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function renderCurrentDasha(data){
+    const cd=data.current_dasha;const container=$("#currentDashaContent");
+    const now=new Date();$("#currentDateLabel").textContent=`As of ${now.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})}`;
+    if(!cd){container.innerHTML='<p style="padding:20px;color:#999;">Current dasha information not available for this birth date.</p>';return;}
+    let html=`<div class="dasha-card dasha-card-maha"><div class="dasha-card-level">Maha Dasha</div><div class="dasha-card-lord">${cd.maha}</div><div class="dasha-card-dates">${cd.maha_start} \u2014 ${cd.maha_end}</div></div><div class="dasha-card dasha-card-antar"><div class="dasha-card-level">Antardasha (Bhukti)</div><div class="dasha-card-lord">${cd.antar}</div><div class="dasha-card-dates">${cd.antar_start} \u2014 ${cd.antar_end}</div></div>`;
+    if(cd.pratyantar){html+=`<div class="dasha-card dasha-card-pratyantar"><div class="dasha-card-level">Pratyantardasha</div><div class="dasha-card-lord">${cd.pratyantar}</div><div class="dasha-card-dates">${cd.pratyantar_start} \u2014 ${cd.pratyantar_end}</div></div>`;}
+    container.innerHTML=html;
+}
+
+function switchTab(tabId){$$(".tab").forEach((t)=>t.classList.remove("active"));$$(".tab-panel").forEach((p)=>p.classList.remove("active"));const btn=document.querySelector(`.tab[data-tab="${tabId}"]`);const panel=$(`#${tabId}`);if(btn)btn.classList.add("active");if(panel)panel.classList.add("active");}
+
+function showError(msg){const banner=$("#errorBanner");const text=$("#errorText");text.textContent=msg;banner.style.display="flex";}
+function hideError(){$("#errorBanner").style.display="none";}
+function formatDate(dateStr){if(!dateStr)return"\u2014";const parts=dateStr.split(" ");const[y,m,d]=parts[0].split("-");const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return`${parseInt(d)}-${months[parseInt(m)-1]}-${y}`;}
+function printChart(){window.print();}
+function downloadSVG(){const svgEl=document.querySelector("#chartContainer svg");if(!svgEl){alert("No chart available to download.");return;}const svgData=new XMLSerializer().serializeToString(svgEl);const blob=new Blob([svgData],{type:"image/svg+xml"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="vedic_birth_chart.svg";document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
+    </script>
 </body>
 </html>
