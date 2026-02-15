@@ -2,8 +2,9 @@
 """
 Vedic Astrology Chart Generator
 ================================
-Calculates planetary positions using Swiss Ephemeris with Lahiri Ayanamsa
-and renders a South Indian style birth chart using jyotichart.
+Calculates sidereal planetary positions using Swiss Ephemeris with
+Lahiri Ayanamsa (Indian Astronomical Ephemeris standard) and renders
+a South Indian style birth chart using jyotichart.
 
 Usage:
     python chart_gen.py
@@ -15,7 +16,6 @@ Requires:
 """
 
 import os
-import sys
 import math
 from datetime import datetime
 
@@ -29,13 +29,54 @@ import jyotichart
 
 EPHE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ephe")
 
-# Zodiac signs in order (0-11)
-SIGNS = [
+# The 12 Rashis (sidereal zodiac signs) in order, index 0-11.
+# Note: "Saggitarius" spelling matches jyotichart's expected input.
+RASHI_NAMES = [
     "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
     "Libra", "Scorpio", "Saggitarius", "Capricorn", "Aquarius", "Pisces"
 ]
 
-# Swiss Ephemeris planet IDs and their display info
+# Sanskrit Rashi names (for display)
+RASHI_SANSKRIT = [
+    "Mesha", "Vrishabha", "Mithuna", "Karka", "Simha", "Kanya",
+    "Tula", "Vrischika", "Dhanu", "Makara", "Kumbha", "Meena"
+]
+
+# Rashi lords (rulers of each sign)
+RASHI_LORDS = [
+    "Mars", "Venus", "Mercury", "Moon", "Sun", "Mercury",
+    "Venus", "Mars", "Jupiter", "Saturn", "Saturn", "Jupiter"
+]
+
+# South Indian chart: fixed grid positions for each Rashi.
+# The 4x4 outer grid maps sign indices to (row, col) positions.
+#
+#   Col 0        Col 1       Col 2       Col 3
+#  ┌───────────┬───────────┬───────────┬───────────┐
+#  │ Pisces(11)│ Aries(0)  │Taurus(1)  │Gemini(2)  │ Row 0
+#  ├───────────┼───────────┴───────────┼───────────┤
+#  │Aquar.(10) │                       │Cancer(3)  │ Row 1
+#  ├───────────┤        (center)       ├───────────┤
+#  │Capri.(9)  │                       │  Leo(4)   │ Row 2
+#  ├───────────┼───────────┬───────────┼───────────┤
+#  │ Saggi.(8) │Scorpio(7) │ Libra(6)  │ Virgo(5)  │ Row 3
+#  └───────────┴───────────┴───────────┴───────────┘
+SOUTH_INDIAN_GRID = {
+    0:  (0, 1),   # Aries
+    1:  (0, 2),   # Taurus
+    2:  (0, 3),   # Gemini
+    3:  (1, 3),   # Cancer
+    4:  (2, 3),   # Leo
+    5:  (3, 3),   # Virgo
+    6:  (3, 2),   # Libra
+    7:  (3, 1),   # Scorpio
+    8:  (3, 0),   # Sagittarius
+    9:  (2, 0),   # Capricorn
+    10: (1, 0),   # Aquarius
+    11: (0, 0),   # Pisces
+}
+
+# Swiss Ephemeris planet IDs → (display name, short symbol, jyotichart const)
 PLANETS = [
     (swe.SUN,     "Sun",     "Su", jyotichart.SUN),
     (swe.MOON,    "Moon",    "Mo", jyotichart.MOON),
@@ -46,12 +87,44 @@ PLANETS = [
     (swe.SATURN,  "Saturn",  "Sa", jyotichart.SATURN),
 ]
 
-# Mean node for Rahu; Ketu is 180 degrees opposite
-RAHU_ID = swe.MEAN_NODE
+RAHU_ID = swe.MEAN_NODE  # Mean node for Rahu; Ketu = Rahu + 180°
+
+# Map planet names to jyotichart constants
+JYOTICHART_PLANET_MAP = {
+    "Sun":     jyotichart.SUN,
+    "Moon":    jyotichart.MOON,
+    "Mars":    jyotichart.MARS,
+    "Mercury": jyotichart.MERCURY,
+    "Jupiter": jyotichart.JUPITER,
+    "Venus":   jyotichart.VENUS,
+    "Saturn":  jyotichart.SATURN,
+    "Rahu":    jyotichart.RAHU,
+    "Ketu":    jyotichart.KETU,
+}
 
 
 # ---------------------------------------------------------------------------
-# Helper functions
+# Ephemeris initialisation — Lahiri Ayanamsa
+# ---------------------------------------------------------------------------
+
+def init_swe():
+    """
+    Initialise Swiss Ephemeris with Lahiri Ayanamsa.
+
+    Lahiri Ayanamsa is the official standard adopted by the Indian
+    Astronomical Ephemeris (published by the Positional Astronomy Centre,
+    Government of India). It is based on the precession of the equinoxes
+    with the initial point fixed such that the star Spica (Chitra) is at
+    0° Libra in the sidereal zodiac.
+
+    This function MUST be called before any calculation.
+    """
+    swe.set_ephe_path(EPHE_PATH)
+    swe.set_sid_mode(swe.SIDM_LAHIRI)
+
+
+# ---------------------------------------------------------------------------
+# Degree / Rashi conversion helpers
 # ---------------------------------------------------------------------------
 
 def deg_to_dms(deg):
@@ -68,240 +141,325 @@ def format_dms(deg):
     return f"{d}°{m:02d}'{s:04.1f}\""
 
 
-def sign_index(longitude):
-    """Return 0-based sign index (0=Aries .. 11=Pisces) from longitude."""
-    return int(longitude / 30.0) % 12
+def longitude_to_rashi(longitude):
+    """
+    Convert a sidereal longitude (0°–360°) to its Rashi (sign).
+
+    Returns
+    -------
+    dict with:
+        'index'     : int 0-11 (0=Aries/Mesha … 11=Pisces/Meena)
+        'name'      : English sign name (e.g. "Aries")
+        'sanskrit'  : Sanskrit name (e.g. "Mesha")
+        'lord'      : Ruling planet of this sign
+        'deg'       : Degrees within the sign (0-30)
+        'deg_dms'   : Formatted D°M'S" within the sign
+        'grid_pos'  : (row, col) position in the South Indian chart
+    """
+    idx = int(longitude / 30.0) % 12
+    deg_in_sign = longitude % 30.0
+    return {
+        "index":    idx,
+        "name":     RASHI_NAMES[idx],
+        "sanskrit": RASHI_SANSKRIT[idx],
+        "lord":     RASHI_LORDS[idx],
+        "deg":      deg_in_sign,
+        "deg_dms":  format_dms(deg_in_sign),
+        "grid_pos": SOUTH_INDIAN_GRID[idx],
+    }
 
 
-def sign_name(longitude):
-    """Return the zodiac sign name for a given sidereal longitude."""
-    return SIGNS[sign_index(longitude)]
+def rashi_to_house(planet_rashi_index, asc_rashi_index):
+    """
+    Return house number (1-12) for a planet.
+    House 1 = the Rashi occupied by the Ascendant (Lagna).
+    """
+    return ((planet_rashi_index - asc_rashi_index) % 12) + 1
 
 
-def sign_degrees(longitude):
-    """Return degrees within the sign (0-30) for a given longitude."""
-    return longitude % 30.0
-
+# ---------------------------------------------------------------------------
+# Julian Day conversion
+# ---------------------------------------------------------------------------
 
 def datetime_to_jd(year, month, day, hour, minute, second, utc_offset):
     """
-    Convert date/time with UTC offset to Julian Day Number.
+    Convert a local date/time + UTC offset to Julian Day (UT).
 
     Parameters
     ----------
     year, month, day : int
     hour, minute, second : int
+        Local time components.
     utc_offset : float
         Hours ahead of UTC (e.g. +5.5 for IST).
     """
-    # Convert local time to UTC
-    decimal_hour = hour + minute / 60.0 + second / 3600.0 - utc_offset
-    jd = swe.julday(year, month, day, decimal_hour)
-    return jd
+    decimal_hour_ut = hour + minute / 60.0 + second / 3600.0 - utc_offset
+    return swe.julday(year, month, day, decimal_hour_ut)
 
 
 # ---------------------------------------------------------------------------
-# Core calculation
+# Core sidereal calculation — Sun, Moon, Lagna
+# ---------------------------------------------------------------------------
+
+def get_sidereal_positions(jd, latitude, longitude):
+    """
+    Compute the sidereal positions of the **Sun**, **Moon**, and
+    **Ascendant (Lagna)** for a given Julian Day and geographic location,
+    using Lahiri Ayanamsa.
+
+    This is the minimal function required for Rashi chart placement.
+    ``init_swe()`` must have been called first so that
+    ``swe.SIDM_LAHIRI`` is active.
+
+    Parameters
+    ----------
+    jd : float
+        Julian Day number in Universal Time.
+    latitude : float
+        Geographic latitude (north positive).
+    longitude : float
+        Geographic longitude (east positive).
+
+    Returns
+    -------
+    dict with keys:
+        'ayanamsa'  : Lahiri Ayanamsa value (degrees) for this JD
+        'sun'       : dict  – sidereal longitude, Rashi info, speed
+        'moon'      : dict  – sidereal longitude, Rashi info, speed
+        'ascendant' : dict  – sidereal longitude, Rashi info
+    """
+    # --- Ayanamsa ---------------------------------------------------------
+    ayanamsa = swe.get_ayanamsa_ut(jd)
+
+    # --- Flags: Swiss Ephemeris + Sidereal (Lahiri) + Speed ---------------
+    calc_flags = swe.FLG_SWIEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED
+
+    # --- Sun --------------------------------------------------------------
+    sun_pos, _ = swe.calc_ut(jd, swe.SUN, calc_flags)
+    sun_lon = sun_pos[0]
+    sun_rashi = longitude_to_rashi(sun_lon)
+
+    # --- Moon -------------------------------------------------------------
+    moon_pos, _ = swe.calc_ut(jd, swe.MOON, calc_flags)
+    moon_lon = moon_pos[0]
+    moon_rashi = longitude_to_rashi(moon_lon)
+
+    # --- Ascendant (Lagna) ------------------------------------------------
+    # swe.houses_ex with FLG_SIDEREAL returns sidereal cusps/angles.
+    # ascmc[0] = Ascendant, ascmc[1] = MC.
+    _, ascmc = swe.houses_ex(
+        jd, latitude, longitude,
+        b'P',  # house system (Placidus); only ascmc[0] is used here
+        flags=swe.FLG_SIDEREAL,
+    )
+    asc_lon = ascmc[0]
+    asc_rashi = longitude_to_rashi(asc_lon)
+
+    return {
+        "ayanamsa": ayanamsa,
+        "sun": {
+            "longitude": sun_lon,
+            "speed": sun_pos[3],
+            "rashi": sun_rashi,
+        },
+        "moon": {
+            "longitude": moon_lon,
+            "speed": moon_pos[3],
+            "rashi": moon_rashi,
+        },
+        "ascendant": {
+            "longitude": asc_lon,
+            "rashi": asc_rashi,
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Full planetary calculation (all 9 grahas + Lagna)
 # ---------------------------------------------------------------------------
 
 def calculate_positions(year, month, day, hour, minute, second,
                         utc_offset, latitude, longitude):
     """
-    Calculate sidereal planetary positions and ascendant using
-    Lahiri Ayanamsa via Swiss Ephemeris.
+    Calculate sidereal positions of all nine Vedic planets and the
+    Ascendant, using Lahiri Ayanamsa via Swiss Ephemeris.
+
+    Every ``swe.calc_ut`` call uses ``swe.FLG_SIDEREAL`` so all
+    longitudes are already in the sidereal (Lahiri) frame — no manual
+    ayanamsa subtraction is needed.
 
     Parameters
     ----------
     year, month, day : int
-        Date of birth.
     hour, minute, second : int
-        Time of birth (local time).
+        Local birth time.
     utc_offset : float
-        UTC offset in hours (e.g. 5.5 for IST).
-    latitude : float
-        Birth latitude in decimal degrees (north positive).
-    longitude : float
-        Birth longitude in decimal degrees (east positive).
+        Hours ahead of UTC (e.g. 5.5 for IST).
+    latitude, longitude : float
+        Birth coordinates (north/east positive).
 
     Returns
     -------
-    dict with keys:
-        'jd'        : Julian Day
-        'ayanamsa'  : Lahiri Ayanamsa value used
-        'ascendant' : dict with 'longitude', 'sign', 'sign_deg'
-        'planets'   : list of dicts with planet info
+    dict with:
+        'jd'        – Julian Day (UT)
+        'ayanamsa'  – Lahiri Ayanamsa value
+        'ascendant' – Lagna info dict
+        'planets'   – list of 9 planet info dicts
     """
-    # Set ephemeris path
-    swe.set_ephe_path(EPHE_PATH)
+    # Ensure Lahiri Ayanamsa is active
+    init_swe()
 
-    # Set Lahiri Ayanamsa (Indian standard, officially adopted by
-    # the Indian Astronomical Ephemeris)
-    swe.set_sid_mode(swe.SIDM_LAHIRI)
-
-    # Compute Julian Day in UT
     jd = datetime_to_jd(year, month, day, hour, minute, second, utc_offset)
-
-    # Get Ayanamsa value for this date
     ayanamsa = swe.get_ayanamsa_ut(jd)
 
-    # Calculate Ascendant (Lagna)
-    # swe.houses_ex returns (cusps, ascmc) — ascmc[0] is the Ascendant
-    cusps, ascmc = swe.houses_ex(jd, latitude, longitude,
-                                  b'P',  # Placidus (used only for cusp calc)
-                                  flags=swe.FLG_SIDEREAL)
-    asc_longitude = ascmc[0]  # Sidereal ascendant
+    # ---- Ascendant (Lagna) -----------------------------------------------
+    _, ascmc = swe.houses_ex(
+        jd, latitude, longitude,
+        b'P',
+        flags=swe.FLG_SIDEREAL,
+    )
+    asc_lon = ascmc[0]
+    asc_rashi = longitude_to_rashi(asc_lon)
 
     result = {
-        'jd': jd,
-        'ayanamsa': ayanamsa,
-        'ascendant': {
-            'longitude': asc_longitude,
-            'sign': sign_name(asc_longitude),
-            'sign_index': sign_index(asc_longitude),
-            'sign_deg': sign_degrees(asc_longitude),
+        "jd": jd,
+        "ayanamsa": ayanamsa,
+        "ascendant": {
+            "longitude": asc_lon,
+            "sign": asc_rashi["name"],
+            "sign_index": asc_rashi["index"],
+            "sign_deg": asc_rashi["deg"],
+            "rashi": asc_rashi,
         },
-        'planets': [],
+        "planets": [],
     }
 
-    # Calculate each planet
-    for swe_id, name, symbol, _ in PLANETS:
-        flags = swe.FLG_SWIEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED
-        pos, ret = swe.calc_ut(jd, swe_id, flags)
-        lon = pos[0]      # sidereal longitude
-        speed = pos[3]    # daily speed — negative means retrograde
+    asc_idx = asc_rashi["index"]
 
-        result['planets'].append({
-            'name': name,
-            'symbol': symbol,
-            'longitude': lon,
-            'sign': sign_name(lon),
-            'sign_index': sign_index(lon),
-            'sign_deg': sign_degrees(lon),
-            'retrograde': speed < 0,
-            'speed': speed,
+    # ---- Seven visible planets -------------------------------------------
+    calc_flags = swe.FLG_SWIEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED
+
+    for swe_id, name, symbol, _ in PLANETS:
+        pos, _ = swe.calc_ut(jd, swe_id, calc_flags)
+        lon = pos[0]
+        speed = pos[3]
+        rashi = longitude_to_rashi(lon)
+
+        result["planets"].append({
+            "name": name,
+            "symbol": symbol,
+            "longitude": lon,
+            "sign": rashi["name"],
+            "sign_index": rashi["index"],
+            "sign_deg": rashi["deg"],
+            "rashi": rashi,
+            "house": rashi_to_house(rashi["index"], asc_idx),
+            "retrograde": speed < 0,
+            "speed": speed,
         })
 
-    # Rahu (Mean Node)
-    flags = swe.FLG_SWIEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED
-    pos, ret = swe.calc_ut(jd, RAHU_ID, flags)
+    # ---- Rahu (Mean Node) ------------------------------------------------
+    pos, _ = swe.calc_ut(jd, RAHU_ID, calc_flags)
     rahu_lon = pos[0]
+    rahu_rashi = longitude_to_rashi(rahu_lon)
 
-    result['planets'].append({
-        'name': 'Rahu',
-        'symbol': 'Ra',
-        'longitude': rahu_lon,
-        'sign': sign_name(rahu_lon),
-        'sign_index': sign_index(rahu_lon),
-        'sign_deg': sign_degrees(rahu_lon),
-        'retrograde': True,  # Rahu is always retrograde
-        'speed': pos[3],
+    result["planets"].append({
+        "name": "Rahu",
+        "symbol": "Ra",
+        "longitude": rahu_lon,
+        "sign": rahu_rashi["name"],
+        "sign_index": rahu_rashi["index"],
+        "sign_deg": rahu_rashi["deg"],
+        "rashi": rahu_rashi,
+        "house": rashi_to_house(rahu_rashi["index"], asc_idx),
+        "retrograde": True,
+        "speed": pos[3],
     })
 
-    # Ketu (180° opposite Rahu)
+    # ---- Ketu (180° opposite Rahu) ---------------------------------------
     ketu_lon = (rahu_lon + 180.0) % 360.0
+    ketu_rashi = longitude_to_rashi(ketu_lon)
 
-    result['planets'].append({
-        'name': 'Ketu',
-        'symbol': 'Ke',
-        'longitude': ketu_lon,
-        'sign': sign_name(ketu_lon),
-        'sign_index': sign_index(ketu_lon),
-        'sign_deg': sign_degrees(ketu_lon),
-        'retrograde': True,  # Ketu is always retrograde
-        'speed': -abs(pos[3]),
+    result["planets"].append({
+        "name": "Ketu",
+        "symbol": "Ke",
+        "longitude": ketu_lon,
+        "sign": ketu_rashi["name"],
+        "sign_index": ketu_rashi["index"],
+        "sign_deg": ketu_rashi["deg"],
+        "rashi": ketu_rashi,
+        "house": rashi_to_house(ketu_rashi["index"], asc_idx),
+        "retrograde": True,
+        "speed": -abs(pos[3]),
     })
 
     return result
 
 
 # ---------------------------------------------------------------------------
-# Chart rendering
+# South Indian chart rendering
 # ---------------------------------------------------------------------------
-
-def get_house_number(planet_sign_index, asc_sign_index):
-    """
-    Return house number (1-12) for a planet given its sign index
-    and the ascendant sign index. House 1 = ascendant sign.
-    """
-    return ((planet_sign_index - asc_sign_index) % 12) + 1
-
-
-# Map planet names to jyotichart planet constants
-JYOTICHART_PLANET_MAP = {
-    'Sun':     jyotichart.SUN,
-    'Moon':    jyotichart.MOON,
-    'Mars':    jyotichart.MARS,
-    'Mercury': jyotichart.MERCURY,
-    'Jupiter': jyotichart.JUPITER,
-    'Venus':   jyotichart.VENUS,
-    'Saturn':  jyotichart.SATURN,
-    'Rahu':    jyotichart.RAHU,
-    'Ketu':    jyotichart.KETU,
-}
-
 
 def generate_south_chart(positions, person_name="Native", output_dir=None,
                          filename="birth_chart"):
     """
-    Generate a South Indian style birth chart SVG using jyotichart.
+    Render a South Indian style Rashi chart as SVG via jyotichart.
+
+    In the South Indian format the 12 sign boxes are **fixed** — Pisces
+    is always top-left, Aries top-second, etc.  The Ascendant sign is
+    marked, and planets are placed into their respective Rashi boxes.
 
     Parameters
     ----------
     positions : dict
-        Output from calculate_positions().
+        Output from ``calculate_positions()``.
     person_name : str
-        Name of the person.
     output_dir : str or None
-        Directory to save the SVG. Defaults to ./output.
+        Defaults to ``./output``.
     filename : str
-        Output filename (without .svg extension).
+        Without ``.svg`` extension.
 
     Returns
     -------
-    str : Path to the generated SVG file.
+    str – path to generated SVG, or None on error.
     """
     if output_dir is None:
-        output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                  "output")
+        output_dir = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "output")
     os.makedirs(output_dir, exist_ok=True)
 
-    # Create chart
     chart = jyotichart.SouthChart(
         chartname="Rasi",
         personname=person_name,
         IsFullChart=True,
     )
 
-    # Set ascendant sign
-    asc_sign = positions['ascendant']['sign']
-    asc_sign_idx = positions['ascendant']['sign_index']
-    result = chart.set_ascendantsign(asc_sign)
-    if result != "Success":
-        print(f"Error setting ascendant: {result}")
+    asc_sign = positions["ascendant"]["sign"]
+    asc_idx = positions["ascendant"]["sign_index"]
+    res = chart.set_ascendantsign(asc_sign)
+    if res != "Success":
+        print(f"Error setting ascendant: {res}")
         return None
 
-    # Add each planet
-    for planet in positions['planets']:
-        house_num = get_house_number(planet['sign_index'], asc_sign_idx)
-        jc_planet = JYOTICHART_PLANET_MAP[planet['name']]
+    for planet in positions["planets"]:
+        house_num = rashi_to_house(planet["sign_index"], asc_idx)
+        jc_planet = JYOTICHART_PLANET_MAP[planet["name"]]
 
-        # Display symbol with degrees inside the sign
-        d, m, _ = deg_to_dms(planet['sign_deg'])
+        d, m, _ = deg_to_dms(planet["sign_deg"])
         label = f"{planet['symbol']} {d}:{m:02d}"
 
-        result = chart.add_planet(
+        res = chart.add_planet(
             planet=jc_planet,
             symbol=label,
             housenum=house_num,
-            retrograde=planet['retrograde'],
+            retrograde=planet["retrograde"],
         )
-        if result != "Success":
-            print(f"Error adding {planet['name']}: {result}")
+        if res != "Success":
+            print(f"Error adding {planet['name']}: {res}")
 
-    # Draw chart
-    result = chart.draw(location=output_dir, filename=filename)
-    if result != "Success":
-        print(f"Error drawing chart: {result}")
+    res = chart.draw(location=output_dir, filename=filename)
+    if res != "Success":
+        print(f"Error drawing chart: {res}")
         return None
 
     svg_path = os.path.join(output_dir, f"{filename}.svg")
@@ -315,34 +473,71 @@ def generate_south_chart(positions, person_name="Native", output_dir=None,
 
 def print_positions(positions):
     """Print a formatted table of planetary positions to the console."""
-    print("=" * 70)
+    print("=" * 78)
     print("  VEDIC BIRTH CHART — Lahiri Ayanamsa (Indian Astronomical Ephemeris)")
-    print("=" * 70)
-    print(f"  Julian Day   : {positions['jd']:.6f}")
-    print(f"  Ayanamsa     : {format_dms(positions['ayanamsa'])}")
-    print("-" * 70)
+    print("=" * 78)
+    print(f"  Julian Day : {positions['jd']:.6f}")
+    print(f"  Ayanamsa   : {format_dms(positions['ayanamsa'])}")
+    print("-" * 78)
 
-    asc = positions['ascendant']
-    print(f"  {'Ascendant (Lagna)':<18} {asc['sign']:<14} "
-          f"{format_dms(asc['sign_deg'])}")
-    print("-" * 70)
-    print(f"  {'Planet':<18} {'Sign':<14} {'Degrees':<14} {'Retro'}")
-    print("-" * 70)
+    asc = positions["ascendant"]
+    r = asc["rashi"]
+    print(f"  {'Ascendant':<10} │ {r['name']:<14} ({r['sanskrit']:<10}) │ "
+          f"{r['deg_dms']:<14} │ Lord: {r['lord']}")
+    print("-" * 78)
+    print(f"  {'Planet':<10} │ {'Rashi':<14} {'(Sanskrit)':<12} │ "
+          f"{'Degrees':<14} │ {'House':>5}  {'R':>3}")
+    print("-" * 78)
 
-    for p in positions['planets']:
-        retro = "(R)" if p['retrograde'] else ""
-        print(f"  {p['name']:<18} {p['sign']:<14} "
-              f"{format_dms(p['sign_deg']):<14} {retro}")
+    for p in positions["planets"]:
+        r = p["rashi"]
+        retro = "(R)" if p["retrograde"] else ""
+        print(f"  {p['name']:<10} │ {r['name']:<14} ({r['sanskrit']:<10}) │ "
+              f"{r['deg_dms']:<14} │ {p['house']:>5}  {retro:>3}")
 
-    print("=" * 70)
+    print("=" * 78)
+
+    # South Indian grid summary
+    print("\n  South Indian Chart Grid (fixed-sign layout):")
+    print("  ┌────────────┬────────────┬────────────┬────────────┐")
+    grid = {}
+    for p in positions["planets"]:
+        row, col = SOUTH_INDIAN_GRID[p["sign_index"]]
+        grid.setdefault((row, col), []).append(p["symbol"])
+
+    asc_grid = SOUTH_INDIAN_GRID[asc["sign_index"]]
+
+    for row in range(4):
+        cells = []
+        for col in range(4):
+            if row in (1, 2) and col in (1, 2):
+                cells.append("          ")
+                continue
+            idx = [k for k, v in SOUTH_INDIAN_GRID.items()
+                   if v == (row, col)][0]
+            planets_here = grid.get((row, col), [])
+            marker = "*" if (row, col) == asc_grid else " "
+            abbr = RASHI_SANSKRIT[idx][:3]
+            body = f"{abbr}{marker}" + " ".join(planets_here)
+            cells.append(f"{body:<10}")
+        print(f"  │ {'│ '.join(cells)}│")
+        if row < 3:
+            if row == 0 or row == 2:
+                print("  ├────────────┼────────────┼"
+                      "────────────┼────────────┤")
+            else:
+                print("  │            ├────────────┼"
+                      "────────────┤            │")
+    print("  └────────────┴────────────┴────────────┴────────────┘")
+    print("  (* = Ascendant sign)\n")
 
 
 # ---------------------------------------------------------------------------
-# Main entry point
+# Interactive CLI
 # ---------------------------------------------------------------------------
 
 def get_birth_details():
-    """Prompt the user for birth details interactively."""
+    """Prompt the user for birth details."""
     print("\n" + "=" * 50)
     print("  VEDIC ASTROLOGY — Birth Chart Generator")
     print("  (Lahiri Ayanamsa | South Indian Chart)")
@@ -364,46 +559,45 @@ def get_birth_details():
     utc_offset = float(input("  UTC offset (e.g. 5.5 for IST) : "))
 
     print("\n  --- Place of Birth (coordinates) ---")
-    latitude  = float(input("  Latitude  (N positive, e.g. 13.0827)  : "))
-    longitude = float(input("  Longitude (E positive, e.g. 80.2707)  : "))
+    latitude  = float(input("  Latitude  (N+, e.g. 13.0827)  : "))
+    longitude = float(input("  Longitude (E+, e.g. 80.2707)  : "))
 
     return {
-        'name': name,
-        'year': year, 'month': month, 'day': day,
-        'hour': hour, 'minute': minute, 'second': second,
-        'utc_offset': utc_offset,
-        'latitude': latitude, 'longitude': longitude,
+        "name": name,
+        "year": year, "month": month, "day": day,
+        "hour": hour, "minute": minute, "second": second,
+        "utc_offset": utc_offset,
+        "latitude": latitude, "longitude": longitude,
     }
 
 
 def main():
-    """Main function — gather input, calculate, display, and render chart."""
+    """Gather input, calculate, display, and render chart."""
     birth = get_birth_details()
 
-    print("\nCalculating planetary positions...")
+    print("\nCalculating sidereal positions (Lahiri Ayanamsa)...\n")
 
+    # Full calculation — all 9 planets + Lagna
     positions = calculate_positions(
-        year=birth['year'],
-        month=birth['month'],
-        day=birth['day'],
-        hour=birth['hour'],
-        minute=birth['minute'],
-        second=birth['second'],
-        utc_offset=birth['utc_offset'],
-        latitude=birth['latitude'],
-        longitude=birth['longitude'],
+        year=birth["year"], month=birth["month"], day=birth["day"],
+        hour=birth["hour"], minute=birth["minute"], second=birth["second"],
+        utc_offset=birth["utc_offset"],
+        latitude=birth["latitude"], longitude=birth["longitude"],
     )
 
-    # Print positions to console
+    # Also demonstrate the focused Sun/Moon/Lagna function
+    jd = positions["jd"]
+    core = get_sidereal_positions(jd, birth["latitude"], birth["longitude"])
+    print(f"  Quick check — Sun  Rashi : {core['sun']['rashi']['sanskrit']}")
+    print(f"  Quick check — Moon Rashi : {core['moon']['rashi']['sanskrit']}")
+    print(f"  Quick check — Lagna      : {core['ascendant']['rashi']['sanskrit']}")
+    print()
+
     print_positions(positions)
 
-    # Generate South Indian chart SVG
-    generate_south_chart(
-        positions=positions,
-        person_name=birth['name'],
-    )
+    generate_south_chart(positions, person_name=birth["name"])
 
-    print("\nDone.")
+    print("Done.")
 
 
 if __name__ == "__main__":
