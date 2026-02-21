@@ -9,6 +9,9 @@
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9790;</text></svg>">
 
+    <!-- html2pdf.js for PDF download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <!-- Inline Styles (no external dependencies) -->
     <style>
 :root {
@@ -113,11 +116,75 @@ input:focus, select:focus { outline: none; border-color: var(--color-saffron); b
 .dasha-card-dates { font-size: 0.78rem; opacity: 0.85; }
 .btn-expand { background: none; border: none; color: var(--color-saffron); cursor: pointer; font-size: 0.82rem; font-weight: 500; padding: 4px 8px; border-radius: 4px; transition: background 0.2s; }
 .btn-expand:hover { background: var(--color-saffron-lt); }
+.download-bar { display: flex; gap: 10px; justify-content: center; padding: 20px 0; flex-wrap: wrap; margin-bottom: 8px; }
 .site-footer { margin-top: auto; background: var(--color-text); color: rgba(255,255,255,0.6); padding: 20px 0; text-align: center; font-size: 0.78rem; }
 .footer-tech { margin-top: 4px; font-size: 0.7rem; opacity: 0.5; }
-@media print { .site-header, .site-footer, .tabs, .form-card, .card-actions, .btn-expand, #loadingSection { display: none !important; } .tab-panel { display: block !important; } .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; } .summary-card { color: #000; background: #f5f5f5 !important; } .summary-card .summary-label { color: #666; } body { background: #fff; } }
+@media print {
+.site-header, .site-footer, .tabs, .form-card, .card-actions, .btn-expand, #loadingSection, .download-bar, #form-section { display: none !important; }
+.tab-panel { display: block !important; page-break-before: auto; page-break-after: auto; page-break-inside: avoid; }
+.card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; margin-bottom: 20px; }
+.summary-card { color: #000 !important; background: #f5f5f5 !important; page-break-after: avoid; }
+.summary-card .summary-label { color: #666 !important; }
+.summary-card .summary-value { color: #000 !important; }
+body { background: #fff; }
+#resultsSection { display: block !important; }
+.data-table { page-break-inside: auto; }
+.data-table tr { page-break-inside: avoid; page-break-after: auto; }
+.dasha-timeline { page-break-inside: avoid; }
+.current-dasha-grid { page-break-inside: avoid; }
+}
 @media (max-width: 768px) { .container { padding: 0 16px; } .header-inner { height: auto; padding: 12px 0; flex-direction: column; gap: 8px; } .header-meta { display: none; } .brand-name { font-size: 1.25rem; } .form-row { flex-direction: column; gap: 12px; } .form-actions { flex-direction: column; } .form-actions .btn { width: 100%; justify-content: center; } .summary-grid { grid-template-columns: repeat(2, 1fr); } .summary-item:nth-child(3n) { border-right: 1px solid rgba(255,255,255,0.12); } .summary-item:nth-child(2n) { border-right: none; } .summary-item:last-child { border-right: none; } .tabs { gap: 0; } .tab { padding: 10px 12px; font-size: 0.78rem; } .chart-container { padding: 12px; } .current-dasha-grid { grid-template-columns: 1fr; } .dasha-timeline { height: 36px; } .dasha-bar { font-size: 0.6rem; } .chart-meta { flex-direction: column; align-items: center; gap: 4px; } }
 @media (max-width: 480px) { .summary-grid { grid-template-columns: 1fr; } .summary-item { border-right: none !important; } }
+/* ── Panchanga Panel ── */
+.pancha-section { padding: 20px 24px; }
+.pancha-section-title { font-family: var(--font-display); font-size: 1rem; color: var(--color-maroon); margin-bottom: 14px; padding-bottom: 6px; border-bottom: 1px solid var(--color-border-lt); }
+.pancha-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.pancha-card { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 14px 18px; }
+.pancha-card-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-3); margin-bottom: 6px; }
+.pancha-card-main { font-family: var(--font-display); font-size: 1.1rem; color: var(--color-text); font-weight: 500; margin-bottom: 3px; }
+.pancha-card-sub { font-size: 0.8rem; color: var(--color-text-2); }
+.pancha-badge { display: inline-block; font-size: 0.68rem; padding: 1px 7px; border-radius: 10px; font-weight: 600; margin-left: 4px; vertical-align: middle; }
+.pancha-badge-good { background: #e8f5e9; color: var(--color-success); }
+.pancha-badge-bad { background: var(--color-maroon-lt); color: var(--color-maroon); }
+.pancha-time-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--color-border-lt); font-size: 0.88rem; }
+.pancha-time-row:last-child { border-bottom: none; }
+.pancha-time-label { font-weight: 500; color: var(--color-text-2); }
+.pancha-time-value { color: var(--color-text); font-family: monospace; font-size: 0.9rem; }
+.pancha-quality-banner { padding: 14px 24px; margin: 12px 24px 4px; border-radius: var(--radius); text-align: center; }
+.pancha-quality-good { background: #e8f5e9; border: 1px solid #a5d6a7; color: #1b5e20; }
+.pancha-quality-bad { background: var(--color-maroon-lt); border: 1px solid #f48fb1; color: var(--color-maroon); }
+.pancha-quality-neutral { background: var(--color-gold-lt); border: 1px solid #f0e1a1; color: var(--color-gold); }
+/* ── Interpretations Panel ── */
+.interp-house { border: 1px solid var(--color-border); border-radius: var(--radius); margin: 16px 20px; overflow: hidden; }
+.interp-house-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--color-bg); cursor: pointer; user-select: none; }
+.interp-house-header:hover { background: var(--color-saffron-lt); }
+.interp-house-title { font-family: var(--font-display); font-size: 1rem; color: var(--color-maroon); font-weight: 600; }
+.interp-house-meta { display: flex; gap: 8px; align-items: center; font-size: 0.8rem; color: var(--color-text-3); }
+.interp-house-body { display: none; padding: 0 20px 20px; border-top: 1px solid var(--color-border-lt); background: #fff; }
+.interp-house-body.open { display: block; }
+.interp-section { margin-top: 16px; }
+.interp-section-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-3); margin-bottom: 6px; font-weight: 600; }
+.interp-text { font-size: 0.88rem; color: var(--color-text-2); line-height: 1.7; }
+.interp-overall { font-size: 0.9rem; color: var(--color-text); line-height: 1.75; background: var(--color-gold-lt); border-left: 3px solid var(--color-gold); padding: 12px 16px; border-radius: 0 var(--radius) var(--radius) 0; margin-top: 6px; }
+.interp-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.interp-bphs-block { background: #fffbf0; border-left: 3px solid #c8922a; border-radius: 0 6px 6px 0; padding: 12px 16px; margin-top: 16px; }
+.interp-bphs-block .interp-section-label { color: #7a5200; }
+.interp-bphs-text { font-style: italic; color: #4a3500; line-height: 1.8; }
+.interp-bphs-details { margin-top: 16px; border-top: 1px dashed #ddd; padding-top: 12px; }
+.interp-bphs-details summary { font-size: 0.8rem; color: #7a5200; cursor: pointer; user-select: none; font-weight: 600; letter-spacing: 0.04em; }
+.interp-bphs-details summary:hover { color: #c8922a; }
+.interp-tag { font-size: 0.72rem; padding: 3px 10px; border-radius: 12px; font-weight: 500; background: var(--color-saffron-lt); color: var(--color-saffron-dk); }
+.interp-tag-planet { background: var(--color-maroon-lt); color: var(--color-maroon); }
+.interp-chevron { font-size: 0.75rem; transition: transform 0.2s; }
+.interp-chevron.open { transform: rotate(180deg); }
+/* ── Nested Dasha Timeline ── */
+.dasha-level-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-3); padding: 8px 20px 4px; font-weight: 600; }
+.dasha-antar-timeline { display: flex; width: 100%; height: 32px; border-radius: var(--radius); overflow: hidden; margin: 4px 0 8px; box-shadow: var(--shadow-sm); }
+.dasha-prat-timeline { display: flex; width: 100%; height: 24px; border-radius: var(--radius); overflow: hidden; margin: 4px 0 12px; box-shadow: var(--shadow-sm); opacity: 0.85; }
+.dasha-bar-sm { display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 600; color: rgba(255,255,255,0.9); cursor: pointer; transition: opacity 0.2s; overflow: hidden; white-space: nowrap; padding: 0 3px; }
+.dasha-bar-sm:hover { opacity: 0.8; }
+.dasha-bar-sm.active-bar { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.7); }
+.pratyantar-table-wrap { margin: 0 20px 16px; }
     </style>
 </head>
 <body>
@@ -242,6 +309,13 @@ input:focus, select:focus { outline: none; border-color: var(--color-saffron); b
         <!-- ===== RESULTS ===== -->
         <section id="resultsSection" style="display:none;">
 
+            <!-- Download Bar -->
+            <div class="download-bar" id="downloadBar">
+                <button class="btn btn-primary" onclick="downloadPDF()">&#128196; Download as PDF</button>
+                <button class="btn btn-outline" onclick="printChart()">&#128424; Print</button>
+                <button class="btn btn-outline" onclick="downloadSVG()">&#11015; Download Chart SVG</button>
+            </div>
+
             <!-- Birth Summary Banner -->
             <div id="summaryBanner" class="card summary-card">
                 <div class="summary-grid">
@@ -276,6 +350,8 @@ input:focus, select:focus { outline: none; border-color: var(--color-saffron); b
             <div class="tabs">
                 <button class="tab active" data-tab="chartTab">Rashi Chart</button>
                 <button class="tab" data-tab="planetsTab">Planets</button>
+                <button class="tab" data-tab="panchaTab">Panchanga</button>
+                <button class="tab" data-tab="interpTab">Interpretations</button>
                 <button class="tab" data-tab="dashaTab">Dasha Timeline</button>
                 <button class="tab" data-tab="currentTab">Current Dasha</button>
             </div>
@@ -328,6 +404,67 @@ input:focus, select:focus { outline: none; border-color: var(--color-saffron); b
                 </div>
             </div>
 
+            <!-- Tab: Panchanga -->
+            <div id="panchaTab" class="tab-panel">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Panchanga — Five Limbs of the Day</h2>
+                        <p class="card-subtitle">Birth day analysis based on BPHS and Vedāṅga Jyotiṣa traditions</p>
+                    </div>
+
+                    <!-- Day Quality Banner -->
+                    <div id="panchaQualityBanner" class="pancha-quality-banner pancha-quality-neutral">
+                        <strong id="panchaQualityText">—</strong>
+                        <div id="panchaQualityNote" style="font-size:0.82rem;margin-top:4px;opacity:0.85;"></div>
+                    </div>
+
+                    <!-- Five Limbs -->
+                    <div class="pancha-section">
+                        <h3 class="pancha-section-title">Pancha Angas — Five Limbs</h3>
+                        <div class="pancha-grid" id="panchaFiveLimbs">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Solar Times & Season -->
+                    <div class="pancha-section" style="padding-top:0;">
+                        <h3 class="pancha-section-title">Solar Times &amp; Season</h3>
+                        <div class="pancha-grid" id="panchaSolar">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Inauspicious Periods -->
+                    <div class="pancha-section" style="padding-top:0;">
+                        <h3 class="pancha-section-title">Inauspicious Periods</h3>
+                        <div id="panchaInauspicious">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Auspicious Muhurtas -->
+                    <div class="pancha-section" style="padding-top:0;">
+                        <h3 class="pancha-section-title">Auspicious Muhurtas</h3>
+                        <div id="panchaMuhurtas">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Interpretations -->
+            <div id="interpTab" class="tab-panel">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>House Interpretations</h2>
+                        <p class="card-subtitle">Classical predictions based on BPHS, Phalita Jyotisha &amp; Saravali — click any house to expand</p>
+                    </div>
+                    <div id="interpContent" style="padding-bottom:12px;">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Tab: Dasha Timeline -->
             <div id="dashaTab" class="tab-panel">
                 <div class="card">
@@ -369,6 +506,9 @@ input:focus, select:focus { outline: none; border-color: var(--color-saffron); b
                     <!-- Antardasha Detail (toggleable) -->
                     <div id="antardashaSection" style="display:none;">
                         <h3 id="antardashaTitle" class="section-title"></h3>
+                        <!-- Antardasha visual bar -->
+                        <div class="dasha-level-label">Antardasha (Bhukti) Timeline</div>
+                        <div id="antarTimeline" class="dasha-antar-timeline" style="margin:4px 20px 8px;"></div>
                         <div class="table-wrap">
                             <table class="data-table data-table-sm">
                                 <thead>
@@ -378,9 +518,32 @@ input:focus, select:focus { outline: none; border-color: var(--color-saffron); b
                                         <th>Start Date</th>
                                         <th>End Date</th>
                                         <th>Duration</th>
+                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody id="antardashaTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Pratyantardasha Detail (toggleable) -->
+                    <div id="pratyantarSection" style="display:none;">
+                        <h3 id="pratyantarTitle" class="section-title"></h3>
+                        <div class="dasha-level-label">Pratyantardasha Timeline</div>
+                        <div id="pratyantarTimeline" class="dasha-prat-timeline" style="margin:4px 20px 8px;"></div>
+                        <div class="pratyantar-table-wrap">
+                            <table class="data-table data-table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Pratyantardasha Lord</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Duration</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pratyantarTableBody">
                                 </tbody>
                             </table>
                         </div>
@@ -479,7 +642,7 @@ async function handleSubmit(e){
     finally{$("#loadingSection").style.display="none";submitBtn.disabled=false;submitBtn.textContent="Generate Birth Chart";}
 }
 
-function renderResults(data){renderSummary(data);renderChart(data);renderPlanets(data);renderDasha(data);renderCurrentDasha(data);$("#resultsSection").style.display="block";switchTab("chartTab");$("#resultsSection").scrollIntoView({behavior:"smooth",block:"start"});}
+function renderResults(data){renderSummary(data);renderChart(data);renderPlanets(data);renderPanchanga(data);renderInterpretations(data);renderDasha(data);renderCurrentDasha(data);$("#resultsSection").style.display="block";switchTab("chartTab");$("#resultsSection").scrollIntoView({behavior:"smooth",block:"start"});}
 
 function renderSummary(data){
     const b=data.birth_details;const c=data.chart;
@@ -522,10 +685,101 @@ function renderDasha(data){
 
 function showAntardashas(mahaDasha){
     const section=$("#antardashaSection");section.style.display="block";
+    $("#pratyantarSection").style.display="none";
     $("#antardashaTitle").textContent=`Antardashas (Bhukti) within ${mahaDasha.maha_dasha_lord} Maha Dasha`;
+    // Antardasha visual timeline
+    const antarTL=$("#antarTimeline");antarTL.innerHTML="";
+    const totalDays=mahaDasha.antardashas.reduce((s,a)=>s+a.duration_days,0);
+    const now=new Date();
+    mahaDasha.antardashas.forEach(ad=>{
+        const pct=(ad.duration_days/totalDays)*100;
+        const bar=document.createElement("div");
+        bar.className=`dasha-bar-sm dasha-${ad.antar_dasha_lord.toLowerCase()}`;
+        const adStart=new Date(ad.start_date);const adEnd=new Date(ad.end_date);
+        if(now>=adStart&&now<adEnd)bar.classList.add("active-bar");
+        bar.style.width=`${pct}%`;bar.textContent=ad.antar_dasha_lord.substring(0,3);
+        bar.title=`${ad.antar_dasha_lord}: ${formatDate(ad.start_date)} – ${formatDate(ad.end_date)}`;
+        bar.addEventListener("click",()=>showPratyantardashas(ad));
+        antarTL.appendChild(bar);
+    });
     const tbody=$("#antardashaTableBody");tbody.innerHTML="";
-    mahaDasha.antardashas.forEach((ad,i)=>{const tr=document.createElement("tr");const dur=`${ad.duration_ymd.years}y ${ad.duration_ymd.months}m ${ad.duration_ymd.days}d`;tr.innerHTML=`<td>${i+1}</td><td><strong>${ad.antar_dasha_lord}</strong></td><td>${formatDate(ad.start_date)}</td><td>${formatDate(ad.end_date)}</td><td>${dur}</td>`;tbody.appendChild(tr);});
+    mahaDasha.antardashas.forEach((ad,i)=>{
+        const tr=document.createElement("tr");
+        const dur=`${ad.duration_ymd.years}y ${ad.duration_ymd.months}m ${ad.duration_ymd.days}d`;
+        const adStart=new Date(ad.start_date);const adEnd=new Date(ad.end_date);
+        if(now>=adStart&&now<adEnd)tr.classList.add("row-highlight");
+        tr.innerHTML=`<td>${i+1}</td><td><strong>${ad.antar_dasha_lord}</strong></td><td>${formatDate(ad.start_date)}</td><td>${formatDate(ad.end_date)}</td><td>${dur}</td><td><button class="btn-expand" onclick="showPratyantardashas(window._currentMaha.antardashas[${i}])">Pratyantar &#9660;</button></td>`;
+        tbody.appendChild(tr);
+    });
+    window._currentMaha=mahaDasha;
     section.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function showPratyantardashas(antarDasha){
+    const section=$("#pratyantarSection");section.style.display="block";
+    $("#pratyantarTitle").textContent=`Pratyantardashas within ${antarDasha.antar_dasha_lord} Antardasha`;
+    const pratys=antarDasha.pratyantardashas||[];
+    // Visual bar
+    const pratTL=$("#pratyantarTimeline");pratTL.innerHTML="";
+    const totalDays=pratys.reduce((s,p)=>s+p.duration_days,0);
+    const now=new Date();
+    pratys.forEach(pd=>{
+        const pct=(pd.duration_days/totalDays)*100;
+        const bar=document.createElement("div");
+        bar.className=`dasha-bar-sm dasha-${pd.pratyantar_lord.toLowerCase()}`;
+        const pdStart=new Date(pd.start_date);const pdEnd=new Date(pd.end_date);
+        if(now>=pdStart&&now<pdEnd)bar.classList.add("active-bar");
+        bar.style.width=`${pct}%`;bar.textContent=pd.pratyantar_lord.substring(0,3);
+        bar.title=`${pd.pratyantar_lord}: ${formatDate(pd.start_date)} – ${formatDate(pd.end_date)}`;
+        pratTL.appendChild(bar);
+    });
+    const tbody=$("#pratyantarTableBody");tbody.innerHTML="";
+    pratys.forEach((pd,i)=>{
+        const tr=document.createElement("tr");
+        const dur=pd.duration_ymd?`${pd.duration_ymd.years}y ${pd.duration_ymd.months}m ${pd.duration_ymd.days}d`:"—";
+        const pdStart=new Date(pd.start_date);const pdEnd=new Date(pd.end_date);
+        if(now>=pdStart&&now<pdEnd)tr.classList.add("row-highlight");
+        tr.innerHTML=`<td>${i+1}</td><td><strong>${pd.pratyantar_lord}</strong></td><td>${formatDate(pd.start_date)}</td><td>${formatDate(pd.end_date)}</td><td>${dur}</td>`;
+        tbody.appendChild(tr);
+    });
+    section.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function renderInterpretations(data){
+    const container=$("#interpContent");
+    const interps=data.interpretations;
+    if(!interps||!interps.length){container.innerHTML='<p style="padding:20px;color:#999;">Interpretations not available.</p>';return;}
+    container.innerHTML=interps.map((h,idx)=>{
+        const occupantTags=h.occupants&&h.occupants.length?h.occupants.map(p=>`<span class="interp-tag interp-tag-planet">${p}</span>`).join(""):'<span style="font-size:0.8rem;color:#aaa;">No planets</span>';
+        return `<div class="interp-house">
+            <div class="interp-house-header" onclick="toggleHouse(${idx})">
+                <div>
+                    <div class="interp-house-title">${h.title}</div>
+                    <div class="interp-house-meta">${h.sign} (${h.sign_sanskrit}) &middot; Lord: ${h.lord} in H${h.lord_house}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div class="interp-tags">${occupantTags}</div>
+                    <span class="interp-chevron" id="chev-${idx}">&#9660;</span>
+                </div>
+            </div>
+            <div class="interp-house-body" id="house-body-${idx}">
+                <div class="interp-section"><div class="interp-section-label">Natural Significations</div><div class="interp-text">${h.significations}</div></div>
+                ${h.bphs_lord_sloka?`<div class="interp-section interp-bphs-block"><div class="interp-section-label">📖 BPHS — ${h.lord} (Lord of House ${h.house}) in House ${h.lord_house}</div><div class="interp-text interp-bphs-text">${h.bphs_lord_sloka.replace(/\u2019/g,"'")}</div></div>`:`<div class="interp-section"><div class="interp-section-label">House Lord Analysis (${h.lord} in House ${h.lord_house})</div><div class="interp-text">${h.lord_analysis}</div></div>`}
+                ${h.bphs_planet_notes&&h.bphs_planet_notes.length?`<div class="interp-section interp-bphs-block"><div class="interp-section-label">📖 BPHS — Planets in this House</div><div class="interp-text interp-bphs-text">${h.bphs_planet_notes.map(n=>n.replace(/\u2019/g,"'")).join("<br><br>")}</div></div>`:(h.planet_analysis?`<div class="interp-section"><div class="interp-section-label">Planets in this House</div><div class="interp-text">${h.planet_analysis}</div></div>`:"")}
+                <div class="interp-section"><div class="interp-section-label">Overall Prediction</div><div class="interp-overall">${h.overall}</div></div>
+                ${h.bphs_house_summary?`<details class="interp-bphs-details"><summary>📖 Full BPHS Chapter — Effects of this House</summary><div class="interp-text interp-bphs-text" style="margin-top:10px;">${h.bphs_house_summary.replace(/\u2019/g,"'")}</div></details>`:""}
+            </div>
+        </div>`;
+    }).join("");
+}
+
+function toggleHouse(idx){
+    const body=document.getElementById(`house-body-${idx}`);
+    const chev=document.getElementById(`chev-${idx}`);
+    if(!body)return;
+    const isOpen=body.classList.contains("open");
+    body.classList.toggle("open",!isOpen);
+    if(chev)chev.classList.toggle("open",!isOpen);
 }
 
 function renderCurrentDasha(data){
@@ -537,12 +791,80 @@ function renderCurrentDasha(data){
     container.innerHTML=html;
 }
 
+function renderPanchanga(data) {
+    const p = data.panchanga;
+    const limbs = document.getElementById('panchaFiveLimbs');
+    const solar = document.getElementById('panchaSolar');
+    const inausp = document.getElementById('panchaInauspicious');
+    const muhurtas = document.getElementById('panchaMuhurtas');
+    if (!p || p.error) {
+        if (limbs) limbs.innerHTML = '<p style="color:#999;padding:8px;">Panchanga data not available.</p>';
+        return;
+    }
+    // Day Quality Banner
+    const quality = (p.day_quality && p.day_quality.overall) ? p.day_quality.overall : 'Unknown';
+    const qBanner = document.getElementById('panchaQualityBanner');
+    const qText = document.getElementById('panchaQualityText');
+    const qNote = document.getElementById('panchaQualityNote');
+    if (qBanner) {
+        const qMap = {'Auspicious':'pancha-quality-good','Inauspicious':'pancha-quality-bad','Neutral':'pancha-quality-neutral'};
+        qBanner.className = 'pancha-quality-banner ' + (qMap[quality] || 'pancha-quality-neutral');
+        if (qText) qText.textContent = 'Day Quality: ' + quality;
+        if (qNote && p.day_quality) qNote.textContent = p.day_quality.note || '';
+    }
+    // Five Limbs
+    const limbCards = [];
+    if (p.tithi) {
+        const comp = p.tithi.completion ? ' \u00b7 ' + p.tithi.completion + '% elapsed' : '';
+        limbCards.push({label:'Tithi', main: p.tithi.name, sub: (p.tithi.paksha||'') + ' Paksha \u00b7 #' + (p.tithi.number||'') + comp});
+    }
+    if (p.yogam) {
+        const badge = p.yogam.quality === 'Auspicious' ? '<span class="pancha-badge pancha-badge-good">\u2713 ' + p.yogam.quality + '</span>' :
+                      p.yogam.quality === 'Inauspicious' ? '<span class="pancha-badge pancha-badge-bad">\u2717 ' + p.yogam.quality + '</span>' : '';
+        limbCards.push({label:'Yogam', main: p.yogam.name + badge, sub: 'Yoga #' + (p.yogam.number||'')});
+    }
+    if (p.karana) {
+        limbCards.push({label:'Karana', main: p.karana.name, sub: 'Karana #' + (p.karana.number||'')});
+    }
+    if (p.vaara) {
+        limbCards.push({label:'Vaara (Weekday)', main: p.vaara.name, sub: 'Lord: ' + (p.vaara.lord||'')});
+    }
+    if (p.nakshatra) {
+        limbCards.push({label:'Janma Nakshatra', main: p.nakshatra.name, sub: 'Pada ' + (p.nakshatra.pada||'') + ' \u00b7 Lord: ' + (p.nakshatra.lord||'')});
+    }
+    if (limbs) limbs.innerHTML = limbCards.map(c => '<div class="pancha-card"><div class="pancha-card-label">' + c.label + '</div><div class="pancha-card-main">' + c.main + '</div><div class="pancha-card-sub">' + c.sub + '</div></div>').join('');
+    // Solar times & Season
+    const solarCards = [];
+    if (p.sunrise) solarCards.push({label:'Sunrise', main: p.sunrise, sub: 'Local time at birth location'});
+    if (p.sunset) solarCards.push({label:'Sunset', main: p.sunset, sub: 'Local time at birth location'});
+    if (p.ritu) solarCards.push({label:'Ritu (Season)', main: p.ritu.name, sub: 'Vedic seasonal cycle'});
+    if (solar) solar.innerHTML = solarCards.map(c => '<div class="pancha-card"><div class="pancha-card-label">' + c.label + '</div><div class="pancha-card-main">' + c.main + '</div><div class="pancha-card-sub">' + c.sub + '</div></div>').join('');
+    // Inauspicious periods
+    const iRows = [
+        {label:'Rahu Kalam', data: p.rahu_kalam},
+        {label:'Yama Ganda', data: p.yama_ganda},
+        {label:'Gulika Kalam', data: p.gulika_kalam}
+    ].filter(r => r.data && r.data.start);
+    if (inausp) inausp.innerHTML = iRows.length ? iRows.map(r => '<div class="pancha-time-row"><span class="pancha-time-label">' + r.label + '</span><span class="pancha-time-value">' + r.data.start + ' \u2014 ' + r.data.end + '</span></div>').join('') : '<p style="color:#999;font-size:0.85rem;">Data not available.</p>';
+    // Muhurtas
+    const mRows = [
+        {label:'Abhijit Muhurta (Most Auspicious)', data: p.abhijit_muhurta},
+        {label:'Brahma Muhurtha (Pre-Dawn)', data: p.brahma_muhurtha}
+    ].filter(r => r.data && r.data.start);
+    if (muhurtas) muhurtas.innerHTML = mRows.length ? mRows.map(r => '<div class="pancha-time-row"><span class="pancha-time-label">' + r.label + '</span><span class="pancha-time-value">' + r.data.start + ' \u2014 ' + r.data.end + '</span></div>').join('') : '<p style="color:#999;font-size:0.85rem;">Data not available.</p>';
+}
+
 function switchTab(tabId){$$(".tab").forEach((t)=>t.classList.remove("active"));$$(".tab-panel").forEach((p)=>p.classList.remove("active"));const btn=document.querySelector(`.tab[data-tab="${tabId}"]`);const panel=$(`#${tabId}`);if(btn)btn.classList.add("active");if(panel)panel.classList.add("active");}
 
 function showError(msg){const banner=$("#errorBanner");const text=$("#errorText");text.textContent=msg;banner.style.display="flex";}
 function hideError(){$("#errorBanner").style.display="none";}
 function formatDate(dateStr){if(!dateStr)return"\u2014";const parts=dateStr.split(" ");const[y,m,d]=parts[0].split("-");const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return`${parseInt(d)}-${months[parseInt(m)-1]}-${y}`;}
 function printChart(){window.print();}
+function downloadPDF(){
+    // Use browser's native print dialog which is more reliable
+    window.print();
+}
+
 function downloadSVG(){const svgEl=document.querySelector("#chartContainer svg");if(!svgEl){alert("No chart available to download.");return;}const svgData=new XMLSerializer().serializeToString(svgEl);const blob=new Blob([svgData],{type:"image/svg+xml"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="vedic_birth_chart.svg";document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
     </script>
 </body>

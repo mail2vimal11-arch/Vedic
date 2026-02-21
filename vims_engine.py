@@ -545,13 +545,25 @@ def get_full_dasha_report(birth_date, moon_lon):
         antar_list = []
         for ad in antars_raw:
             ay, am, adx = ad["duration_ymd"]
+            pratys_raw = get_pratyantardashas(ad)
+            praty_list = []
+            for pd in pratys_raw:
+                pd_y, pd_m, pd_d = _years_to_ymd(pd["duration_days"] / 365.25)
+                praty_list.append({
+                    "pratyantar_lord": pd["pratyantar_lord"],
+                    "start_date":     _dt_to_str(pd["start_date"]),
+                    "end_date":       _dt_to_str(pd["end_date"]),
+                    "duration_days":  round(pd["duration_days"], 2),
+                    "duration_ymd":   {"years": pd_y, "months": pd_m, "days": pd_d},
+                })
             antar_list.append({
-                "antar_dasha_lord": ad["antar_lord"],
-                "start_date":      _dt_to_str(ad["start_date"]),
-                "end_date":        _dt_to_str(ad["end_date"]),
-                "duration_days":   round(ad["duration_days"], 2),
-                "duration_years":  round(ad["duration_years"], 4),
-                "duration_ymd":    {"years": ay, "months": am, "days": adx},
+                "antar_dasha_lord":  ad["antar_lord"],
+                "start_date":        _dt_to_str(ad["start_date"]),
+                "end_date":          _dt_to_str(ad["end_date"]),
+                "duration_days":     round(ad["duration_days"], 2),
+                "duration_years":    round(ad["duration_years"], 4),
+                "duration_ymd":      {"years": ay, "months": am, "days": adx},
+                "pratyantardashas":  praty_list,
             })
 
         my, mm, md_d = md["duration_ymd"]

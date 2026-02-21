@@ -24,6 +24,9 @@ from flask import (
 
 from config import get_config
 from chart_gen import calculate_positions, generate_south_chart, format_dms
+from panchanga import compute_panchanga
+from interpretations import generate_interpretations
+from bphs_engine import generate_bphs_from_positions
 from vims_engine import (
     compute_moon_longitude, calc_nakshatra, get_full_dasha_report,
     get_dasha_timeline, find_active_periods
@@ -274,6 +277,25 @@ def create_app():
                 "longitude": round(asc["longitude"], 4),
             }
 
+            # 8. House interpretations — classical text layer + direct BPHS slokas from PDF
+            interpretations = generate_interpretations(positions)
+            bphs_interpretations = generate_bphs_from_positions(positions)
+            # Merge: add bphs_data field to each house interpretation
+            for i, house in enumerate(interpretations):
+                if i < len(bphs_interpretations):
+                    house["bphs_lord_sloka"] = bphs_interpretations[i].get("lord_bphs", "")
+                    house["bphs_house_summary"] = bphs_interpretations[i].get("house_summary", "")
+                    house["bphs_planet_notes"] = bphs_interpretations[i].get("planet_notes", [])
+
+            # 9. Panchanga via PyJHora
+            panchanga = compute_panchanga(
+                year=birth["year"], month=birth["month"], day=birth["day"],
+                hour=birth["hour"], minute=birth["minute"], second=birth["second"],
+                utc_offset=birth["utc_offset"],
+                latitude=birth["latitude"], longitude=birth["longitude"],
+                city=birth["city"], country=birth["country"],
+            )
+
             response = {
                 "success": True,
                 "birth_details": {
@@ -304,6 +326,8 @@ def create_app():
                 "moon_longitude": round(moon_lon, 4),
                 "dasha_report": dasha_report,
                 "current_dasha": current_dasha,
+                "panchanga": panchanga,
+                "interpretations": interpretations,
             }
 
             logger.info(f"Chart generated for {birth['name']} — "
@@ -362,4 +386,5 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port, debug=True)
