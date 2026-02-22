@@ -177,6 +177,10 @@ body { background: #fff; }
 .interp-tag-planet { background: var(--color-maroon-lt); color: var(--color-maroon); }
 .interp-chevron { font-size: 0.75rem; transition: transform 0.2s; }
 .interp-chevron.open { transform: rotate(180deg); }
+/* ── Deep Consultation Tab ── */
+.tab-consult { background: linear-gradient(135deg, #1a0a2e, #3d1a5c) !important; color: #d4af37 !important; font-weight: 600 !important; letter-spacing: 0.02em; }
+.tab-consult:hover { opacity: 0.9; color: #fff !important; }
+.tab-consult.active { background: linear-gradient(135deg, #1a0a2e, #3d1a5c) !important; color: #ffd700 !important; box-shadow: 0 -2px 0 #d4af37 inset !important; }
 /* ── Nested Dasha Timeline ── */
 .dasha-level-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-3); padding: 8px 20px 4px; font-weight: 600; }
 .dasha-antar-timeline { display: flex; width: 100%; height: 32px; border-radius: var(--radius); overflow: hidden; margin: 4px 0 8px; box-shadow: var(--shadow-sm); }
@@ -314,6 +318,7 @@ body { background: #fff; }
                 <button class="btn btn-primary" onclick="downloadPDF()">&#128196; Download as PDF</button>
                 <button class="btn btn-outline" onclick="printChart()">&#128424; Print</button>
                 <button class="btn btn-outline" onclick="downloadSVG()">&#11015; Download Chart SVG</button>
+                <button class="btn btn-outline" id="topConsultBtn" onclick="downloadConsultation()" disabled style="border-color:#8b4513;color:#8b4513;">&#9654; Download Full Consultation</button>
             </div>
 
             <!-- Birth Summary Banner -->
@@ -354,6 +359,7 @@ body { background: #fff; }
                 <button class="tab" data-tab="interpTab">Interpretations</button>
                 <button class="tab" data-tab="dashaTab">Dasha Timeline</button>
                 <button class="tab" data-tab="currentTab">Current Dasha</button>
+                <button class="tab tab-consult" data-tab="consultTab">&#9654; Deep Consultation</button>
             </div>
 
             <!-- Tab: Rashi Chart -->
@@ -564,6 +570,31 @@ body { background: #fff; }
                 </div>
             </div>
 
+            <!-- Tab: Deep Consultation -->
+            <div id="consultTab" class="tab-panel">
+                <div class="card" style="overflow:hidden;">
+                    <div class="card-header" style="background:linear-gradient(135deg,#1a0a2e,#3d1a5c);color:#fff;border-radius:0;">
+                        <div>
+                            <h2 style="color:#d4af37;font-family:Georgia,serif;">Jyotish Kundali Vishleshan</h2>
+                            <p style="color:rgba(255,255,255,0.7);font-size:0.85rem;">Complete BPHS cross-referenced consultation — Yogas · Dasha Narrative · Nakshatra · Remedies</p>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-sm" onclick="downloadConsultation()" style="background:#d4af37;color:#1a0a2e;border:none;font-weight:600;" id="consultDownloadBtn" disabled>&#128196; Download Report</button>
+                        </div>
+                    </div>
+                    <!-- Loading state -->
+                    <div id="consultLoading" style="text-align:center;padding:64px 24px;">
+                        <div class="spinner" style="border-top-color:#d4af37;"></div>
+                        <p style="font-family:Georgia,serif;font-size:1.1rem;color:#5c3d8f;margin-top:4px;">Generating your deep consultation…</p>
+                        <p class="loading-sub">Cross-referencing BPHS · Detecting Yogas · Building full Kundali Vishleshan</p>
+                    </div>
+                    <!-- Error state -->
+                    <div id="consultError" style="display:none;padding:24px;color:#c0392b;font-size:0.9rem;"></div>
+                    <!-- Report frame -->
+                    <iframe id="consultFrame" style="display:none;width:100%;height:85vh;border:none;" frameborder="0" title="Deep Vedic Consultation Report"></iframe>
+                </div>
+            </div>
+
         </section>
     </main>
 
@@ -632,14 +663,52 @@ async function handleSubmit(e){
     const timeParts=birthTime.split(":");const hour=parseInt(timeParts[0]);const minute=parseInt(timeParts[1]);const second=timeParts[2]?parseInt(timeParts[2]):0;
     const payload={name:$("#name").value.trim()||"Native",gender:$("#gender").value,year,month,day,hour,minute,second,latitude:parseFloat(lat),longitude:parseFloat(lon),utc_offset:parseFloat(utcOff),city:$("#city").value.trim(),country:$("#country").value};
     hideError();$("#loadingSection").style.display="block";$("#resultsSection").style.display="none";
+    // Reset consultation state for new submission
+    window._consultationHtml=null;window._consultationBlobUrl=null;
+    const dlBtn=$("#consultDownloadBtn");const topBtn=$("#topConsultBtn");
+    if(dlBtn)dlBtn.disabled=true;if(topBtn)topBtn.disabled=true;
+    const frame=$("#consultFrame");const cLoading=$("#consultLoading");const cError=$("#consultError");
+    if(frame)frame.style.display="none";if(cError)cError.style.display="none";if(cLoading)cLoading.style.display="block";
     const submitBtn=$("#submitBtn");submitBtn.disabled=true;submitBtn.textContent="Calculating...";
     try{
         const resp=await fetch("/api/chart",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
         const data=await resp.json();
         if(!resp.ok||!data.success){throw new Error(data.error||"Chart generation failed.");}
         renderResults(data);
-    }catch(err){showError(err.message||"An error occurred. Please try again.");}
+        // Fire deep consultation in background — non-blocking
+        loadDeepConsultation(payload);
+    }catch(err){showError(err.message||"An error occurred. Please try again.");if(cLoading)cLoading.style.display="none";}
     finally{$("#loadingSection").style.display="none";submitBtn.disabled=false;submitBtn.textContent="Generate Birth Chart";}
+}
+
+async function loadDeepConsultation(payload){
+    const frame=$("#consultFrame");const cLoading=$("#consultLoading");const cError=$("#consultError");
+    const dlBtn=$("#consultDownloadBtn");const topBtn=$("#topConsultBtn");
+    try{
+        const resp=await fetch("/api/consultation",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+        if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.error||"Consultation generation failed.");}
+        const html=await resp.text();
+        const blob=new Blob([html],{type:"text/html"});
+        const url=URL.createObjectURL(blob);
+        window._consultationHtml=html;window._consultationBlobUrl=url;
+        if(frame){frame.src=url;frame.style.display="block";}
+        if(cLoading)cLoading.style.display="none";
+        if(dlBtn){dlBtn.disabled=false;}
+        if(topBtn){topBtn.disabled=false;topBtn.style.background="#8b4513";topBtn.style.color="#fff";}
+    }catch(err){
+        if(cLoading)cLoading.style.display="none";
+        if(cError){cError.style.display="block";cError.innerHTML='<strong>Could not generate deep consultation.</strong><br>'+err.message+'<br><small style="color:#888;">The chart above is still complete. You can try the Deep Consultation tab again by resubmitting.</small>';}
+    }
+}
+
+function downloadConsultation(){
+    if(!window._consultationHtml){alert("Consultation report is still loading. Please wait a moment.");return;}
+    const name=($("#name").value.trim()||"vedic")+"_consultation";
+    const safe=name.replace(/[^a-zA-Z0-9_-]/g,"_");
+    const blob=new Blob([window._consultationHtml],{type:"text/html"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");a.href=url;a.download=safe+".html";
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
 }
 
 function renderResults(data){renderSummary(data);renderChart(data);renderPlanets(data);renderPanchanga(data);renderInterpretations(data);renderDasha(data);renderCurrentDasha(data);$("#resultsSection").style.display="block";switchTab("chartTab");$("#resultsSection").scrollIntoView({behavior:"smooth",block:"start"});}
