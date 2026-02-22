@@ -5,7 +5,8 @@ Production-ready Flask application providing Vedic birth chart generation,
 Vimshottari Dasha calculation, and South Indian chart rendering.
 
 API Endpoints:
-    POST /api/chart          — Full birth chart + Dasha report
+    POST /api/chart          — Full birth chart + Dasha report (JSON)
+    POST /api/consultation   — Deep BPHS consultation HTML report
     GET  /api/health         — Health check
     GET  /                   — Serve the web application
 """
@@ -31,6 +32,7 @@ from vims_engine import (
     compute_moon_longitude, calc_nakshatra, get_full_dasha_report,
     get_dasha_timeline, find_active_periods
 )
+from deep_interpreter import generate_consultation_html
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -338,6 +340,92 @@ def create_app():
         except Exception as e:
             logger.error(f"Chart generation failed: {traceback.format_exc()}")
             return jsonify({"error": f"Calculation error: {str(e)}"}), 500
+
+    @app.route("/api/consultation", methods=["POST"])
+    def generate_consultation():
+        """
+        Generate a full, deep-consultation Vedic astrology HTML report.
+
+        Accepts the same JSON body as /api/chart and returns a standalone
+        HTML document containing BPHS cross-referenced interpretations,
+        yoga analysis, dasha narrative, nakshatra deep-dive, and remedies.
+
+        Returns: text/html — the full consultation report as an HTML page.
+        """
+        try:
+            data = request.get_json(force=True)
+            if not data:
+                return jsonify({"error": "No JSON data provided"}), 400
+
+            birth = validate_birth_data(data)
+        except ValidationError as e:
+            return jsonify({"error": str(e)}), 400
+        except Exception:
+            return jsonify({"error": "Invalid request data"}), 400
+
+        try:
+            # 1. Planetary positions
+            positions = calculate_positions(
+                year=birth["year"], month=birth["month"], day=birth["day"],
+                hour=birth["hour"], minute=birth["minute"], second=birth["second"],
+                utc_offset=birth["utc_offset"],
+                latitude=birth["latitude"], longitude=birth["longitude"],
+            )
+
+            # 2. Moon longitude & Nakshatra
+            moon_lon = compute_moon_longitude(
+                birth["year"], birth["month"], birth["day"],
+                birth["hour"], birth["minute"], birth["second"],
+                birth["utc_offset"],
+            )
+            nakshatra_info = calc_nakshatra(moon_lon)
+
+            # 3. Vimshottari Dasha report (HTML string)
+            birth_dt = datetime(
+                birth["year"], birth["month"], birth["day"],
+                birth["hour"], birth["minute"], birth["second"],
+            )
+            dasha_report = get_full_dasha_report(birth_dt, moon_lon)
+
+            # 4. Currently active Dasha periods
+            timeline = get_dasha_timeline(moon_lon, birth_dt)
+            now = datetime.now()
+            active = find_active_periods(timeline, now)
+
+            current_dasha = None
+            if active:
+                current_dasha = {
+                    "maha":        active["maha"]["dasha_lord"],
+                    "maha_start":  active["maha"]["start_date"].strftime("%d-%b-%Y"),
+                    "maha_end":    active["maha"]["end_date"].strftime("%d-%b-%Y"),
+                    "antar":       active["antar"]["antar_lord"],
+                    "antar_start": active["antar"]["start_date"].strftime("%d-%b-%Y"),
+                    "antar_end":   active["antar"]["end_date"].strftime("%d-%b-%Y"),
+                }
+                if active.get("pratyantar"):
+                    current_dasha["pratyantar"] = active["pratyantar"]["pratyantar_lord"]
+                    current_dasha["pratyantar_start"] = active["pratyantar"]["start_date"].strftime("%d-%b-%Y")
+                    current_dasha["pratyantar_end"]   = active["pratyantar"]["end_date"].strftime("%d-%b-%Y")
+
+            # 5. Build deep consultation HTML via the BPHS cross-referenced engine
+            html_report = generate_consultation_html(
+                birth=birth,
+                positions=positions,
+                moon_longitude=moon_lon,
+                nakshatra_info=nakshatra_info,
+                dasha_report=dasha_report,
+                current_dasha=current_dasha,
+                ashtakvarga=None,  # Future: wire in Ashtakvarga computation
+            )
+
+            logger.info(f"Deep consultation generated for {birth['name']} — "
+                        f"{birth['day']}/{birth['month']}/{birth['year']}")
+
+            return Response(html_report, mimetype="text/html; charset=utf-8")
+
+        except Exception as e:
+            logger.error(f"Consultation generation failed: {traceback.format_exc()}")
+            return jsonify({"error": f"Consultation error: {str(e)}"}), 500
 
     @app.route("/output/<path:filename>")
     def serve_chart(filename):

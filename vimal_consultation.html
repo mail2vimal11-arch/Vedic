@@ -1,0 +1,2161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vedic Astrology Consultation — Vimal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
+
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C96A;
+    --gold-pale: #F5E6B8;
+    --deep-navy: #0A0E1A;
+    --navy: #0F1628;
+    --navy-mid: #16213E;
+    --navy-light: #1E2D5A;
+    --crimson: #8B1A2E;
+    --crimson-dark: #5C0F1E;
+    --cream: #FAF6EE;
+    --text-dark: #1A1209;
+    --text-mid: #3D2B0A;
+    --shadow-gold: rgba(201,168,76,0.25);
+    --sun-color: #FF6B00;
+    --moon-color: #C0C0FF;
+    --mars-color: #FF3030;
+    --mercury-color: #00B86B;
+    --jupiter-color: #FFD700;
+    --venus-color: #FF69B4;
+    --saturn-color: #6A5ACD;
+    --rahu-color: #555;
+    --ketu-color: #8B4513;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--deep-navy);
+    color: var(--cream);
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.8;
+  }
+
+  /* ── COVER PAGE ── */
+  .cover {
+    min-height: 100vh;
+    background: radial-gradient(ellipse at 30% 20%, #1a0a2e 0%, #0A0E1A 50%, #0F0A00 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; overflow: hidden; padding: 60px 40px;
+    border-bottom: 3px solid var(--gold);
+  }
+  .cover::before {
+    content:''; position:absolute; inset:0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Ccircle cx='200' cy='200' r='180' fill='none' stroke='%23C9A84C' stroke-width='0.3' opacity='0.15'/%3E%3Ccircle cx='200' cy='200' r='140' fill='none' stroke='%23C9A84C' stroke-width='0.3' opacity='0.12'/%3E%3Ccircle cx='200' cy='200' r='100' fill='none' stroke='%23C9A84C' stroke-width='0.3' opacity='0.1'/%3E%3Cline x1='20' y1='200' x2='380' y2='200' stroke='%23C9A84C' stroke-width='0.2' opacity='0.1'/%3E%3Cline x1='200' y1='20' x2='200' y2='380' stroke='%23C9A84C' stroke-width='0.2' opacity='0.1'/%3E%3Cline x1='73' y1='73' x2='327' y2='327' stroke='%23C9A84C' stroke-width='0.2' opacity='0.1'/%3E%3Cline x1='327' y1='73' x2='73' y2='327' stroke='%23C9A84C' stroke-width='0.2' opacity='0.1'/%3E%3C/svg%3E") center/600px repeat;
+    opacity: 0.4;
+  }
+  .cover-mandala {
+    position: absolute; width: 500px; height: 500px; opacity: 0.06;
+    top: 50%; left: 50%; transform: translate(-50%,-50%);
+  }
+  .cover-content { position:relative; z-index:2; text-align:center; max-width:800px; }
+  .cover-om {
+    font-size: 64px; color: var(--gold); margin-bottom: 16px;
+    text-shadow: 0 0 40px rgba(201,168,76,0.6);
+  }
+  .cover-subtitle {
+    font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 6px;
+    color: var(--gold); text-transform: uppercase; margin-bottom: 24px; opacity: 0.8;
+  }
+  .cover-title {
+    font-family: 'Cinzel', serif; font-size: 42px; font-weight: 700;
+    color: var(--gold-light); line-height: 1.2; margin-bottom: 8px;
+    text-shadow: 0 2px 20px rgba(201,168,76,0.4);
+  }
+  .cover-name {
+    font-family: 'Cinzel', serif; font-size: 58px; font-weight: 900;
+    color: #fff; letter-spacing: 4px; margin: 16px 0;
+    text-shadow: 0 0 30px rgba(255,255,255,0.3);
+  }
+  .cover-divider {
+    width: 200px; height: 2px; margin: 24px auto;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .cover-details {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 24px;
+    margin: 32px 0; padding: 28px; border: 1px solid rgba(201,168,76,0.3);
+    background: rgba(0,0,0,0.4); border-radius: 4px;
+  }
+  .cover-detail-item { text-align:center; }
+  .cover-detail-label {
+    font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 3px;
+    color: var(--gold); text-transform: uppercase; display: block; margin-bottom: 4px;
+  }
+  .cover-detail-value {
+    font-size: 15px; color: var(--cream); font-weight: 500;
+  }
+  .cover-footer {
+    margin-top: 32px; font-size: 12px; color: rgba(201,168,76,0.5);
+    font-family: 'Cinzel', serif; letter-spacing: 3px;
+  }
+  .cover-badges {
+    display: flex; gap: 16px; justify-content: center; margin: 24px 0; flex-wrap: wrap;
+  }
+  .cover-badge {
+    padding: 6px 18px; border: 1px solid var(--gold); border-radius: 2px;
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px;
+    color: var(--gold); background: rgba(201,168,76,0.08);
+  }
+
+  /* ── LAYOUT ── */
+  .page { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+
+  /* ── SECTION HEADERS ── */
+  .section {
+    padding: 60px 0 40px; border-bottom: 1px solid rgba(201,168,76,0.15);
+  }
+  .section-header {
+    display: flex; align-items: center; gap: 20px; margin-bottom: 36px;
+  }
+  .section-number {
+    font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 3px;
+    color: var(--gold); opacity: 0.7; min-width: 80px;
+  }
+  .section-title {
+    font-family: 'Cinzel', serif; font-size: 26px; font-weight: 700;
+    color: var(--gold-light);
+  }
+  .section-sanskrit {
+    font-family: 'Cinzel', serif; font-size: 13px; color: rgba(201,168,76,0.6);
+    display: block; margin-top: 2px; letter-spacing: 1px;
+  }
+  .section-line {
+    flex:1; height:1px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+    opacity: 0.4;
+  }
+
+  /* ── HOUSE BLOCKS ── */
+  .house-block {
+    background: linear-gradient(135deg, rgba(30,45,90,0.6) 0%, rgba(15,22,40,0.8) 100%);
+    border: 1px solid rgba(201,168,76,0.2); border-left: 3px solid var(--gold);
+    border-radius: 4px; padding: 28px 32px; margin-bottom: 28px;
+    position: relative; overflow: hidden;
+  }
+  .house-block::before {
+    content: attr(data-house-num); position: absolute; right: 20px; top: 16px;
+    font-family: 'Cinzel', serif; font-size: 80px; font-weight: 900;
+    color: rgba(201,168,76,0.05); line-height: 1;
+  }
+  .house-block-header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .house-num {
+    font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 3px;
+    color: var(--gold); opacity: 0.7;
+  }
+  .house-name {
+    font-family: 'Cinzel', serif; font-size: 20px; font-weight: 700;
+    color: var(--gold-light);
+  }
+  .house-sign {
+    font-size: 14px; color: rgba(255,255,255,0.6);
+    padding: 2px 10px; border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 2px; font-family: 'Cinzel', serif;
+  }
+  .house-lord { font-size: 13px; color: var(--gold); opacity: 0.8; }
+  .house-planets { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+  .planet-tag {
+    padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;
+    font-family: 'Cinzel', serif; letter-spacing: 1px;
+    border: 1px solid currentColor;
+  }
+  .planet-tag.sun    { color: var(--sun-color);    background: rgba(255,107,0,0.12); }
+  .planet-tag.moon   { color: var(--moon-color);   background: rgba(192,192,255,0.12); }
+  .planet-tag.mars   { color: var(--mars-color);   background: rgba(255,48,48,0.12); }
+  .planet-tag.mercury{ color: var(--mercury-color);background: rgba(0,184,107,0.12); }
+  .planet-tag.jupiter{ color: var(--jupiter-color);background: rgba(255,215,0,0.12); }
+  .planet-tag.venus  { color: var(--venus-color);  background: rgba(255,105,180,0.12); }
+  .planet-tag.saturn { color: var(--saturn-color); background: rgba(106,90,205,0.12); }
+  .planet-tag.rahu   { color: var(--rahu-color);   background: rgba(85,85,85,0.2); border-color:#777; }
+  .planet-tag.ketu   { color: var(--ketu-color);   background: rgba(139,69,19,0.15); }
+
+  .house-text { color: rgba(250,246,238,0.88); line-height: 1.9; font-size: 15.5px; }
+  .house-text p { margin-bottom: 14px; }
+  .house-text .sloka {
+    background: rgba(201,168,76,0.08); border-left: 2px solid var(--gold);
+    padding: 10px 16px; margin: 14px 0; font-style: italic;
+    color: var(--gold-pale); font-size: 14.5px; border-radius: 0 4px 4px 0;
+  }
+  .house-text .sloka cite {
+    display: block; margin-top: 4px; font-size: 12px; opacity: 0.7;
+    font-style: normal; font-family: 'Cinzel', serif; letter-spacing: 1px;
+  }
+  .verdict {
+    margin-top: 16px; padding: 12px 18px;
+    background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 4px;
+  }
+  .verdict-label {
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 3px;
+    color: var(--gold); display: block; margin-bottom: 4px; text-transform: uppercase;
+  }
+  .verdict-text { color: var(--cream); font-size: 15px; }
+
+  /* ── CHART TABLE ── */
+  .planet-table {
+    width: 100%; border-collapse: collapse; margin: 28px 0;
+    font-size: 14px;
+  }
+  .planet-table th {
+    background: rgba(201,168,76,0.15); color: var(--gold);
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px;
+    padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(201,168,76,0.3);
+  }
+  .planet-table td {
+    padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.06);
+    color: rgba(250,246,238,0.85);
+  }
+  .planet-table tr:hover td { background: rgba(201,168,76,0.06); }
+  .planet-table .planet-name { font-weight: 600; font-family: 'Cinzel', serif; font-size: 12px; }
+  .strength-exalted { color: #00E676; font-weight: 700; }
+  .strength-own     { color: #69F0AE; font-weight: 600; }
+  .strength-friendly{ color: var(--gold-light); }
+  .strength-neutral { color: rgba(250,246,238,0.7); }
+  .strength-enemy   { color: #FF7043; }
+  .strength-debil   { color: #FF1744; font-weight: 700; }
+  .retro-badge {
+    font-size: 10px; color: var(--venus-color); background: rgba(255,105,180,0.15);
+    padding: 1px 6px; border-radius: 8px; margin-left: 4px; border: 1px solid currentColor;
+  }
+
+  /* ── SVG CHART ── */
+  .chart-container {
+    display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap; margin: 32px 0;
+  }
+  .chart-box { flex: 0 0 auto; }
+  .chart-label {
+    font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 3px;
+    color: var(--gold); text-align: center; margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  .chart-info { flex: 1; min-width: 280px; }
+
+  /* ── YOGA CARDS ── */
+  .yoga-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 20px; margin: 28px 0; }
+  .yoga-card {
+    background: linear-gradient(135deg, rgba(30,45,90,0.7), rgba(15,22,40,0.9));
+    border: 1px solid rgba(201,168,76,0.3); border-radius: 6px; padding: 24px;
+    position: relative; overflow: hidden;
+  }
+  .yoga-card.pancha {
+    border-color: rgba(255,215,0,0.5);
+    background: linear-gradient(135deg, rgba(40,30,5,0.8), rgba(15,10,0,0.9));
+  }
+  .yoga-card::after {
+    content: '✦'; position: absolute; right: 16px; top: 12px;
+    font-size: 32px; opacity: 0.08; color: var(--gold);
+  }
+  .yoga-name {
+    font-family: 'Cinzel', serif; font-size: 17px; font-weight: 700;
+    color: var(--gold-light); margin-bottom: 4px;
+  }
+  .yoga-type {
+    font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 3px;
+    color: rgba(201,168,76,0.6); text-transform: uppercase; margin-bottom: 12px;
+  }
+  .yoga-formation {
+    font-size: 12px; color: var(--gold); background: rgba(201,168,76,0.1);
+    padding: 4px 10px; border-radius: 2px; margin-bottom: 12px; display: inline-block;
+    font-family: 'Cinzel', serif;
+  }
+  .yoga-text { font-size: 14px; color: rgba(250,246,238,0.85); line-height: 1.7; }
+
+  /* ── DASHA TIMELINE ── */
+  .dasha-timeline { margin: 28px 0; }
+  .dasha-row {
+    display: flex; align-items: stretch; margin-bottom: 8px;
+    border-radius: 4px; overflow: hidden;
+    border: 1px solid rgba(201,168,76,0.15);
+  }
+  .dasha-row.current {
+    border-color: var(--gold); box-shadow: 0 0 20px rgba(201,168,76,0.2);
+  }
+  .dasha-planet-col {
+    width: 120px; flex: 0 0 120px;
+    background: rgba(201,168,76,0.1); display: flex;
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 12px; border-right: 1px solid rgba(201,168,76,0.2);
+  }
+  .dasha-row.current .dasha-planet-col { background: rgba(201,168,76,0.2); }
+  .dasha-planet-name {
+    font-family: 'Cinzel', serif; font-size: 14px; font-weight: 700;
+    color: var(--gold-light); margin-bottom: 2px;
+  }
+  .dasha-years { font-size: 11px; color: rgba(201,168,76,0.7); font-family: 'Cinzel', serif; }
+  .dasha-dates-col { padding: 12px 16px; flex: 1; }
+  .dasha-date-range {
+    font-size: 12px; color: rgba(201,168,76,0.7); font-family: 'Cinzel', serif;
+    margin-bottom: 6px; letter-spacing: 1px;
+  }
+  .dasha-summary { font-size: 14px; color: rgba(250,246,238,0.85); line-height: 1.6; }
+  .current-badge {
+    background: var(--gold); color: var(--deep-navy); font-family: 'Cinzel', serif;
+    font-size: 9px; letter-spacing: 2px; padding: 2px 8px; border-radius: 2px;
+    display: inline-block; margin-left: 8px; vertical-align: middle; font-weight: 700;
+  }
+
+  /* ── ANTARDASHA TABLE ── */
+  .antardasha-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13.5px; }
+  .antardasha-table th {
+    background: rgba(201,168,76,0.12); color: var(--gold);
+    font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 2px;
+    padding: 10px 14px; border-bottom: 1px solid rgba(201,168,76,0.3); text-align:left;
+  }
+  .antardasha-table td { padding: 9px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); color: rgba(250,246,238,0.85); }
+  .antardasha-table tr.ad-current td { background: rgba(201,168,76,0.1); color: var(--cream); }
+  .antardasha-table tr.ad-current td:first-child { font-weight: 700; color: var(--gold); }
+
+  /* ── NAKSHATRA CARD ── */
+  .nakshatra-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 24px 0; }
+  .nakshatra-card {
+    background: linear-gradient(135deg, rgba(30,45,90,0.6), rgba(15,22,40,0.9));
+    border: 1px solid rgba(201,168,76,0.25); border-radius: 6px; padding: 24px;
+  }
+  .nakshatra-title {
+    font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700;
+    color: var(--gold-light); margin-bottom: 4px;
+  }
+  .nakshatra-subtitle { font-size: 12px; color: rgba(201,168,76,0.65); font-family: 'Cinzel', serif; letter-spacing: 1px; margin-bottom: 14px; }
+  .nakshatra-attrs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .nakshatra-attr-item { }
+  .nakshatra-attr-label { font-size: 10px; color: var(--gold); font-family: 'Cinzel', serif; letter-spacing: 1px; display: block; }
+  .nakshatra-attr-val { font-size: 13px; color: var(--cream); }
+  .nakshatra-text { font-size: 14px; color: rgba(250,246,238,0.85); line-height: 1.75; }
+
+  /* ── REMEDY CARDS ── */
+  .remedy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 16px; margin: 24px 0; }
+  .remedy-card {
+    background: rgba(15,22,40,0.8); border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 6px; padding: 20px;
+  }
+  .remedy-icon { font-size: 28px; margin-bottom: 10px; }
+  .remedy-title { font-family: 'Cinzel', serif; font-size: 14px; color: var(--gold); margin-bottom: 8px; }
+  .remedy-text { font-size: 13px; color: rgba(250,246,238,0.8); line-height: 1.6; }
+
+  /* ── SUMMARY BANNER ── */
+  .summary-banner {
+    background: linear-gradient(135deg, rgba(40,20,5,0.9), rgba(10,14,26,0.95));
+    border: 1px solid var(--gold); border-radius: 6px; padding: 32px 36px;
+    margin: 32px 0; text-align: center;
+  }
+  .summary-banner h3 {
+    font-family: 'Cinzel', serif; font-size: 22px; color: var(--gold-light); margin-bottom: 16px;
+  }
+  .summary-banner p { font-size: 16px; color: rgba(250,246,238,0.9); line-height: 1.85; max-width: 800px; margin: 0 auto; }
+
+  /* ── PILLS / INFO GRID ── */
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 14px; margin: 24px 0; }
+  .info-card {
+    background: rgba(30,45,90,0.5); border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 4px; padding: 14px 16px;
+  }
+  .info-card-label { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; display: block; margin-bottom: 4px; }
+  .info-card-value { font-size: 15px; color: var(--cream); font-weight: 500; }
+
+  /* ── FOOTER ── */
+  .report-footer {
+    text-align:center; padding: 40px; border-top: 1px solid rgba(201,168,76,0.2);
+    color: rgba(201,168,76,0.4); font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 2px;
+  }
+
+  /* ── CALLOUT ── */
+  .callout {
+    background: rgba(139,26,46,0.15); border: 1px solid rgba(139,26,46,0.4);
+    border-left: 3px solid var(--crimson); border-radius: 0 4px 4px 0;
+    padding: 14px 18px; margin: 14px 0; font-size: 14.5px; color: rgba(250,246,238,0.85);
+  }
+  .callout.info {
+    background: rgba(201,168,76,0.08); border-color: rgba(201,168,76,0.4);
+    border-left-color: var(--gold);
+  }
+  .callout.positive {
+    background: rgba(0,200,100,0.08); border-color: rgba(0,200,100,0.35);
+    border-left-color: #00C864;
+  }
+
+  /* ── STRENGTH METER ── */
+  .strength-bar-wrap { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+  .strength-bar-label { font-size: 12px; color: var(--gold); width: 80px; font-family: 'Cinzel', serif; font-size: 10px; }
+  .strength-bar-bg { flex:1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+  .strength-bar-fill { height: 100%; border-radius: 3px; }
+
+  @media print {
+    body { background: white; color: #111; }
+    .cover { background: #f5f0e8; min-height: auto; padding: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     COVER PAGE
+══════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-content">
+    <div class="cover-om">ॐ</div>
+    <div class="cover-subtitle">Brihat Parasara Hora Shastra · Classical Vedic Consultation</div>
+    <div class="cover-title">Jyotish Kundali Vishleshan</div>
+    <div style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:4px;color:rgba(201,168,76,0.6);margin-bottom:8px;">COMPREHENSIVE BIRTH CHART READING</div>
+    <div class="cover-name">VIMAL</div>
+    <div class="cover-divider"></div>
+
+    <div class="cover-details">
+      <div class="cover-detail-item">
+        <span class="cover-detail-label">Date of Birth</span>
+        <span class="cover-detail-value">22 November 1978</span>
+      </div>
+      <div class="cover-detail-item">
+        <span class="cover-detail-label">Time of Birth</span>
+        <span class="cover-detail-value">12:54 PM IST</span>
+      </div>
+      <div class="cover-detail-item">
+        <span class="cover-detail-label">Place of Birth</span>
+        <span class="cover-detail-value">Chennai, India</span>
+      </div>
+      <div class="cover-detail-item">
+        <span class="cover-detail-label">Lagna (Ascendant)</span>
+        <span class="cover-detail-value">Aquarius (Kumbha)</span>
+      </div>
+      <div class="cover-detail-item">
+        <span class="cover-detail-label">Rasi (Moon Sign)</span>
+        <span class="cover-detail-value">Cancer (Karka)</span>
+      </div>
+      <div class="cover-detail-item">
+        <span class="cover-detail-label">Nakshatra</span>
+        <span class="cover-detail-value">Ashlesha Pada 4</span>
+      </div>
+    </div>
+
+    <div class="cover-badges">
+      <span class="cover-badge">Ruchaka Yoga</span>
+      <span class="cover-badge">Hamsa Yoga</span>
+      <span class="cover-badge">Gajakesari Yoga</span>
+      <span class="cover-badge">Dharma-Karmadhipati Yoga</span>
+      <span class="cover-badge">Mars Mahadasha 2022–2029</span>
+    </div>
+
+    <div class="cover-footer">
+      Generated: February 2026 &nbsp;·&nbsp; Ayanamsa: Lahiri 23°33'42" &nbsp;·&nbsp; Source: BPHS, Saravali, Phalita Jyotisha
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+<!-- ══════════════════════════════════════════════
+     SECTION 0 — CHART OVERVIEW
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">OVERVIEW</span>
+    <div>
+      <div class="section-title">Graha Sthiti — Planetary Positions</div>
+      <span class="section-sanskrit">ग्रह स्थिति</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="chart-container">
+    <!-- South Indian Birth Chart SVG -->
+    <div class="chart-box">
+      <div class="chart-label">D1 — Rashi Chart (Lagna: Kumbha)</div>
+      <svg width="380" height="380" viewBox="0 0 380 380" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+        <defs>
+          <style>
+            .cl { fill:none; stroke:#C9A84C; stroke-width:1; opacity:0.6; }
+            .ht { fill:rgba(201,168,76,0.1); }
+            .ht-l { fill:rgba(30,45,90,0.6); }
+            .st { fill:#C9A84C; font-family:'Cinzel',serif; font-size:9px; letter-spacing:1px; opacity:0.7; }
+            .pt { fill:#FAF6EE; font-family:'Cinzel',serif; font-size:10px; font-weight:600; }
+            .sun { fill:#FF6B00; }
+            .moon { fill:#9090FF; }
+            .mars { fill:#FF4444; }
+            .merc { fill:#00CC77; }
+            .jup  { fill:#FFD700; }
+            .ven  { fill:#FF69B4; }
+            .sat  { fill:#8877DD; }
+            .rahu { fill:#AAAAAA; }
+            .ketu { fill:#CC8844; }
+          </style>
+        </defs>
+        <!-- Grid border -->
+        <rect x="5" y="5" width="370" height="370" fill="rgba(10,14,26,0.85)" stroke="#C9A84C" stroke-width="1.5" opacity="0.7"/>
+        <!-- Main cross lines -->
+        <line x1="5" y1="5" x2="125" y2="125" class="cl"/>
+        <line x1="375" y1="5" x2="255" y2="125" class="cl"/>
+        <line x1="5" y1="375" x2="125" y2="255" class="cl"/>
+        <line x1="375" y1="375" x2="255" y2="255" class="cl"/>
+        <!-- Inner box -->
+        <rect x="125" y="125" width="130" height="130" fill="rgba(201,168,76,0.05)" stroke="#C9A84C" stroke-width="1" opacity="0.5"/>
+        <!-- Outer box segments -->
+        <rect x="5" y="125" width="120" height="130" class="ht-l" stroke="#C9A84C" stroke-width="0.5" opacity="0.4"/>   <!-- H4 Tau -->
+        <rect x="255" y="125" width="120" height="130" class="ht-l" stroke="#C9A84C" stroke-width="0.5" opacity="0.4"/>  <!-- H10 Sco - loaded -->
+        <rect x="125" y="5" width="130" height="120" class="ht-l" stroke="#C9A84C" stroke-width="0.5" opacity="0.4"/>   <!-- H2 Pis -->
+        <rect x="125" y="255" width="130" height="120" class="ht-l" stroke="#C9A84C" stroke-width="0.5" opacity="0.4"/>  <!-- H8 Vir -->
+        <!-- Corner boxes -->
+        <polygon points="5,5 125,5 125,125 5,125" fill="rgba(30,45,90,0.7)" stroke="#C9A84C" stroke-width="0.5" opacity="0.6"/>   <!-- H1 Aq -->
+        <polygon points="255,5 375,5 375,125 255,125" fill="rgba(30,45,90,0.6)" stroke="#C9A84C" stroke-width="0.5" opacity="0.5"/>  <!-- H3 Ar -->
+        <polygon points="5,255 125,255 125,375 5,375" fill="rgba(30,45,90,0.6)" stroke="#C9A84C" stroke-width="0.5" opacity="0.5"/>  <!-- H7 Leo -->
+        <polygon points="255,255 375,255 375,375 255,375" fill="rgba(30,45,90,0.6)" stroke="#C9A84C" stroke-width="0.5" opacity="0.5"/>  <!-- H11 Sag -->
+        <!-- Diagonals top-right and top-left corners -->
+        <polygon points="125,5 255,5 190,65" fill="rgba(25,38,75,0.5)" stroke="#C9A84C" stroke-width="0.5" opacity="0.5"/>  <!-- H12 Cap -->
+        <polygon points="5,125 5,255 65,190" fill="rgba(25,38,75,0.5)" stroke="#C9A84C" stroke-width="0.5" opacity="0.5"/>  <!-- H5 Gem -->
+        <polygon points="375,125 375,255 315,190" fill="rgba(25,38,75,0.7)" stroke="#C9A84C" stroke-width="0.8" opacity="0.7"/>  <!-- H9 Lib (Venus) -->
+        <polygon points="125,375 255,375 190,315" fill="rgba(25,38,75,0.5)" stroke="#C9A84C" stroke-width="0.5" opacity="0.5"/>  <!-- H6 Can (Moon,Jup) -->
+
+        <!-- House numbers (sign names) -->
+        <text x="65" y="72" class="st" text-anchor="middle">H1 Kumbha</text>
+        <text x="190" y="40" class="st" text-anchor="middle">H12 Makara</text>
+        <text x="315" y="72" class="st" text-anchor="middle">H3 Mesha</text>
+        <text x="40" y="190" class="st" text-anchor="middle" transform="rotate(-90,40,190)">H5 Mithuna</text>
+        <text x="340" y="190" class="st" text-anchor="middle" transform="rotate(90,340,190)">H9 Tula</text>
+        <text x="65" y="315" class="st" text-anchor="middle">H7 Simha</text>
+        <text x="190" y="355" class="st" text-anchor="middle">H6 Karka</text>
+        <text x="315" y="315" class="st" text-anchor="middle">H11 Dhanu</text>
+        <text x="40" y="192" class="st" text-anchor="middle" transform="rotate(-90,40,192)"></text>
+        <!-- Side boxes -->
+        <text x="68" y="193" class="st" text-anchor="middle">H4 Vrishabha</text>
+        <text x="313" y="193" class="st" text-anchor="middle">H10 Vrishchika</text>
+        <text x="190" y="68" class="st" text-anchor="middle">H2 Meena</text>
+        <text x="190" y="318" class="st" text-anchor="middle">H8 Kanya</text>
+
+        <!-- PLANETS -->
+        <!-- H1 Aquarius: ASC + Ketu -->
+        <text x="55" y="95" class="pt" text-anchor="middle" font-size="9" fill="#C9A84C">ASC 15°</text>
+        <text x="55" y="110" class="pt ketu" text-anchor="middle">Ke</text>
+
+        <!-- H6 Cancer (bottom triangle): Moon + Jupiter (exalted) -->
+        <text x="190" y="337" class="pt moon" text-anchor="middle">Mo</text>
+        <text x="190" y="348" class="pt jup" text-anchor="middle" font-size="9">Ju★</text>
+
+        <!-- H7 Leo (bottom-left): Saturn + Rahu -->
+        <text x="58" y="302" class="pt sat" text-anchor="middle">Sa</text>
+        <text x="58" y="316" class="pt rahu" text-anchor="middle">Ra</text>
+
+        <!-- H9 Libra (right triangle): Venus R -->
+        <text x="347" y="188" class="pt ven" text-anchor="middle" font-size="10">Ve(R)</text>
+
+        <!-- H10 Scorpio (right box): Sun Mercury Mars -->
+        <text x="313" y="160" class="pt sun" text-anchor="middle">Su</text>
+        <text x="313" y="175" class="pt merc" text-anchor="middle">Me</text>
+        <text x="313" y="190" class="pt mars" text-anchor="middle">Ma★</text>
+
+        <!-- Ruchaka Yoga star label -->
+        <text x="353" y="202" fill="#FF4444" font-size="7" text-anchor="middle" font-family="Cinzel,serif" opacity="0.7">Ruchaka</text>
+
+        <!-- Center label -->
+        <text x="190" y="182" class="st" text-anchor="middle" font-size="10" fill="#C9A84C" opacity="0.6">KUMBHA</text>
+        <text x="190" y="196" class="st" text-anchor="middle" font-size="9" fill="#C9A84C" opacity="0.5">LAGNA</text>
+      </svg>
+    </div>
+
+    <div class="chart-info">
+      <div class="info-grid">
+        <div class="info-card">
+          <span class="info-card-label">Lagna</span>
+          <span class="info-card-value">Aquarius 15°03'</span>
+        </div>
+        <div class="info-card">
+          <span class="info-card-label">Lagna Lord</span>
+          <span class="info-card-value">Saturn → H7 (Leo)</span>
+        </div>
+        <div class="info-card">
+          <span class="info-card-label">Rasi (Moon)</span>
+          <span class="info-card-value">Cancer 29°43'</span>
+        </div>
+        <div class="info-card">
+          <span class="info-card-label">Rising Nakshatra</span>
+          <span class="info-card-value">Shatabhisha Pd.3</span>
+        </div>
+        <div class="info-card">
+          <span class="info-card-label">Moon Nakshatra</span>
+          <span class="info-card-value">Ashlesha Pd.4</span>
+        </div>
+        <div class="info-card">
+          <span class="info-card-label">Sun Sign (Vedic)</span>
+          <span class="info-card-value">Scorpio 6°05'</span>
+        </div>
+        <div class="info-card">
+          <span class="info-card-label">Ayanamsa</span>
+          <span class="info-card-value">Lahiri 23°33'42"</span>
+        </div>
+        <div class="info-card">
+          <span class="info-card-label">Current Dasha</span>
+          <span class="info-card-value">Mars – Mercury</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Planetary Table -->
+  <table class="planet-table">
+    <thead>
+      <tr>
+        <th>Planet</th><th>Sign</th><th>Degree</th><th>Nakshatra / Pada</th>
+        <th>House</th><th>Lord of</th><th>Dignity</th><th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="planet-name sun" style="color:var(--sun-color)">☉ Sun</span></td>
+        <td>Scorpio</td><td>6°05'</td><td>Anuradha / Pd.1</td>
+        <td>10th</td><td>H7 (7th)</td>
+        <td class="strength-friendly">Friendly</td>
+        <td>7th lord in 10th — karma activation</td>
+      </tr>
+      <tr>
+        <td><span class="planet-name moon" style="color:var(--moon-color)">☽ Moon</span></td>
+        <td>Cancer</td><td>29°43'</td><td>Ashlesha / Pd.4</td>
+        <td>6th</td><td>H6 (6th)</td>
+        <td class="strength-own">Own Sign ★</td>
+        <td>6th lord in own sign — powerful Viparita energy</td>
+      </tr>
+      <tr>
+        <td><span class="planet-name mars" style="color:var(--mars-color)">♂ Mars</span></td>
+        <td>Scorpio</td><td>21°12'</td><td>Jyeshtha / Pd.2</td>
+        <td>10th</td><td>H3, H10</td>
+        <td class="strength-own">Own Sign ★★</td>
+        <td><strong>RUCHAKA YOGA</strong> — Pancha Mahapurusha</td>
+      </tr>
+      <tr>
+        <td><span class="planet-name mercury" style="color:var(--mercury-color)">☿ Mercury</span></td>
+        <td>Scorpio</td><td>27°07'</td><td>Jyeshtha / Pd.4</td>
+        <td>10th</td><td>H5, H8</td>
+        <td class="strength-enemy">Enemy Sign</td>
+        <td>5th+8th lord in 10th — research, intelligence in career</td>
+      </tr>
+      <tr>
+        <td><span class="planet-name jupiter" style="color:var(--jupiter-color)">♃ Jupiter</span></td>
+        <td>Cancer</td><td>15°26'</td><td>Pushyami / Pd.4</td>
+        <td>6th</td><td>H2, H11</td>
+        <td class="strength-exalted">Exalted ★★★</td>
+        <td><strong>HAMSA YOGA</strong> — Pancha Mahapurusha</td>
+      </tr>
+      <tr>
+        <td><span class="planet-name venus" style="color:var(--venus-color)">♀ Venus</span><span class="retro-badge">R</span></td>
+        <td>Libra</td><td>14°35'</td><td>Swati / Pd.3</td>
+        <td>9th</td><td>H4, H9</td>
+        <td class="strength-own">Own Sign ★★</td>
+        <td>Yoga Karaka in 9th — supreme fortune lord</td>
+      </tr>
+      <tr>
+        <td><span class="planet-name saturn" style="color:var(--saturn-color)">♄ Saturn</span></td>
+        <td>Leo</td><td>19°26'</td><td>Purvaphalguni / Pd.2</td>
+        <td>7th</td><td>H1, H12</td>
+        <td class="strength-enemy">Enemy Sign</td>
+        <td>Lagna lord in 7th — karmic weight on partnerships</td>
+      </tr>
+      <tr>
+        <td><span style="color:#AAAAAA">☊ Rahu</span><span class="retro-badge" style="color:#999">R</span></td>
+        <td>Leo</td><td>29°45'</td><td>Uttaraphalguni / Pd.1</td>
+        <td>7th</td><td>—</td>
+        <td class="strength-neutral">—</td>
+        <td>Amplifies Saturn's 7th house effects</td>
+      </tr>
+      <tr>
+        <td><span style="color:#CC8844">☋ Ketu</span><span class="retro-badge" style="color:#CC8844">R</span></td>
+        <td>Aquarius</td><td>29°45'</td><td>Purvabhadrapada / Pd.3</td>
+        <td>1st</td><td>—</td>
+        <td class="strength-neutral">—</td>
+        <td>Past-life wisdom active in personality</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <strong style="color:var(--gold);font-family:'Cinzel',serif;">Astrologer's First Impression:</strong> This is a remarkable chart. The 10th house carries three planets including Mars in its own sign (Ruchaka Yoga), Jupiter is exalted (Hamsa Yoga), and Venus — the Yoga Karaka for Aquarius Lagna — sits in its own sign in the 9th. This is the chart of someone destined for public distinction, deep intellectual authority, and a profoundly dharmic life path.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 1 — LAGNA (1st HOUSE)
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">HOUSE I</span>
+    <div>
+      <div class="section-title">Tanu Bhava — Self, Body &amp; Destiny</div>
+      <span class="section-sanskrit">तनु भाव · Kumbha Lagna · Shatabhisha Rising</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="house-block" data-house-num="1">
+    <div class="house-block-header">
+      <span class="house-num">1ST HOUSE</span>
+      <span class="house-name">Aquarius (Kumbha)</span>
+      <span class="house-sign">Lord: Saturn</span>
+      <span class="house-lord">· Shatabhisha Nakshatra Pada 3 ·</span>
+    </div>
+    <div class="house-planets">
+      <span class="planet-tag ketu">Ketu</span>
+    </div>
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light)">Aquarius Lagna — The Philosopher King:</strong> Kumbha (Aquarius) is the 11th sign of the zodiac, a fixed air sign ruled by Saturn. It is associated with the water-bearer — the archetype of one who serves humanity by pouring forth wisdom, knowledge, and nourishment from a vessel. Aquarius rising individuals are among the most intellectually sophisticated in the zodiac. They are visionaries: drawn to systems of thought, social reform, science, technology, spirituality, and the welfare of the collective. Saturn's rulership gives you discipline, depth of thought, a long-range perspective, and an instinctive understanding of time, karma, and structure.</p>
+
+      <p>The BPHS (Chapter 12) states that one born in Kumbha Lagna possesses "learning, noble mind, the knowledge of many arts and sciences, a calm disposition and skill in deliberation." You are the analyst, the strategist, the visionary who sees what others miss. You are drawn to truth in its purest form — whether through science, philosophy, or mystical enquiry.</p>
+
+      <div class="sloka">"Should Lagn Lord be in Lagn itself, the native will be endowed with physical happiness and prowess. He will be intelligent…" However, your Lagna lord Saturn is placed in the 7th — meaning your sense of self is expressed through your relationships, partnerships and the way you engage with the outer world. The Self is projected outward.
+        <cite>— BPHS Ch. 24, Sloka on Lagn Lord in Yuvati</cite>
+      </div>
+
+      <p><strong style="color:var(--gold-light)">Ketu in the 1st House (Aquarius, 29°45'):</strong> Ketu on the Lagna is one of the most spiritually charged placements in Vedic astrology. Ketu, the South Node, represents past-life accumulation, moksha-karaka energy, detachment, and deep inward wisdom. With Ketu in your Lagna, you carry into this life an extraordinary reservoir of accumulated spiritual and intellectual merit from prior incarnations. You may feel, from youth, that you do not entirely "fit" conventional society — this is because your soul has already traversed much of the ordinary human path. You are here for something more refined.</p>
+
+      <p>Ketu in the Lagna creates a personality that is simultaneously magnetic and enigmatic. People sense a depth in you that they cannot easily articulate. There is an unusual quality to your presence — perhaps an otherworldly stillness or penetrating awareness. You may at times feel detached from your own identity, as if watching your own life from a slight distance. This is Ketu's gift: freedom from excessive ego-identification. The challenge is to remain grounded and embodied while still accessing Ketu's transcendent perspective.</p>
+
+      <p>With Ketu in Aquarius (ruled by Saturn), the Ketu energy blends with humanitarian idealism, intellectual detachment, and the search for universal truth. You may have strong past-life connections to spiritual traditions, scientific discovery, or service to humanity.</p>
+
+      <p><strong style="color:var(--gold-light)">Shatabhisha Rising (Rahu-ruled, 100 Physicians):</strong> Your rising nakshatra is Shatabhisha (also written Shatabishaj — "the hundred physicians" or "hundred medicines"). This nakshatra spans 6°40' to 20°00' Aquarius and is ruled by Rahu. Its deity is Varuna — the god of cosmic order, water, truth, and the mysteries of the universe. Shatabhisha is the nakshatra of healers, mystics, researchers, and those who deal in hidden knowledge.</p>
+
+      <p>Shatabhisha rising gives you a penetrating investigative mind, a fascination with what lies beneath the surface, and a natural ability to heal, research, or decode complex systems. Rahu's rulership adds intensity, ambition, and an appetite for the unconventional. You may be drawn to alternative approaches, cutting-edge technology, ancient wisdom, or any domain that sits at the intersection of the known and the unknown. The symbol of Shatabhisha is an empty circle — representing both the void and infinite potential. You are the seeker who contains multitudes.</p>
+
+    </div>
+    <div class="verdict">
+      <span class="verdict-label">Consultation Verdict — Self &amp; Personality</span>
+      <span class="verdict-text">You are a rare type: intellectually formidable, spiritually inclined, and driven by purpose beyond personal gain. Ketu on the Lagna ensures that ego-gratification holds little appeal; what drives you is truth, mastery, and contribution. Saturn as your Lagna lord placed in the 7th means your greatest growth — and greatest challenges — arrive through relationships and the outer world of partnerships. Physically, Aquarius rules the ankles, calves, and circulatory system; Ketu in the 1st can sometimes produce nervous sensitivity or unusual health patterns; attend to the nervous system and circulatory health.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 2 — 2nd HOUSE
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">HOUSE II</span>
+    <div>
+      <div class="section-title">Dhana Bhava — Wealth, Speech &amp; Family</div>
+      <span class="section-sanskrit">धन भाव · Meena · Lord: Jupiter (Exalted in H6)</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="house-block" data-house-num="2">
+    <div class="house-block-header">
+      <span class="house-num">2ND HOUSE</span>
+      <span class="house-name">Pisces (Meena) — Empty</span>
+      <span class="house-sign">Lord: Jupiter</span>
+      <span class="house-lord">· Jupiter exalted in Cancer (6th) ·</span>
+    </div>
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light)">The 2nd House in Pisces:</strong> Your 2nd house falls in Pisces (Meena), the most spiritual and expansive of signs, ruled by Jupiter. The 2nd house governs accumulated wealth, family of origin, speech, face, right eye, and the values you inherited from your lineage. Pisces here gives your wealth a fluid, expansive quality — it flows in and out, often in large amounts, connected to imagination, spiritual service, or creative work.</p>
+
+      <div class="sloka">"If Dhan's Lord is in Ari Bhava along with a benefic, the native will gain wealth through his enemies; if Dhan's Lord is yuti with a malefic, there will be loss through enemies."
+        <cite>— BPHS Ch. 13, Sloka on Dhan Lord in Ari Bhava</cite>
+      </div>
+
+      <p><strong style="color:var(--gold-light)">Jupiter (2nd Lord) Exalted in Cancer (6th House):</strong> The 2nd lord Jupiter is exalted in Cancer — the absolute peak of Jupiter's strength. Jupiter in Cancer (Hamsa Yoga) is placed in your 6th house. While the 6th is a Dusthana (house of challenges), an exalted planet in the 6th is described in BPHS as giving the native "Harsha Yoga" — the native overcomes enemies, rises through competition, and ultimately triumphs over all adversarial forces. Your wealth comes through disciplined service, competitive fields, and the sheer power of Jupiter's exaltation.</p>
+
+      <p>Jupiter as 2nd lord exalted means your accumulated wealth grows significantly over your lifetime — slowly at first (Saturn as lagna lord introduces timing delays), then substantially. The 2nd house Pisces ruled by exalted Jupiter also gives you eloquent, philosophical, wisdom-filled speech. You likely speak with authority and depth. People are moved by your words. You may have a gift for teaching, counselling, or persuasive communication that draws on spiritual or philosophical frameworks.</p>
+
+      <p>Jupiter's exaltation in the 6th also protects your family finances despite competitive pressures. Jupiter from Cancer casts its 5th aspect on Scorpio (your 10th house of career), directly blessing your career with wisdom and fortune — connecting your earning power to your professional achievements in a powerful way.</p>
+
+      <p><strong style="color:var(--gold-light)">Family of Origin:</strong> Pisces as the 2nd house suggests a family atmosphere coloured by sensitivity, spirituality, imagination, or sometimes sacrifice and suffering. Jupiter's exaltation indicates that despite challenges, the family lineage carries genuine merit and divine grace. You may come from a family with strong values, possibly connected to education, healing, or spiritual tradition. The family as a source of wealth is mixed — Jupiter in the 6th from Lagna suggests challenges first, rewards later.</p>
+
+    </div>
+    <div class="verdict">
+      <span class="verdict-label">Consultation Verdict — Wealth &amp; Speech</span>
+      <span class="verdict-text">Your wealth trajectory is one of gradual but immense accumulation — Jupiter's exaltation guarantees that wealth comes, though competitive effort and service are the vehicles. Your speech is your most powerful asset: measured, philosophical, and authoritative. Family relationships require patience and grace; the lineage carries both challenges and profound blessings. Jupiter's 9th aspect from Cancer falls on Pisces (your 2nd house) — directly blessing your wealth house with wisdom and divine grace.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 3 — 3rd HOUSE
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">HOUSE III</span>
+    <div>
+      <div class="section-title">Sahaj Bhava — Courage, Siblings &amp; Communication</div>
+      <span class="section-sanskrit">सहज भाव · Mesha · Lord: Mars (Own Sign in H10)</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="house-block" data-house-num="3">
+    <div class="house-block-header">
+      <span class="house-num">3RD HOUSE</span>
+      <span class="house-name">Aries (Mesha) — Empty</span>
+      <span class="house-sign">Lord: Mars</span>
+      <span class="house-lord">· Mars in Scorpio (10th), own sign, Ruchaka Yoga ·</span>
+    </div>
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light)">3rd House in Aries:</strong> Aries in the 3rd house gives the native a bold, direct, initiative-driven approach to communication, action, and mental effort. You are decisive and courageous when it matters. Your courage is not the reckless kind — it is the calculated, Mars-ruled bravery of one who has assessed the battlefield and chosen their moment. Aries in the 3rd gives a pioneering mind, entrepreneurial instincts, and the willingness to lead where others hesitate.</p>
+
+      <p><strong style="color:var(--gold-light)">Mars (3rd Lord) in Scorpio (10th House), Own Sign:</strong> This is one of the most powerful placements for the 3rd house lord. Mars rules courage, initiative, siblings, writing, and bold communication — and it is placed in your 10th house (career/status) in its own sign Scorpio. This creates a direct pipeline between your initiative and courage on one side, and your professional achievement and public standing on the other.</p>
+
+      <div class="sloka">"If Karm's Lord is strong and in exaltation, or in its own Rāśi/Navāńś, the native will derive extreme paternal happiness, will enjoy fame and will perform good deeds."
+        <cite>— BPHS Ch. 21, Effects of Karma Bhava</cite>
+      </div>
+
+      <p>Mars as 3rd lord in the 10th means your professional success is driven by your own initiative, boldness, and independent drive. You are not the kind of person who waits for opportunity — you create it. Your professional communication carries the force of Mars: direct, penetrating, and impossible to ignore. In writing, speaking, or any public-facing role, you cut through to the essential truth without unnecessary softening. This is a gift in leadership and a mark of authenticity in professional communication.</p>
+
+      <p><strong style="color:var(--gold-light)">Siblings and the 3rd House:</strong> With Mars as 3rd lord in the 10th in its own sign, any siblings in your life are likely connected to professional activity or may be in similar fields. Mars in the 10th creates an intense focus on career that sometimes means professional pursuits take precedence over sibling relationships. The energy of the 3rd house — courage, short journeys, hands-on skills — is channelled entirely into your career domain.</p>
+
+    </div>
+    <div class="verdict">
+      <span class="verdict-label">Consultation Verdict — Courage &amp; Communication</span>
+      <span class="verdict-text">Your courage, initiative, and communication power are completely fused with your career. You are a professional warrior — bold in strategy, penetrating in communication, and unstoppable when committed to a goal. Mars' Ruchaka Yoga in the 10th is the engine behind your professional achievement. This is not luck — this is martial excellence applied to the arena of karma.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 4 — 4th HOUSE
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">HOUSE IV</span>
+    <div>
+      <div class="section-title">Bandhu Bhava — Home, Mother &amp; Inner Peace</div>
+      <span class="section-sanskrit">बन्धु भाव · Vrishabha · Lord: Venus (Own Sign in H9)</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="house-block" data-house-num="4">
+    <div class="house-block-header">
+      <span class="house-num">4TH HOUSE</span>
+      <span class="house-name">Taurus (Vrishabha) — Empty</span>
+      <span class="house-sign">Lord: Venus</span>
+      <span class="house-lord">· Venus (R) in Libra (9th), own sign — Yoga Karaka ·</span>
+    </div>
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light)">4th House in Taurus:</strong> Taurus in the 4th house gives a deep need for material security, physical comfort, and a beautiful, stable home environment. Taurus is an earth sign ruled by Venus — its presence in the 4th house means that your emotional foundations are connected to aesthetics, comfort, and the pleasures of the senses. You likely find peace in beautiful surroundings, good food, music, art, and the simple pleasures of a cultivated domestic life. The home is your sanctuary.</p>
+
+      <p><strong style="color:var(--gold-light)">Venus (4th Lord) as Yoga Karaka:</strong> For Aquarius Lagna, Venus rules both the 4th house (Taurus — a Kendra) and the 9th house (Libra — a Trikona). A planet ruling both a Kendra and a Trikona is called the Yoga Karaka — the single most auspicious planet for that Lagna. Venus is your supreme benefic, your fortune-bringer and grace-giver. This is one of the most important facts of your chart.</p>
+
+      <div class="sloka">"One will be fortunate (or affluent), if Dharm's Lord is in Dharm Bhava with strength."
+        <cite>— BPHS Ch. 20, Effects of Dharma Bhava</cite>
+      </div>
+
+      <p>Venus (Yoga Karaka, 4th+9th lord) is placed in Libra — its own sign — in your 9th house. This is an extraordinary placement. The Yoga Karaka in its own sign in the most auspicious house (9th — Dharma/Fortune) creates conditions for sustained, deep good fortune across multiple life domains: home, property, mother, dharma, luck, higher education, and spiritual grace. The BPHS is unequivocal that the 9th lord in the 9th house with strength gives supreme fortune.</p>
+
+      <p><strong style="color:var(--gold-light)">Venus Retrograde:</strong> Venus is retrograde in your chart, at 14°35' Libra. Retrograde Venus in Vedic astrology is considered intensified — the planet is closer to Earth and its influence is stronger, though sometimes delayed or internalized. Venus retrograde often indicates a soul with a deep, complex relationship with beauty, love, values, and pleasure — these are revisited, refined, and ultimately understood at a very deep level. Venus retrograde as Yoga Karaka means the blessings of Dharma and Sukha (home/fortune) come through inner work, revisiting, and sometimes through non-conventional paths.</p>
+
+      <p><strong style="color:var(--gold-light)">Mother and Home:</strong> BPHS (Ch. 15) states: "One will have residential comforts in full degree, if Bandhu is occupied by its Lord, or by Lagn's Lord and be drishtied by a benefic." While Venus is not in the 4th itself, Venus as 4th lord in its own sign in the 9th is extremely auspicious for residential happiness, property acquisition, and relationship with the mother. Your mother is a woman of grace, beauty, or spiritual depth. The relationship with the mother is strong and there is mutual understanding. Property acquisition — especially real estate — is strongly indicated after the age of 35.</p>
+
+    </div>
+    <div class="verdict">
+      <span class="verdict-label">Consultation Verdict — Home &amp; Happiness</span>
+      <span class="verdict-text">Venus as Yoga Karaka in own sign in the 9th is the crown jewel of your chart's fortune potential. Your home life, relationship with your mother, and capacity for happiness are all abundantly blessed — though Venus retrograde means some blessings require patience and inner refinement before they fully manifest. Property and real estate will be a source of security and wealth for you.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 5 — 5th HOUSE
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">HOUSE V</span>
+    <div>
+      <div class="section-title">Putra Bhava — Intelligence, Children &amp; Creativity</div>
+      <span class="section-sanskrit">पुत्र भाव · Mithuna · Lord: Mercury (in H10)</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="house-block" data-house-num="5">
+    <div class="house-block-header">
+      <span class="house-num">5TH HOUSE</span>
+      <span class="house-name">Gemini (Mithuna) — Empty</span>
+      <span class="house-sign">Lord: Mercury</span>
+      <span class="house-lord">· Mercury in Scorpio (10th) ·</span>
+    </div>
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light)">5th House in Gemini:</strong> Gemini in the 5th house gives a highly analytical, quick-thinking, multi-faceted intelligence. Your mind processes information rapidly across multiple domains. You are drawn to learning, communication, analysis, and the interplay of ideas. The 5th house in Gemini also suggests creative intelligence that is verbal and analytical — you may excel in writing, research, data analysis, storytelling, or any field requiring the manipulation of information and ideas.</p>
+
+      <p><strong style="color:var(--gold-light)">Mercury (5th Lord) in Scorpio (10th House):</strong> Mercury as 5th lord placed in the 10th house creates a direct link between your intelligence (5th) and your career (10th). Your profession is defined by the quality and deployment of your intellect. Mercury in Scorpio gives a penetrating, investigative, psychologically perceptive mind — you naturally probe beneath the surface of any subject. This is the placement of the researcher, the strategist, the intelligence analyst, the financial specialist, the psychologist, or the writer of depth.</p>
+
+      <div class="sloka">"If Karm's Lord is in Lagn along with Lagn's Lord, as Candr is in an angle, or in a trine, the native will be interested in good deeds."
+        <cite>— BPHS Ch. 21, Effects of Karma Bhava</cite>
+      </div>
+
+      <p>Mercury in the 10th with Sun and Mars creates a formidable intellectual force in the house of career. The combination of solar authority (Sun), martial drive (Mars), and mercurial intelligence (Mercury) in the 10th house in Scorpio produces a professional identity that is strategically brilliant, powerfully communicative, and relentlessly thorough. You are someone who masters a subject completely before speaking on it.</p>
+
+      <p><strong style="color:var(--gold-light)">Children (5th House):</strong> BPHS indicates that 5th lord Mercury in the 10th house, combined with malefic Jupiter's placement, suggests the possibility of delays or challenges with children, or that children will be deeply connected to the native's career and intellectual life. Mercury as 8th lord also in the 10th creates some complexity here — the matter of children may involve transformation, waiting, or non-conventional circumstances. However, Jupiter's exaltation as 2nd and 11th lord casts its 5th aspect on the 10th house, blessing Mercury and the 5th house matters with its gracious gaze. Children, when they come, will be brilliant and intellectually gifted.</p>
+
+    </div>
+    <div class="verdict">
+      <span class="verdict-label">Consultation Verdict — Intelligence &amp; Children</span>
+      <span class="verdict-text">Your intellect is your most powerful professional tool — and Mercury in the 10th in Scorpio ensures it is fully deployed in your career. You think deeply, communicate precisely, and bring an investigative, psychological quality to your work. Children may come with some complexity but will be intellectually exceptional. Your creative intelligence, when channelled into professional expression, produces outstanding results.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 6 — 6th HOUSE
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">HOUSE VI</span>
+    <div>
+      <div class="section-title">Ari Bhava — Enemies, Health &amp; Service</div>
+      <span class="section-sanskrit">अरि भाव · Karka · Gajakesari + Hamsa Yoga</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="house-block" data-house-num="6">
+    <div class="house-block-header">
+      <span class="house-num">6TH HOUSE</span>
+      <span class="house-name">Cancer (Karka)</span>
+      <span class="house-sign">Lord: Moon</span>
+      <span class="house-lord">· Moon in own sign + Jupiter exalted = Gajakesari + Hamsa Yoga ·</span>
+    </div>
+    <div class="house-planets">
+      <span class="planet-tag moon">Moon ★ Own</span>
+      <span class="planet-tag jupiter">Jupiter ★★★ Exalted</span>
+    </div>
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light)">6th House Powerhouse — Viparita Activation:</strong> The 6th house in classical Vedic astrology is considered a Dusthana (difficult house) — the house of enemies, disease, debt, and obstacles. Yet when powerful planets occupy the 6th in dignity, the classical doctrine of Harsha Yoga and Viparita Raja Yoga applies: the native's enemies are destroyed, diseases overcome, and debts resolved. You have not one but two powerful planets in the 6th — the Moon in its own sign and Jupiter in its exaltation. This creates an extraordinary force of overcoming in your life.</p>
+
+      <p><strong style="color:var(--gold-light)">Moon (6th Lord) in Cancer (Own Sign, 29°43'):</strong> The 6th lord Moon in its own sign in the 6th house is a classic Viparita Raja Yoga indicator. A Dusthana lord in its own Dusthana creates a self-contained, self-destructive cycle of difficulties — meaning your enemies destroy themselves, your health issues resolve, and obstacles transform into opportunities. The Moon at 29°43' Cancer (in gandanta — the cusp of Cancer-Leo) adds intensity and transformative power. The Moon in its own sign in Cancer gives you tremendous emotional resilience, a strong immune system, and a remarkable ability to regenerate after setbacks.</p>
+
+      <p><strong style="color:var(--gold-light)">Jupiter Exalted in Cancer (15°26') — Hamsa Yoga:</strong> Jupiter exalted in Cancer in the 6th house forms the renowned Pancha Mahapurusha Yoga called Hamsa Yoga. The BPHS describes Hamsa Yoga: "One born in Hamsa Yoga will have lotus-like feet, reddish palms, a sweet voice, will be fond of water sports, will have auspicious marks, be righteous, will have beautiful teeth and hair, will be kind-hearted and will live in mountains and forests (places of retreat)." More broadly: Hamsa Yoga gives wisdom, eloquence, righteousness, deep devotion, good fortune, and a spiritually luminous character.</p>
+
+      <div class="sloka">"Should Guru be in Dharm Bhava, while Dharm's Lord is in an angle and Lagn's Lord is endowed with strength, one will be extremely fortunate." Jupiter's influence extends through its aspects to the 10th house (career) and 2nd house (wealth), directly blessing both.
+        <cite>— BPHS Ch. 20, Effects of Dharma Bhava</cite>
+      </div>
+
+      <p><strong style="color:var(--gold-light)">Gajakesari Yoga (Jupiter + Moon conjunct):</strong> Gajakesari Yoga is one of the most celebrated yogas in Vedic astrology, formed when Jupiter and the Moon are in mutual Kendra (1st, 4th, 7th, or 10th) from each other. When they are conjunct (same house), this is the most direct form of Gajakesari. The yoga confers: intelligence like an elephant (Gaja), the strength of a lion (Kesari), great wealth, lasting fame, eloquence, and a life of honour. The native rises above obstacles through wisdom and grace.</p>
+
+      <p><strong style="color:var(--gold-light)">Health Implications:</strong> Cancer rules the chest, stomach, and digestive system. Moon in Cancer in the 6th can indicate some vulnerability in digestive health, stomach, or lymphatic system. The saving grace is Jupiter's exaltation — Jupiter is a natural healer and its presence in the 6th protects against serious disease. Be mindful of emotional eating, fluid retention, or stress-related digestive issues. Jupiter's grace, when invoked through right living, keeps these in check.</p>
+
+    </div>
+    <div class="verdict">
+      <span class="verdict-label">Consultation Verdict — Enemies, Health &amp; Service</span>
+      <span class="verdict-text">The 6th house is transformed into a fortress of strength. Your enemies — professional, personal, or circumstantial — are systematically overcome. Your health, while requiring attention to digestion and emotional regulation, is fundamentally sound and regenerative. The Gajakesari and Hamsa Yogas operating from the 6th give you a social intelligence and wisdom that allows you to outmanoeuvre opposition without confrontation. Service to others — especially in roles involving healing, guidance, or upliftment — is karmically destined for you.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 7 — 7th HOUSE
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">HOUSE VII</span>
+    <div>
+      <div class="section-title">Yuvati Bhava — Marriage, Partnership &amp; Relationships</div>
+      <span class="section-sanskrit">युवती भाव · Simha · Saturn + Rahu · Karmic House</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="house-block" data-house-num="7">
+    <div class="house-block-header">
+      <span class="house-num">7TH HOUSE</span>
+      <span class="house-name">Leo (Simha)</span>
+      <span class="house-sign">Lord: Sun</span>
+      <span class="house-lord">· Saturn (Lagna Lord) + Rahu in Leo ·</span>
+    </div>
+    <div class="house-planets">
+      <span class="planet-tag saturn">Saturn</span>
+      <span class="planet-tag rahu">Rahu</span>
+    </div>
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light)">The Most Complex Area of Your Life:</strong> The 7th house — governing marriage, long-term partnerships, and how you meet the world — is the most karmically loaded area of your chart. Leo as the 7th house already introduces a regal, proud, dramatic quality to partnership dynamics. You are attracted to strong, confident, authority-bearing partners. However, both Saturn and Rahu occupy this house, creating significant complexity.</p>
+
+      <p><strong style="color:var(--gold-light)">Saturn in Leo (7th House):</strong> Saturn is your Lagna lord — the planet that governs your entire life orientation — placed in the 7th house in Leo, a sign where Saturn is in enemy territory (Saturn and the Sun, who rules Leo, are natural enemies). Saturn in the 7th house brings the following dynamics: delay in marriage (Saturn's classic signature), karmic weight attached to partnerships, a tendency to attract partners who are older, more serious, or carry their own burdens, and profound life lessons delivered through relationship. Saturn in the 7th in enemy sign is one of the most commonly cited placements for late marriage or multiple relationship cycles before finding stability.</p>
+
+      <div class="sloka">"If Lagn's Lord is a malefic and is placed in Yuvati Bhava, the native's wife will not live (long)." — This sloka is a classical warning but must be read alongside Saturn's strength and the protective aspects of Jupiter and Venus in the chart. The overall verdict is challenge in marriage, not necessarily loss.
+        <cite>— BPHS Ch. 24, Lagn Lord in Yuvati</cite>
+      </div>
+
+      <p><strong style="color:var(--gold-light)">Rahu in Leo (7th House, 29°45'):</strong> Rahu conjunct Saturn in the 7th amplifies all 7th house matters in an intense, sometimes chaotic way. Rahu here suggests: attraction to unconventional partners, possibility of cross-cultural or cross-community relationships, a partner who is ambitious, driven, possibly foreign-born or from a different background, and relationships that carry unusual or transformative energy. Rahu in Leo in the 7th also creates a tendency to idealise partners initially, then experience a dramatic re-calibration when Rahu's illusion dissolves. The shadow side is obsessive patterns, power struggles, or relationships that begin with great promise but require substantial work to stabilise.</p>
+
+      <p><strong style="color:var(--gold-light)">Sun (7th Lord) in Scorpio (10th House):</strong> The lord of the 7th house — the Sun — is placed in your 10th house in Scorpio. This is significant: your marriage partner is connected to your career or public life. You may meet your partner through professional channels, or your partner may be in a similar or related field. The Sun in the 10th as 7th lord also suggests the partner has authority, a strong professional identity, and public standing of their own. The partner's life force (Sun) expresses through career (10th) — both of you are career-focused individuals.</p>
+
+      <p><strong style="color:var(--gold-light)">Honest Consultation on Marriage:</strong> The 7th house picture requires honesty. Saturn and Rahu in the 7th, with Saturn as Lagna lord in enemy sign, creates genuine challenge in partnerships. This may manifest as: delayed marriage (common with Saturn), relationships that feel karmic or "fated" in a heavy sense, partners who challenge your sense of self, or the need to navigate power dynamics carefully. However, this chart has profound protective factors — Venus (Yoga Karaka) in own sign in 9th, Jupiter exalted — that mitigate the harshness. The wisdom tradition says: Saturn's lessons, fully learned, transform into liberation. Marriage for you is a school of extraordinary depth.</p>
+
+    </div>
+    <div class="verdict">
+      <span class="verdict-label">Consultation Verdict — Marriage &amp; Partnership</span>
+      <span class="verdict-text">The 7th house is the area of life requiring the most conscious engagement and patient wisdom. Saturn demands maturity and karma-clearing through partnership; Rahu introduces intensity and non-conventional dynamics. The advice: do not rush into marriage, choose a partner with eyes open and heart measured, and understand that your greatest growth comes through — not despite — the friction of deep relationship. Business partnerships are equally complex; choose partners with extreme care and clear agreements.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 8 — 8th HOUSE
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">HOUSE VIII</span>
+    <div>
+      <div class="section-title">Randhra Bhava — Longevity, Occult &amp; Transformation</div>
+      <span class="section-sanskrit">रन्ध्र भाव · Kanya · Lord: Mercury (in H10)</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="house-block" data-house-num="8">
+    <div class="house-block-header">
+      <span class="house-num">8TH HOUSE</span>
+      <span class="house-name">Virgo (Kanya) — Empty</span>
+      <span class="house-sign">Lord: Mercury</span>
+      <span class="house-lord">· Mercury in Scorpio (10th) ·</span>
+    </div>
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light)">8th House in Virgo:</strong> The 8th house in Virgo brings a systematic, analytical approach to the domains of transformation, hidden knowledge, research, and the mysteries of existence. Virgo's rulership by Mercury gives the 8th house an intellectual flavour — you are likely drawn to the study of hidden systems: medical research, financial structures, occult sciences, psychology, or investigative work. The 8th house in Virgo also suggests that transformation in your life happens through careful analysis and discernment rather than dramatic upheaval.</p>
+
+      <p><strong style="color:var(--gold-light)">Mercury (8th Lord) in Scorpio (10th House):</strong> Mercury rules both your 5th house (intelligence, creativity) and your 8th house (transformation, hidden knowledge, research). Its placement in the 10th house creates a career that naturally incorporates deep research, investigative intelligence, and access to hidden or specialised knowledge. Professions linked to this placement include: financial analysis, tax/insurance/risk, surgery, intelligence work, investigative journalism, occult teaching, depth psychology, research science, or strategic consulting.</p>
+
+      <div class="sloka">"If Randhr's Lord is in an angle, long life is indicated." Mercury (8th lord) is in the 10th house — a Kendra (angle). This is a positive indication for longevity.
+        <cite>— BPHS Ch. 19, Effects of Randhra Bhava</cite>
+      </div>
+
+      <p><strong style="color:var(--gold-light)">Longevity:</strong> Classical rules for longevity are complex, but several indicators in your chart support a long life: Mercury (8th lord) in a Kendra (10th house) — the BPHS explicitly states this gives long life; Jupiter exalted in the 6th (Harsha Yoga, long life through overcoming disease); Saturn (natural karaka of longevity) as Lagna lord placed in the 7th — while challenged in Leo, Saturn's presence still anchors longevity. The overall longevity picture is positive, supported by Jupiter's grace.</p>
+
+      <p><strong style="color:var(--gold-light)">Hidden Knowledge and the Occult:</strong> With Ketu on the Lagna and Mercury (8th lord) in Scorpio — the sign of hidden mysteries — your chart strongly indicates a natural affinity for esoteric knowledge. Vedic astrology itself, Ayurveda, tantric traditions, depth psychology, numerology, or any system of hidden knowledge may be deeply meaningful for you. This is not mere intellectual curiosity — it is a soul-level pull toward the underlying architecture of reality.</p>
+
+    </div>
+    <div class="verdict">
+      <span class="verdict-label">Consultation Verdict — Transformation &amp; Longevity</span>
+      <span class="verdict-text">Your 8th house, empty but powerfully led by Mercury in the 10th, suggests transformation happens through intellectual mastery and career achievement rather than dramatic crisis. Longevity indicators are positive. Your relationship with hidden knowledge, research, and transformation is one of the defining features of your professional identity.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 9 — 9th HOUSE (SUPREME FORTUNE)
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">HOUSE IX</span>
+    <div>
+      <div class="section-title">Dharma Bhava — Fortune, Father &amp; Divine Grace</div>
+      <span class="section-sanskrit">धर्म भाव · Tula · Venus (R) Own Sign — Supreme Fortune</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="house-block" data-house-num="9">
+    <div class="house-block-header">
+      <span class="house-num">9TH HOUSE</span>
+      <span class="house-name">Libra (Tula)</span>
+      <span class="house-sign">Lord: Venus</span>
+      <span class="house-lord">· Venus (R) in own sign Libra — Yoga Karaka in Trikona ·</span>
+    </div>
+    <div class="house-planets">
+      <span class="planet-tag venus">Venus (R) ★★ Own Sign</span>
+    </div>
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light)">The 9th House — Most Auspicious Bhava:</strong> The 9th house is universally regarded as the most auspicious house in Vedic astrology. It governs divine grace (Bhagya), dharma (righteous path), the father, guru/teacher, higher education, long journeys, philosophy, religion, law, and the invisible hand of fate that guides the native. A strong 9th house is the surest sign of a fortunate life.</p>
+
+      <p><strong style="color:var(--gold-light)">Venus (Yoga Karaka, 4th+9th Lord) in Own Sign Libra:</strong> The 9th lord Venus is placed in the 9th house in its own sign Libra. This is one of the most powerful configurations possible for the 9th house. The BPHS (Ch. 20) states unambiguously: "One will be fortunate (or affluent), if Dharm's Lord is in Dharm Bhava with strength." Venus in Libra (own sign) is absolutely strong. This placement is the cornerstone of your life's fortune.</p>
+
+      <div class="sloka">"One will be fortunate (or affluent), if Dharm's Lord is in Dharm Bhava with strength… Should Guru be in Dharm Bhava, while Dharm's Lord is in an angle and Lagn's Lord is endowed with strength, one will be extremely fortunate."
+        <cite>— BPHS Ch. 20, Effects of Dharma Bhava (Slokas 1–2)</cite>
+      </div>
+
+      <p>Venus as both 4th lord (domestic happiness, property, mother) and 9th lord (fortune, dharma, father), placed in its own sign in the 9th, creates a profound fusion of domestic grace and dharmic fortune. Your home is your temple. Your relationships are dharmic. Your fortune flows from living in alignment with truth, beauty, and righteousness — the Venusian qualities elevated by 9th house dharma.</p>
+
+      <p><strong style="color:var(--gold-light)">Retrograde Venus in the 9th:</strong> Venus retrograde in the 9th indicates that your fortune and dharma are themes you revisit, refine, and deepen throughout your life. You may undergo significant philosophical or spiritual re-orientations at key life junctures. Your relationship with religion, philosophy, or the guru principle may be unconventional or internalized. You may find your own path to dharma rather than following prescribed traditions. This is not a flaw — it is the depth of Venus retrograde's search for authentic beauty and truth. The results of this search, when found, are more lasting and personally meaningful than those who follow the conventional path.</p>
+
+      <p><strong style="color:var(--gold-light)">The Father:</strong> Venus in the 9th, own sign, indicates a father who is gracious, artistic, diplomatic, or connected to Venusian qualities (beauty, creativity, law, luxury). The BPHS (Ch. 20) states: "If Dharm's Lord is with strength, as Śukr is in Dharm, while Guru is in an angle from Tanu Bhava, the native's father is fortunate." Your father carries fortune and grace — these qualities have been transmitted to you as spiritual inheritance.</p>
+
+      <p><strong style="color:var(--gold-light)">Higher Education and Dharma:</strong> The 9th house in Libra (sign of justice, balance, aesthetics) with Venus (arts, beauty, law, harmony) suggests that your dharmic path runs through fields of aesthetics, law, philosophy, or any domain that seeks to bring beauty and order to the world. Higher education may have been in law, arts, social sciences, or related Venusian fields — or you may return to higher study later in life when Venus periods activate.</p>
+
+    </div>
+    <div class="verdict">
+      <span class="verdict-label">Consultation Verdict — Fortune &amp; Divine Grace</span>
+      <span class="verdict-text">The 9th house is your greatest blessing in this chart. Venus as Yoga Karaka in own sign in the 9th house of dharma and fortune is a signature of a life guided by invisible grace. When you walk in alignment with your values — when you act from beauty, righteousness, and truth — fortune flows naturally to you. This is not passive luck; it is the activation of dharmic law. Your path is karmically blessed.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 10 — 10th HOUSE (CAREER POWERHOUSE)
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">HOUSE X</span>
+    <div>
+      <div class="section-title">Karma Bhava — Career, Authority &amp; Public Legacy</div>
+      <span class="section-sanskrit">कर्म भाव · Vrishchika · Ruchaka Yoga · Triple Stellium</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="house-block" data-house-num="10">
+    <div class="house-block-header">
+      <span class="house-num">10TH HOUSE</span>
+      <span class="house-name">Scorpio (Vrishchika)</span>
+      <span class="house-sign">Lord: Mars ★★ Own Sign</span>
+      <span class="house-lord">· Sun + Mercury + Mars (own sign) · Ruchaka Yoga ·</span>
+    </div>
+    <div class="house-planets">
+      <span class="planet-tag sun">Sun</span>
+      <span class="planet-tag mercury">Mercury</span>
+      <span class="planet-tag mars">Mars ★★ Own Sign</span>
+    </div>
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light)">The Most Powerful House in Your Chart:</strong> The 10th house (Karma Bhava) is the apex of the birth chart — it governs your career, profession, public standing, authority, fame, and your contribution to the world. Your 10th house is the single most activated and powerfully loaded house in your entire chart. It holds three planets — Sun, Mercury, and Mars — with Mars in its own sign, forming the legendary Ruchaka Yoga. This is a career chart of extraordinary force.</p>
+
+      <p><strong style="color:var(--gold-light)">RUCHAKA YOGA (Pancha Mahapurusha Yoga):</strong> Mars in its own sign (Scorpio or Aries) in a Kendra (1st, 4th, 7th, or 10th house) forms Ruchaka Yoga — one of the five great Pancha Mahapurusha Yogas. Your Mars is in Scorpio (own sign) in the 10th (Kendra) — this is the absolute ideal configuration for Ruchaka Yoga. The BPHS describes the native of Ruchaka Yoga: "The person will have a strong physique, will be courageous, will defeat enemies, will be the head of an army or village, will be very wealthy and will live for 70 years." In modern terms: leadership, authority, organizational power, physical and mental strength, the ability to command and inspire others, and a lasting legacy of professional achievement.</p>
+
+      <div class="sloka">"If Karm's Lord is strong and in exaltation, or in its own Rāśi/Navāńś, the native will derive extreme paternal happiness, will enjoy fame and will perform good deeds."
+        <cite>— BPHS Ch. 21, Effects of Karma Bhava</cite>
+      </div>
+
+      <p><strong style="color:var(--gold-light)">Sun in Scorpio (10th House) — 7th Lord in 10th:</strong> The Sun, your 7th lord, placed in the 10th house gives a powerful public persona. The Sun in the 10th house is in digbala (directional strength) — the strongest position for the Sun. This adds solar force to an already potent 10th house. Sun here gives government connections, authority, and the ability to command public recognition. You are seen as an authority figure in your field. The BPHS confirms that the Sun in the 10th gives royal patronage, fame, and honour.</p>
+
+      <p><strong style="color:var(--gold-light)">Mercury in Scorpio (10th House) — 5th and 8th Lord in 10th:</strong> Mercury brings analytical precision, communication mastery, and investigative intelligence to your career. Scorpio-Mercury gives the native a penetrating, strategic mind that sees through complexity and ambiguity to the essential core of any situation. You are likely a formidable communicator in your professional sphere — whether through writing, analysis, presentation, or strategic planning. Mercury as 8th lord also gives access to occult, financial, or transformational knowledge as part of your career.</p>
+
+      <p><strong style="color:var(--gold-light)">Career Fields Indicated:</strong> The 10th house Scorpio with Mars (own sign), Sun, and Mercury suggests the following career paths as most aligned with your dharma: Strategic leadership (corporate, military, government); Intelligence, research, or investigative work; Surgical or medical fields; Financial markets, insurance, risk analysis, or tax; Technology (especially cybersecurity or deep tech); Vedic astrology, Ayurveda, or energy medicine; Law enforcement or legal strategy; Psychology, psychiatry, or depth counselling; Engineering or complex systems management.</p>
+
+      <p><strong style="color:var(--gold-light)">Jupiter's Blessing on the 10th:</strong> Jupiter exalted in Cancer (6th house) casts its 5th aspect onto Scorpio (10th house). Exalted Jupiter blessing the already-loaded 10th house adds divine wisdom, ethical integrity, and philosophical depth to your career. Jupiter ensures that your professional success is built on wisdom and dharma rather than mere ambition. This is a sustaining force — not just power, but righteous power.</p>
+
+    </div>
+    <div class="verdict">
+      <span class="verdict-label">Consultation Verdict — Career &amp; Public Life</span>
+      <span class="verdict-text">Your 10th house is the crown of this chart. Ruchaka Yoga, three planets including the 10th lord in own sign, Jupiter's aspect — this is the configuration of a person destined for significant professional achievement, authority, and public recognition. Your career is not incidental to your life; it IS your life's primary arena of dharmic expression. You are here to achieve, lead, and contribute in the most visible and powerful way. The present Mars Mahadasha (2022–2029) is directly activating all of this potential.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 11 — 11th HOUSE
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">HOUSE XI</span>
+    <div>
+      <div class="section-title">Labha Bhava — Gains, Income &amp; Fulfillment of Desires</div>
+      <span class="section-sanskrit">लाभ भाव · Dhanu · Lord: Jupiter (Exalted in H6)</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="house-block" data-house-num="11">
+    <div class="house-block-header">
+      <span class="house-num">11TH HOUSE</span>
+      <span class="house-name">Sagittarius (Dhanu) — Empty</span>
+      <span class="house-sign">Lord: Jupiter</span>
+      <span class="house-lord">· Jupiter exalted in Cancer (6th) — Hamsa Yoga ·</span>
+    </div>
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light)">11th House in Sagittarius:</strong> The 11th house in Sagittarius gives an expansive, philosophical, and optimistic approach to income, gains, and social networks. Sagittarius in the 11th indicates that your greatest gains come through knowledge, wisdom, teaching, international connections, or any field that expands horizons. Your social circle is likely composed of intelligent, educated, or spiritually inclined individuals who share your philosophical interests.</p>
+
+      <p><strong style="color:var(--gold-light)">Jupiter (11th Lord) Exalted in Cancer:</strong> The 11th lord Jupiter is exalted — which is an extremely auspicious placement for the house of gains and income. The BPHS (Ch. 22) states: "Should Labh's Lord be in Labh itself, or be in an angle, or in a trine from Lagn, there will be many gains. Similarly, if Labh's Lord is exalted, though in combustion, there will be many gains." Your 11th lord is exalted (not combusted) — this gives very substantial gains over your lifetime. Income grows steadily and expansively, particularly during Jupiter-related periods.</p>
+
+      <div class="sloka">"Should Labh's Lord be in Labh itself, or be in an angle, or in a trine from Lagn, there will be many gains. Similarly, if Labh's Lord is exalted, though in combustion, there will be many gains."
+        <cite>— BPHS Ch. 22, Effects of Labha Bhava</cite>
+      </div>
+
+      <p>Jupiter exalted as 11th lord also promises the fulfilment of desires — material and spiritual. Your deepest aspirations carry Jupiter's blessing: they are noble, expansive, and ultimately attainable. The key is patience (Saturn's signature as Lagna lord) and dharmic action (Venus as Yoga Karaka in 9th). When you align your desires with your dharma, Jupiter's exaltation ensures fulfilment comes in abundance.</p>
+
+      <p><strong style="color:var(--gold-light)">Elder Siblings and Social Networks:</strong> Jupiter as 11th lord indicates elder siblings (if present) who are wise, successful, or prominent. Your social and professional networks are blessed with Jupiterian quality — connections with educators, advisors, spiritual teachers, legal experts, or people of philosophical depth. These connections are a source of genuine gain, both materially and spiritually.</p>
+
+    </div>
+    <div class="verdict">
+      <span class="verdict-label">Consultation Verdict — Income &amp; Gains</span>
+      <span class="verdict-text">Exalted Jupiter as 11th lord guarantees substantial income and fulfilment of desires over your lifetime. Gains are most assured when your work aligns with wisdom, service, and dharma — Jupiter's domains. The coming Rahu dasha (2029–2047) will further dramatically expand your income and social reach. Your 11th house is a treasure chest, opened by the key of Jupiter's exaltation.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 12 — 12th HOUSE
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">HOUSE XII</span>
+    <div>
+      <div class="section-title">Vyaya Bhava — Losses, Liberation &amp; Foreign Lands</div>
+      <span class="section-sanskrit">व्यय भाव · Makara · Lord: Saturn (in H7)</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="house-block" data-house-num="12">
+    <div class="house-block-header">
+      <span class="house-num">12TH HOUSE</span>
+      <span class="house-name">Capricorn (Makara) — Empty</span>
+      <span class="house-sign">Lord: Saturn</span>
+      <span class="house-lord">· Saturn (Lagna + 12th Lord) in Leo (7th) ·</span>
+    </div>
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light)">12th House in Capricorn:</strong> The 12th house in Capricorn brings Saturn's practical, disciplined energy to the domain of losses, foreign lands, spiritual retreat, and liberation. This is not a house of chaotic expenditure — Saturn's presence as 12th lord gives structure and discipline to how you manage losses and expenditure. You are not reckless with your resources; when money goes out, it tends to go out for structured, necessary, or purposeful reasons.</p>
+
+      <p><strong style="color:var(--gold-light)">Saturn (12th Lord) in Leo (7th House):</strong> The 12th lord Saturn placed in the 7th house (partnerships) indicates that expenditure is connected to relationships and partnerships. Marriage and long-term partnerships may involve significant financial outlay or sacrifice. There is a karmic theme of "giving" through relationship — Saturn in the 7th as 12th lord requires that you invest deeply in partnerships, sometimes to the point of personal sacrifice. The positive dimension of this: your partnerships become vehicles for profound spiritual and karmic growth (12th house = moksha).</p>
+
+      <div class="sloka">"If Lagn's Lord is in Vyaya, while Vyaya's Lord is in Lagn with Śukr, expenses will be on religious grounds."
+        <cite>— BPHS Ch. 23, Effects of Vyaya Bhava</cite>
+      </div>
+
+      <p><strong style="color:var(--gold-light)">Foreign Lands:</strong> The 12th house governs foreign residence and travel. Saturn as 12th lord, combined with Rahu in the 7th (Rahu often indicates foreign connections), and Ketu in the 1st (past-life karma from other lands), suggests a strong connection to foreign places — either through travel, residence abroad, or work with international dimensions. Your professional or personal life may have significant chapters played out in foreign lands, or with people from very different cultural backgrounds.</p>
+
+      <p><strong style="color:var(--gold-light)">Spirituality and Liberation:</strong> The 12th house, when its lord is well-placed and the house itself is dignified, becomes the house of moksha (liberation). Capricorn here with Saturn as ruler — and Ketu in the 1st house linking directly to the 12th house's liberation axis — strongly indicates a soul oriented toward ultimate liberation. Your spiritual path, though it may be walked quietly and privately, is deeply purposeful. Meditation, retreat, solitary contemplation, and service without attachment are your natural spiritual practices.</p>
+
+    </div>
+    <div class="verdict">
+      <span class="verdict-label">Consultation Verdict — Losses &amp; Liberation</span>
+      <span class="verdict-text">Your 12th house, empty and cleanly ruled by Saturn, is the most spiritually charged sector of your chart when aligned with Ketu in the 1st. Expenditure tends to be on dharmic or relational grounds. The liberation axis (1st–12th, Ketu-Saturn) points to a soul walking its final cycles of worldly experience — this life carries deep spiritual purpose. Foreign connections and international dimensions of your life are significant and karmically meaningful.</span>
+    </div>
+  </div>
+</div>
+
+</div><!-- end .page -->
+
+<!-- ══════════════════════════════════════════════
+     SECTION — PANCHA MAHAPURUSHA & KEY YOGAS
+══════════════════════════════════════════════ -->
+<div class="page">
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">YOGAS</span>
+    <div>
+      <div class="section-title">Graha Yogas — Planetary Combinations of Power</div>
+      <span class="section-sanskrit">ग्रह योग · Pancha Mahapurusha · Raja Yoga · Gajakesari</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="callout positive">
+    <strong style="color:#00C864;font-family:'Cinzel',serif;">Yogas Assessment:</strong> Your chart carries two Pancha Mahapurusha Yogas (the rarest and most powerful yogas in Vedic astrology), plus Gajakesari, Dharma-Karmadhipati, and Viparita Raja Yoga. This combination places your chart among the most fortunate configurations — the mark of a soul with extraordinary accumulated merit.
+  </div>
+
+  <div class="yoga-grid">
+
+    <!-- RUCHAKA YOGA -->
+    <div class="yoga-card pancha">
+      <div class="yoga-name">Ruchaka Yoga</div>
+      <div class="yoga-type">Pancha Mahapurusha Yoga · Mars</div>
+      <div class="yoga-formation">Mars in Scorpio (own sign) in 10th House (Kendra)</div>
+      <div class="yoga-text">
+        One of the five supreme planetary yogas. The BPHS states the native of Ruchaka Yoga will be <em>"courageous, will defeat enemies, will be the head of an army or territory, very wealthy, and will live long."</em> In the 10th house, this yoga directly empowers your career with martial authority, fearless leadership, and unstoppable professional momentum. You are a natural commander — people follow your lead instinctively. Ruchaka in the 10th is the signature of generals, directors, surgeons, and strategic leaders who shape their fields.
+      </div>
+    </div>
+
+    <!-- HAMSA YOGA -->
+    <div class="yoga-card pancha">
+      <div class="yoga-name">Hamsa Yoga</div>
+      <div class="yoga-type">Pancha Mahapurusha Yoga · Jupiter</div>
+      <div class="yoga-formation">Jupiter exalted in Cancer (6th House)</div>
+      <div class="yoga-text">
+        The BPHS describes Hamsa Yoga natives as having <em>"lotus-like feet, a sweet voice, a beautiful and righteous character, devotion to gods and teachers, and a life of fame and fortune."</em> Jupiter exalted in Cancer brings the highest wisdom, spiritual grace, and philosophical depth. Even placed in the 6th house (dusthana), the yoga is fully operative — Jupiter's exaltation overrides the house's difficulty and transforms service and competition into vehicles of divine grace. This yoga gives you a natural ability to inspire, teach, and elevate those around you.
+      </div>
+    </div>
+
+    <!-- GAJAKESARI YOGA -->
+    <div class="yoga-card">
+      <div class="yoga-name">Gajakesari Yoga</div>
+      <div class="yoga-type">Classic Fortune Yoga · Jupiter + Moon</div>
+      <div class="yoga-formation">Jupiter ☌ Moon in Cancer (6th House)</div>
+      <div class="yoga-text">
+        Gajakesari — "Elephant-Lion" — is formed when Jupiter and Moon are in mutual Kendra. Here they are conjunct in Cancer (the strongest form). This yoga confers intelligence like an elephant, strength like a lion, eloquence, lasting fame, wealth, and the ability to overcome great obstacles through wisdom. The Moon in own sign amplifies emotional intelligence; Jupiter exalted magnifies wisdom. The combination in the 6th means your greatest victories come through competition — you rise where others struggle. The BPHS confirms this yoga makes the native "honoured by the king, virtuous, and famous."
+      </div>
+    </div>
+
+    <!-- DHARMA-KARMADHIPATI YOGA -->
+    <div class="yoga-card pancha" style="border-color:rgba(255,105,180,0.5);background:linear-gradient(135deg,rgba(40,5,30,0.8),rgba(10,5,20,0.9));">
+      <div class="yoga-name">Dharma-Karmadhipati Yoga</div>
+      <div class="yoga-type">Venus — Yoga Karaka (4th + 9th Lord)</div>
+      <div class="yoga-formation">Venus (R) in Libra (own sign) in 9th House</div>
+      <div class="yoga-text">
+        For Aquarius Lagna, Venus rules both the 4th house (Kendra) and the 9th house (Trikona) — making it the singular Yoga Karaka. A planet ruling one Kendra and one Trikona is the most powerful auspicious planet for that lagna. Venus in its own sign in the 9th house (the house of fortune, dharma, and divine grace) is the supreme expression of this yoga. This is the yoga of deep dharmic fortune — of a life blessed from above. All life areas governed by Venus — home, beauty, relationships, spirituality, higher knowledge — are abundantly blessed.
+      </div>
+    </div>
+
+    <!-- VIPARITA RAJA YOGA -->
+    <div class="yoga-card">
+      <div class="yoga-name">Viparita Raja Yoga</div>
+      <div class="yoga-type">Moon in Own Sign in 6th · Harsha Yoga</div>
+      <div class="yoga-formation">Moon (6th lord) in Cancer (own sign, 6th house)</div>
+      <div class="yoga-text">
+        When a Dusthana lord (6th, 8th, or 12th lord) occupies its own Dusthana, a Viparita Raja Yoga is formed. The classical form here — Moon (6th lord) in Cancer (6th house) — is called Harsha Yoga. BPHS tradition holds that this makes the native <em>"fortunate, happy, conqueror of enemies, a healer, and blessed with longevity."</em> The challenges of the 6th house (enemies, disease, debt) become self-cancelling forces. Your adversaries inadvertently create conditions for your advancement. You rise through — not despite — difficulty.
+      </div>
+    </div>
+
+    <!-- SCORPIO STELLIUM YOGA -->
+    <div class="yoga-card">
+      <div class="yoga-name">Vrishchika 10th Stellium</div>
+      <div class="yoga-type">Three-Planet Kendra Concentration</div>
+      <div class="yoga-formation">Sun + Mercury + Mars in Scorpio (10th House)</div>
+      <div class="yoga-text">
+        Three planets in the 10th house — the most public and career-defining Kendra — create an extraordinary concentration of professional energy. Sun gives authority and solar visibility. Mercury gives analytical mastery and strategic communication. Mars (own sign) gives fearless leadership and Ruchaka Yoga. Together in Scorpio — the sign of depth, investigation, transformation, and hidden power — these three create a career persona that is penetrating, authoritative, analytically brilliant, and impossible to ignore. This is the configuration of those who leave a mark on their field.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Yoga Summary Bar -->
+  <div class="summary-banner">
+    <h3>Combined Yoga Effect — Life Reading</h3>
+    <p>Two Pancha Mahapurusha Yogas (Ruchaka + Hamsa), Gajakesari, Dharma-Karmadhipati (Yoga Karaka in own sign in 9th), and Harsha Yoga together constitute a chart of exceptional dharmic power. Your life is not one of casual achievement — it is one of accumulated merit expressing itself through disciplined excellence, wisdom-driven service, and fearless professional mastery. The obstacles in this chart (Saturn-Rahu in 7th, ketu on lagna) are the karmic sandpaper that polishes the gem these yogas represent.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION — NAKSHATRA DEEP DIVE
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">NAKSHATRA</span>
+    <div>
+      <div class="section-title">Nakshatra Vishleshan — Star-Constellation Analysis</div>
+      <span class="section-sanskrit">नक्षत्र विश्लेषण · Shatabhisha · Ashlesha</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="nakshatra-grid">
+
+    <!-- SHATABHISHA (Rising) -->
+    <div class="nakshatra-card">
+      <div class="nakshatra-title">Shatabhisha</div>
+      <div class="nakshatra-subtitle">RISING NAKSHATRA · शतभिषज् · "100 Physicians"</div>
+      <div class="nakshatra-attrs">
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Span</span>
+          <span class="nakshatra-attr-val">6°40' – 20°00' Aquarius</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Lord</span>
+          <span class="nakshatra-attr-val">Rahu</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Deity</span>
+          <span class="nakshatra-attr-val">Varuna (cosmic law)</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Symbol</span>
+          <span class="nakshatra-attr-val">Empty Circle / 1000 Stars</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Pada Rising</span>
+          <span class="nakshatra-attr-val">Pada 3 (Gemini navamsha)</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Gana</span>
+          <span class="nakshatra-attr-val">Rakshasa (intense)</span>
+        </div>
+      </div>
+      <div class="nakshatra-text">
+        <p>Shatabhisha is among the most mystical and intellectually intense nakshatras. Its presiding deity Varuna is the lord of cosmic order (Rita), the ocean, and the hidden laws of the universe. Like Varuna, you are drawn to what lies beneath the visible surface — the systems, codes, and patterns that govern reality.</p>
+        <p>Shatabhisha natives are known for their exceptional ability in research, medicine, mysticism, astrology, and any domain requiring investigation into hidden truth. Rahu's rulership adds a restless, forward-moving, unconventional quality — you are ahead of your time, often misunderstood initially, and vindicated later. The empty circle as symbol represents both the void of consciousness and the infinite potential contained within it: you contain multitudes.</p>
+        <p>Pada 3 falls in Gemini navamsha (Mercury-ruled): your personality expresses through mercurial intelligence, communication, and the capacity to synthesize vast amounts of information into coherent, communicable insight. This is the consulting mind, the strategic mind, the mind that bridges worlds.</p>
+      </div>
+    </div>
+
+    <!-- ASHLESHA (Moon) -->
+    <div class="nakshatra-card">
+      <div class="nakshatra-title">Ashlesha</div>
+      <div class="nakshatra-subtitle">MOON NAKSHATRA · आश्लेषा · "The Entwiner"</div>
+      <div class="nakshatra-attrs">
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Span</span>
+          <span class="nakshatra-attr-val">16°40' – 30°00' Cancer</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Lord</span>
+          <span class="nakshatra-attr-val">Mercury</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Deity</span>
+          <span class="nakshatra-attr-val">Nagas (serpent wisdom)</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Symbol</span>
+          <span class="nakshatra-attr-val">Coiled Serpent</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Pada</span>
+          <span class="nakshatra-attr-val">Pada 4 (Pisces navamsha)</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Nature</span>
+          <span class="nakshatra-attr-val">Tikshna (sharp/intense)</span>
+        </div>
+      </div>
+      <div class="nakshatra-text">
+        <p>Ashlesha — "the clinging one" — is the nakshatra of the Nagas, the serpent beings of ancient Hindu cosmology who embody Kundalini energy, occult wisdom, hypnotic power, and the capacity to shed the old skin and be reborn. Moon in Ashlesha gives you a deeply penetrating emotional intelligence — you feel the undercurrents of situations others miss entirely.</p>
+        <p>Mercury as Ashlesha's lord gives the Moon's emotional processing a sharp, analytical quality. Your feelings are not vague — you can articulate them with precision, and you can read others' emotional states with the accuracy of a sensor. This makes you an exceptional strategist in human dynamics. Ashlesha Moon at 29°43' (gandanta — the critical junction of Cancer-Leo) amplifies intensity: your emotional experience is profound, transformative, and occasionally overwhelming.</p>
+        <p>Pada 4 in Pisces navamsha (Jupiter) gives your Moon deep spiritual and compassionate underpinnings. Beneath the analytical Ashlesha serpent is a Jupiterian ocean of wisdom and heart. Your emotional truth-seeking ultimately leads to spiritual liberation — the coiled serpent is Kundalini awaiting its ascent.</p>
+      </div>
+    </div>
+
+    <!-- ANURADHA (Sun) -->
+    <div class="nakshatra-card">
+      <div class="nakshatra-title">Anuradha</div>
+      <div class="nakshatra-subtitle">SUN NAKSHATRA · अनुराधा · "Following Radha"</div>
+      <div class="nakshatra-attrs">
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Sun Degree</span>
+          <span class="nakshatra-attr-val">Scorpio 6°05' / Pada 1</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Lord</span>
+          <span class="nakshatra-attr-val">Saturn</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Deity</span>
+          <span class="nakshatra-attr-val">Mitra (divine friendship)</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Symbol</span>
+          <span class="nakshatra-attr-val">Lotus / Row of Offerings</span>
+        </div>
+      </div>
+      <div class="nakshatra-text">
+        <p>Anuradha — ruled by Saturn, presided over by Mitra (the deity of alliance and divine friendship) — is the nakshatra of deep loyalty, collaborative strength, and the ability to build lasting partnerships and organisations. Your Sun (self, soul, authority) in Anuradha gives you a quality of profound loyalty and the ability to hold people together. You are the kind of leader others trust implicitly because you embody integrity and follow-through.</p>
+        <p>Anuradha's lotus symbol speaks of beauty emerging from murky depths — your soul's light (Sun) emerges from the complexity of Scorpio and finds its expression in disciplined excellence. Saturn's rulership over Anuradha connects your Sun's vital force to Saturn's principles of structure, endurance, and karmic responsibility — you are built to last, and to build things that last.</p>
+      </div>
+    </div>
+
+    <!-- JYESHTHA (Mars + Mercury) -->
+    <div class="nakshatra-card">
+      <div class="nakshatra-title">Jyeshtha</div>
+      <div class="nakshatra-subtitle">MARS + MERCURY NAKSHATRA · ज्येष्ठा · "The Elder / Chief"</div>
+      <div class="nakshatra-attrs">
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Mars</span>
+          <span class="nakshatra-attr-val">Scorpio 21°12' / Pada 2</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Mercury</span>
+          <span class="nakshatra-attr-val">Scorpio 27°07' / Pada 4</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Lord</span>
+          <span class="nakshatra-attr-val">Mercury</span>
+        </div>
+        <div class="nakshatra-attr-item">
+          <span class="nakshatra-attr-label">Deity</span>
+          <span class="nakshatra-attr-val">Indra (king of gods)</span>
+        </div>
+      </div>
+      <div class="nakshatra-text">
+        <p>Jyeshtha — "the eldest" or "the chief" — is the nakshatra of Indra, king of the gods. It carries the energy of seniority, authority, protective power, and the responsibility of leadership. Both your Mars (10th lord, Ruchaka Yoga) and Mercury (5th+8th lord) are in Jyeshtha — this is deeply significant. The deity Indra is the warrior-king who uses both force and intelligence to protect the realm. Your Mars in Jyeshtha gives you command authority — the kind that comes with the weight of responsibility. Mercury in Jyeshtha (Pada 4, Pisces navamsha) gives your intelligence a wisdom-carrying quality — you speak with the authority of someone who has lived and learned deeply.</p>
+        <p>Both planets in Jyeshtha create a concentrated energy of chief-level authority and wisdom in the 10th house. You are not merely ambitious — you carry the authentic weight of the elder who has earned their authority. People naturally look to you for guidance, especially in crisis.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION — VIMSHOTTARI DASHA
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">DASHA</span>
+    <div>
+      <div class="section-title">Vimshottari Dasha — The River of Time</div>
+      <span class="section-sanskrit">विंशोत्तरी दशा · 120-Year Planetary Period Sequence</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="callout info">
+    <strong style="color:var(--gold);font-family:'Cinzel',serif;">Reading the Dasha:</strong> Vimshottari Dasha is the primary timing system of Vedic astrology. It assigns planetary periods based on the Moon's nakshatra at birth — in your case, Ashlesha (Mercury-ruled). Each planet rules a major period (Mahadasha) during which that planet's chart significations become the primary lens of life experience. Sub-periods (Antardashas) refine this further.
+  </div>
+
+  <div class="dasha-timeline">
+
+    <div class="dasha-row">
+      <div class="dasha-planet-col">
+        <div class="dasha-planet-name" style="color:var(--mercury-color);">Mercury</div>
+        <div class="dasha-years">17 Years</div>
+      </div>
+      <div class="dasha-dates-col">
+        <div class="dasha-date-range">22 Nov 1978 → 28 Mar 1979 (balance: 4M 6D)</div>
+        <div class="dasha-summary">Birth period. Mercury as 5th and 8th lord — early childhood shaped by intelligence, curiosity, and the hidden influence of the 8th. Mercury in Jyeshtha nakshatra gives precocious awareness. The balance period at birth was short — 4 months into Mercury dasha — before transitioning to Ketu.</div>
+      </div>
+    </div>
+
+    <div class="dasha-row">
+      <div class="dasha-planet-col">
+        <div class="dasha-planet-name" style="color:var(--ketu-color);">Ketu</div>
+        <div class="dasha-years">7 Years</div>
+      </div>
+      <div class="dasha-dates-col">
+        <div class="dasha-date-range">28 Mar 1979 → 28 Mar 1986 (Ages 0–7)</div>
+        <div class="dasha-summary">Ketu dasha — early childhood and primary schooling years. Ketu in the 1st house (Lagna) activates past-life memories, unusual sensitivity, and a sense of being "different." Early childhood may have felt somewhat otherworldly or involved periods of inner retreat. Ketu's placement in Aquarius (Saturn-ruled) gives early exposure to discipline and structure. These years plant the seeds of spiritual awareness that define the native's long-term character.</div>
+      </div>
+    </div>
+
+    <div class="dasha-row">
+      <div class="dasha-planet-col">
+        <div class="dasha-planet-name" style="color:var(--venus-color);">Venus</div>
+        <div class="dasha-years">20 Years</div>
+      </div>
+      <div class="dasha-dates-col">
+        <div class="dasha-date-range">28 Mar 1986 → 28 Mar 2006 (Ages 7–27)</div>
+        <div class="dasha-summary">Venus Mahadasha — the longest dasha, spanning formative years, higher education, and young adulthood. Venus as Yoga Karaka (4th+9th lord) in own sign Libra in the 9th house makes this a period of profound fortune-building — through education, dharmic exposure, and early career development. Higher education is highlighted; the 9th house brings teachers, mentors, philosophical awakening. Relationships are also prominent (Venus) though Saturn-Rahu in the 7th creates complexity. This 20-year period built the foundation upon which all subsequent achievement rests.</div>
+      </div>
+    </div>
+
+    <div class="dasha-row">
+      <div class="dasha-planet-col">
+        <div class="dasha-planet-name" style="color:var(--sun-color);">Sun</div>
+        <div class="dasha-years">6 Years</div>
+      </div>
+      <div class="dasha-dates-col">
+        <div class="dasha-date-range">28 Mar 2006 → 28 Mar 2012 (Ages 27–33)</div>
+        <div class="dasha-summary">Sun Mahadasha — Sun as 7th lord in the 10th house. Career consolidation and public identity formation. Authority and recognition begin to crystallise. The 7th house lordship brings relationship matters to prominence — possible marriage or significant partnership decision during this period. Sun in Anuradha nakshatra gives this period a quality of building alliances and proving leadership capacity. Government or institutional connections may be established.</div>
+      </div>
+    </div>
+
+    <div class="dasha-row">
+      <div class="dasha-planet-col">
+        <div class="dasha-planet-name" style="color:var(--moon-color);">Moon</div>
+        <div class="dasha-years">10 Years</div>
+      </div>
+      <div class="dasha-dates-col">
+        <div class="dasha-date-range">28 Mar 2012 → 28 Mar 2022 (Ages 33–43)</div>
+        <div class="dasha-summary">Moon Mahadasha — Moon as 6th lord in own sign Cancer in the 6th house, conjunct exalted Jupiter (Gajakesari Yoga activated). A decade of emotional depth, service, health focus, and quiet inner consolidation. The Gajakesari and Harsha Yoga both activate under Moon dasha. Professional work continues but the internal landscape deepens significantly. Some years of this period may have felt like persistent effort against obstacles — this is Harsha Yoga at work. By 2022, the accumulated effort of the Moon dasha becomes the springboard for the Mars period that follows.</div>
+      </div>
+    </div>
+
+    <div class="dasha-row current">
+      <div class="dasha-planet-col">
+        <div class="dasha-planet-name" style="color:var(--mars-color);">Mars</div>
+        <div class="dasha-years">7 Years</div>
+      </div>
+      <div class="dasha-dates-col">
+        <div class="dasha-date-range">28 Mar 2022 → 28 Mar 2029 (Ages 43–50) <span class="current-badge">CURRENT</span></div>
+        <div class="dasha-summary"><strong style="color:var(--mars-color);">THIS IS YOUR PEAK PROFESSIONAL DASHA.</strong> Mars as 10th lord (Ruchaka Yoga, own sign in 10th) is the most career-empowering possible Mahadasha for your chart. Seven years of Mars's full force applied to your career, public identity, and authority. This is the period where the accumulated preparation of all prior dashas — Venus (dharma/education), Sun (authority), Moon (service/depth) — is harvested. Expect significant career milestones, leadership roles, public recognition, and the full flowering of your professional identity. Mars in Jyeshtha nakshatra makes this period one of chief-level command. Do not hesitate to step into the largest roles available to you.</div>
+      </div>
+    </div>
+
+    <div class="dasha-row">
+      <div class="dasha-planet-col">
+        <div class="dasha-planet-name" style="color:var(--rahu-color);">Rahu</div>
+        <div class="dasha-years">18 Years</div>
+      </div>
+      <div class="dasha-dates-col">
+        <div class="dasha-date-range">28 Mar 2029 → 28 Mar 2047 (Ages 50–68)</div>
+        <div class="dasha-summary">Rahu Mahadasha — Rahu in Leo (7th house), conjunct Saturn. This 18-year period will massively expand your public reach, often in unconventional or international directions. Rahu amplifies whatever house it occupies — your 7th house (relationships, partnerships, public engagement) becomes a stage of intense, transformative activity. Foreign connections, cross-cultural engagements, and unexpected partnerships will be prominent. Career may shift into advisory, consultative, or globally-facing roles. Rahu's dasha can bring both spectacular achievements and complex personal upheavals — the key is to remain anchored in dharma (9th house Venus) through the intensity.</div>
+      </div>
+    </div>
+
+    <div class="dasha-row">
+      <div class="dasha-planet-col">
+        <div class="dasha-planet-name" style="color:var(--jupiter-color);">Jupiter</div>
+        <div class="dasha-years">16 Years</div>
+      </div>
+      <div class="dasha-dates-col">
+        <div class="dasha-date-range">28 Mar 2047 → 28 Mar 2063 (Ages 68–84)</div>
+        <div class="dasha-summary">Jupiter Mahadasha — Jupiter exalted, Hamsa Yoga activated, Gajakesari fully expressed. This is the period of the sage: teaching, writing, guiding, spiritual deepening. The fruits of Hamsa Yoga ripen in old age — wisdom, grace, and recognition as an elder of your field and community. A deeply auspicious concluding chapter marked by spiritual fulfilment, sustained health through Jupiter's grace, and the quiet authority of one who has truly mastered their domain.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION — CURRENT PERIOD DEEP READING
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">NOW</span>
+    <div>
+      <div class="section-title">Current Period Reading — February 2026</div>
+      <span class="section-sanskrit">मंगल महादशा · बुध अन्तर्दशा · Mars–Mercury</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="house-block" data-house-num="">
+    <div class="house-block-header">
+      <span class="house-num">MAHADASHA</span>
+      <span class="house-name">Mars (28 Mar 2022 – 28 Mar 2029)</span>
+    </div>
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light);">Mars Mahadasha Analysis:</strong> You are currently in the 4th year of your Mars Mahadasha. Mars — your 10th lord in own sign in the 10th, Ruchaka Yoga — is at maximum strength. In its Mahadasha, Mars brings forward everything it represents in your chart: career ascent, professional authority, decisive action, competitive mastery, and the courage to inhabit the largest version of your professional identity. This is the dasha that justifies the entire preparation of the preceding decades.</p>
+      <p>Mars rules the blood, muscles, physical energy, and the drive to achieve. You may notice heightened energy, assertiveness, and a capacity for sustained high-performance work during this period. Your tolerance for mediocrity — in yourself or others — has decreased significantly. This is appropriate: Ruchaka Yoga demands excellence as its standard.</p>
+    </div>
+  </div>
+
+  <div class="house-block" data-house-num="">
+    <div class="house-block-header">
+      <span class="house-num">ANTARDASHA</span>
+      <span class="house-name" style="color:var(--mercury-color);">Mercury (1 Oct 2025 – 29 Sep 2026)</span>
+      <span class="current-badge">YOU ARE HERE</span>
+    </div>
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light);">Mars–Mercury Period (Oct 2025 – Sep 2026):</strong> Mercury as Antardasha lord is placed in Scorpio in your 10th house — the exact same house as Mars. This creates an extraordinary convergence: both the Mahadasha and Antardasha lords are co-located in the 10th house in Scorpio. This is a period of peak intellectual and professional power.</p>
+
+      <p><strong style="color:var(--gold-light);">What This Period Activates:</strong></p>
+      <ul style="margin:12px 0 12px 20px;line-height:2;">
+        <li><strong>5th lord Mercury (intelligence, creativity)</strong> in the 10th — your intelligence is fully deployed in your career right now. Research, analytical work, writing, strategic planning, or any intellectual endeavour tied to your profession is supremely supported.</li>
+        <li><strong>8th lord Mercury (transformation, hidden knowledge)</strong> in the 10th — this period may also involve deep research, investigation, occult study, or accessing hidden or specialised knowledge as part of your professional work. Financial restructuring or transformative career shifts are possible.</li>
+        <li><strong>Mercury in Jyeshtha Pada 4 (Pisces navamsha)</strong> — a wisdom-carrying quality: your communication this year carries the authority of Jyeshtha's Mercury and the spiritual depth of Pisces navamsha. What you write, speak, or teach this year has lasting impact.</li>
+      </ul>
+
+      <div class="callout positive">
+        <strong style="color:#00C864;">Specific Guidance for Feb 2026:</strong> This is one of the most intellectually productive months of the Mars–Mercury period. Prioritise deep work: writing, research, analysis, strategic planning. Any communication — proposals, reports, creative work — initiated now carries exceptional power. Mercury in Scorpio in the 10th is the configuration of the master strategist at the height of their powers. Act accordingly.
+      </div>
+
+      <p><strong style="color:var(--gold-light);">Upcoming Antardashas in Mars Mahadasha:</strong></p>
+    </div>
+
+    <table class="antardasha-table">
+      <thead>
+        <tr><th>Antardasha</th><th>Period</th><th>Reading</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Mars–Mars</td><td>28 Mar 2022 – 26 Aug 2022</td><td>Pure Mars energy — career ignition, bold new initiatives launched</td></tr>
+        <tr><td>Mars–Rahu</td><td>26 Aug 2022 – 14 Sep 2023</td><td>Intense expansion, possible foreign/unconventional career developments; some turbulence in relationships</td></tr>
+        <tr><td>Mars–Jupiter</td><td>14 Sep 2023 – 20 Aug 2024</td><td>Hamsa Yoga activated — wisdom, expansion, recognition; excellent for advancement</td></tr>
+        <tr><td>Mars–Saturn</td><td>20 Aug 2024 – 1 Oct 2025</td><td>Saturn as Lagna lord: structural consolidation, some delays or restrictions, karmic restructuring</td></tr>
+        <tr class="ad-current"><td>Mars–Mercury ★</td><td>1 Oct 2025 – 29 Sep 2026</td><td>CURRENT — Peak intellectual-professional synergy; research, writing, strategic mastery</td></tr>
+        <tr><td>Mars–Ketu</td><td>29 Sep 2026 – 26 Feb 2027</td><td>Ketu (1st house) activated — introspection, spiritual pivot, past-life themes surface; some withdrawal from outer world</td></tr>
+        <tr><td>Mars–Venus</td><td>26 Feb 2027 – 28 Apr 2028</td><td><strong>PEAK FORTUNE PERIOD</strong> — Venus as Yoga Karaka in own sign in 9th: maximum dharmic fortune activation. Property, relationships, financial grace, spiritual fulfilment. The most auspicious antardasha of this Mahadasha.</td></tr>
+        <tr><td>Mars–Sun</td><td>28 Apr 2028 – 28 Mar 2029</td><td>Sun as 7th lord in 10th: career-partnership intersection; public authority at peak; possible significant personal relationship development</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION — NAVAMSHA (D9)
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">NAVAMSHA</span>
+    <div>
+      <div class="section-title">Navamsha Chart (D9) — The Soul's Blueprint</div>
+      <span class="section-sanskrit">नवांश · D9 Chart · Dharma, Marriage &amp; Inner Destiny</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="callout info">
+    <strong style="color:var(--gold);font-family:'Cinzel',serif;">About the Navamsha:</strong> The D9 (Navamsha) chart is considered the most important divisional chart in Vedic astrology — second only to the Rashi (D1) chart. It reveals the deeper dharmic purpose of the soul, the quality of marriage/partnerships, and the inner texture of planetary strengths. Planets that are strong in both D1 and D9 give full results; those strong only in D1 give surface results; those strong in D9 but weak in D1 give results with delay but ultimately profound depth.
+  </div>
+
+  <div class="house-block" data-house-num="D9">
+    <div class="house-block-header">
+      <span class="house-num">D9 LAGNA</span>
+      <span class="house-name">Capricorn (Makara)</span>
+      <span class="house-lord">· Saturn rules D9 Lagna · Mirror of D1 Saturn themes ·</span>
+    </div>
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light);">Capricorn Navamsha Lagna:</strong> The Ascendant in the Navamsha falls in Capricorn — also ruled by Saturn, the same planet that rules your D1 Lagna (Aquarius). This is a powerful confirmation: your entire soul's architecture in this lifetime is Saturnine at its core. Discipline, karmic responsibility, endurance, and the long view are not merely surface qualities — they are your soul's fundamental operating principles. This alignment of D1 and D9 Lagna rulers (both Saturn) gives tremendous consistency and depth to your character. What you appear to be on the outside is genuinely what you are on the inside.</p>
+
+      <p><strong style="color:var(--gold-light);">Key Navamsha Planetary Positions:</strong></p>
+      <ul style="margin:12px 0 12px 20px;line-height:2.2;">
+        <li><strong>Venus in Capricorn (D9 Lagna):</strong> Venus, your Yoga Karaka, is placed in the Navamsha Lagna — this is extraordinarily auspicious. Venus in the D9 Lagna confirms that the Dharma-Karmadhipati Yoga of the D1 is fully supported at the soul level. Your inner life resonates with Venusian values: beauty, harmony, love, and dharmic grace. Marriage partner will be refined, aesthetically aware, and may be connected to Saturnine disciplines (law, engineering, medicine, finance).</li>
+        <li><strong>Jupiter in D9:</strong> Jupiter's position in the Navamsha (appearing in Sagittarius or nearby based on the chart image) gives additional Jupiterian grace to the inner life. Wisdom is not just your outward expression — it is your soul's native language.</li>
+        <li><strong>Mars in D9:</strong> Mars in the Navamsha in a prominent position confirms that Ruchaka Yoga has deep roots — it is not merely a surface planetary arrangement but a soul-level warrior archetype. Your drive and courage are authentic expressions of who you are at the deepest level.</li>
+        <li><strong>Moon–Mercury in D9 (Cancer):</strong> Moon and Mercury together in the Navamsha in Cancer give deep emotional intelligence that is analytically refined — the inner world is rich, feeling, and precise. This confirms Ashlesha Moon's deepest quality: wisdom that emerges from emotional depth, not despite it.</li>
+      </ul>
+
+      <p><strong style="color:var(--gold-light);">Marriage Karma in D9:</strong> The Navamsha is the primary chart for understanding marriage at a soul level. With Capricorn as D9 Lagna and Venus there, your soul seeks a partner who embodies grace within structure — beauty married to discipline. The Saturn theme running through both D1 and D9 indicates that marriage is, for you, a deeply karmic undertaking. The union that truly resonates will be one where both partners share a commitment to long-term growth, dharma, and mutual respect built through tested loyalty rather than romantic idealism alone. The right partner will feel like a homecoming.</p>
+    </div>
+  </div>
+</div>
+
+</div><!-- end page -->
+
+
+<!-- ══════════════════════════════════════════════
+     SECTION — ASHTAKVARGA
+══════════════════════════════════════════════ -->
+<div class="page">
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">ASHTAKVARGA</span>
+    <div>
+      <div class="section-title">Ashtakvarga — Planetary Strength by House</div>
+      <span class="section-sanskrit">अष्टकवर्ग · Bindu Scores · Strength Map</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="callout info">
+    <strong style="color:var(--gold);font-family:'Cinzel',serif;">About Ashtakvarga:</strong> Ashtakvarga is the classical Vedic system of measuring planetary strength through a matrix of benefic points (bindus) contributed by each planet and the Ascendant to every house. Each house receives 0–8 bindus per planet. A total score (Sarva Ashtakvarga) above 30 in a house is auspicious; 25–30 is average; below 25 indicates challenges. Your total scores from the AstroSage chart are analysed below.
+  </div>
+
+  <!-- Ashtakvarga Visual Grid -->
+  <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:28px 0;">
+
+    <div style="background:rgba(30,45,90,0.6);border:1px solid rgba(201,168,76,0.3);border-radius:6px;padding:16px;text-align:center;">
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:6px;">H1 · AQUARIUS</div>
+      <div style="font-size:32px;font-weight:700;color:#69F0AE;font-family:'Cinzel',serif;">30</div>
+      <div style="font-size:11px;color:rgba(250,246,238,0.6);margin-top:4px;">Average–Good</div>
+      <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;">
+        <div style="height:100%;width:60%;background:#69F0AE;border-radius:2px;"></div>
+      </div>
+    </div>
+
+    <div style="background:rgba(30,45,90,0.6);border:1px solid rgba(201,168,76,0.3);border-radius:6px;padding:16px;text-align:center;">
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:6px;">H2 · PISCES</div>
+      <div style="font-size:32px;font-weight:700;color:#FFD700;font-family:'Cinzel',serif;">35</div>
+      <div style="font-size:11px;color:rgba(250,246,238,0.6);margin-top:4px;">Strong ★</div>
+      <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;">
+        <div style="height:100%;width:78%;background:#FFD700;border-radius:2px;"></div>
+      </div>
+    </div>
+
+    <div style="background:rgba(30,45,90,0.6);border:1px solid rgba(201,168,76,0.3);border-radius:6px;padding:16px;text-align:center;">
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:6px;">H3 · ARIES</div>
+      <div style="font-size:32px;font-weight:700;color:#69F0AE;font-family:'Cinzel',serif;">28</div>
+      <div style="font-size:11px;color:rgba(250,246,238,0.6);margin-top:4px;">Average</div>
+      <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;">
+        <div style="height:100%;width:54%;background:#69F0AE;border-radius:2px;"></div>
+      </div>
+    </div>
+
+    <div style="background:rgba(30,45,90,0.6);border:1px solid rgba(201,168,76,0.3);border-radius:6px;padding:16px;text-align:center;">
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:6px;">H4 · TAURUS</div>
+      <div style="font-size:32px;font-weight:700;color:#FF7043;font-family:'Cinzel',serif;">26</div>
+      <div style="font-size:11px;color:rgba(250,246,238,0.6);margin-top:4px;">Below Average</div>
+      <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;">
+        <div style="height:100%;width:48%;background:#FF7043;border-radius:2px;"></div>
+      </div>
+    </div>
+
+    <div style="background:rgba(30,45,90,0.6);border:1px solid rgba(201,168,76,0.3);border-radius:6px;padding:16px;text-align:center;">
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:6px;">H5 · GEMINI</div>
+      <div style="font-size:32px;font-weight:700;color:#69F0AE;font-family:'Cinzel',serif;">30</div>
+      <div style="font-size:11px;color:rgba(250,246,238,0.6);margin-top:4px;">Average–Good</div>
+      <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;">
+        <div style="height:100%;width:60%;background:#69F0AE;border-radius:2px;"></div>
+      </div>
+    </div>
+
+    <div style="background:rgba(30,45,90,0.6);border:1px solid rgba(201,168,76,0.3);border-radius:6px;padding:16px;text-align:center;">
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:6px;">H6 · CANCER</div>
+      <div style="font-size:32px;font-weight:700;color:#FFD700;font-family:'Cinzel',serif;">34</div>
+      <div style="font-size:11px;color:rgba(250,246,238,0.6);margin-top:4px;">Strong ★</div>
+      <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;">
+        <div style="height:100%;width:74%;background:#FFD700;border-radius:2px;"></div>
+      </div>
+    </div>
+
+    <div style="background:rgba(30,45,90,0.6);border:1px solid rgba(201,168,76,0.3);border-radius:6px;padding:16px;text-align:center;">
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:6px;">H7 · LEO</div>
+      <div style="font-size:32px;font-weight:700;color:#FF4444;font-family:'Cinzel',serif;">19</div>
+      <div style="font-size:11px;color:rgba(250,246,238,0.6);margin-top:4px;">Weak ⚠</div>
+      <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;">
+        <div style="height:100%;width:28%;background:#FF4444;border-radius:2px;"></div>
+      </div>
+    </div>
+
+    <div style="background:rgba(30,45,90,0.6);border:1px solid rgba(201,168,76,0.3);border-radius:6px;padding:16px;text-align:center;">
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:6px;">H8 · VIRGO</div>
+      <div style="font-size:32px;font-weight:700;color:#69F0AE;font-family:'Cinzel',serif;">28</div>
+      <div style="font-size:11px;color:rgba(250,246,238,0.6);margin-top:4px;">Average</div>
+      <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;">
+        <div style="height:100%;width:54%;background:#69F0AE;border-radius:2px;"></div>
+      </div>
+    </div>
+
+    <div style="background:rgba(30,45,90,0.6);border:1px solid rgba(201,168,76,0.3);border-radius:6px;padding:16px;text-align:center;">
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:6px;">H9 · LIBRA</div>
+      <div style="font-size:32px;font-weight:700;color:#FFD700;font-family:'Cinzel',serif;">32</div>
+      <div style="font-size:11px;color:rgba(250,246,238,0.6);margin-top:4px;">Good ★</div>
+      <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;">
+        <div style="height:100%;width:68%;background:#FFD700;border-radius:2px;"></div>
+      </div>
+    </div>
+
+    <div style="background:rgba(30,45,90,0.6);border:2px solid var(--gold);border-radius:6px;padding:16px;text-align:center;">
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:6px;">H10 · SCORPIO</div>
+      <div style="font-size:32px;font-weight:700;color:#FF4444;font-family:'Cinzel',serif;">22</div>
+      <div style="font-size:11px;color:rgba(250,246,238,0.6);margin-top:4px;">Low Bindus ⚠</div>
+      <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;">
+        <div style="height:100%;width:36%;background:#FF9800;border-radius:2px;"></div>
+      </div>
+    </div>
+
+    <div style="background:rgba(30,45,90,0.6);border:1px solid rgba(201,168,76,0.3);border-radius:6px;padding:16px;text-align:center;">
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:6px;">H11 · SAGITT.</div>
+      <div style="font-size:32px;font-weight:700;color:#69F0AE;font-family:'Cinzel',serif;">27</div>
+      <div style="font-size:11px;color:rgba(250,246,238,0.6);margin-top:4px;">Average</div>
+      <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;">
+        <div style="height:100%;width:52%;background:#69F0AE;border-radius:2px;"></div>
+      </div>
+    </div>
+
+    <div style="background:rgba(30,45,90,0.6);border:1px solid rgba(201,168,76,0.3);border-radius:6px;padding:16px;text-align:center;">
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:6px;">H12 · CAPRIC.</div>
+      <div style="font-size:32px;font-weight:700;color:#69F0AE;font-family:'Cinzel',serif;">26</div>
+      <div style="font-size:11px;color:rgba(250,246,238,0.6);margin-top:4px;">Below Average</div>
+      <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;">
+        <div style="height:100%;width:48%;background:#69F0AE;border-radius:2px;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="house-block" data-house-num="">
+    <div class="house-text">
+      <p><strong style="color:var(--gold-light);">Ashtakvarga Interpretation — Key Findings:</strong></p>
+
+      <p><strong style="color:#FFD700;">H2 (Pisces) — 35 Bindus (Highest):</strong> The 2nd house of wealth and speech receives the highest bindu count in your chart. This is an outstanding indicator for accumulation of wealth, financial resources, and the power of your speech. Despite the 2nd lord Jupiter being in the 6th, the Ashtakvarga confirms that wealth flows abundantly into your life over time. Jupiter's exaltation, combined with the strongest bindu score, makes the 2nd house a reliable and abundant source of material support.</p>
+
+      <p><strong style="color:#FFD700;">H6 (Cancer) — 34 Bindus:</strong> The 6th house with Moon and exalted Jupiter carries the second highest bindu score — 34. This powerfully confirms the Viparita/Harsha Yoga reading: your ability to overcome enemies, disease, and obstacles is not merely theoretical — it is structurally reinforced by Ashtakvarga. A 34-bindu 6th house means that the domains of service, health management, and competitive victory are among the strongest areas of your life. When transiting planets pass through Cancer, they add exceptional force to your 6th house significations.</p>
+
+      <p><strong style="color:#FFD700;">H9 (Libra) — 32 Bindus:</strong> The 9th house of fortune and dharma receives a strong 32 bindus — well above average. This confirms Venus as Yoga Karaka in the 9th with strong structural support. Your fortune is genuinely robust, and transits through Libra activate profound good fortune periods. Saturn's transit through Libra (whenever it occurs) or Venus periods triggering the 9th will be especially auspicious.</p>
+
+      <p><strong style="color:#FF7043;">H7 (Leo) — 19 Bindus (Lowest ⚠):</strong> The 7th house receives only 19 bindus — the lowest in your chart. This is a critical Ashtakvarga finding that directly corroborates the earlier reading of the 7th house as the most challenging area of your life. A sub-20 bindu 7th house means that when planets transit Leo (your 7th house), they tend to produce difficult rather than supportive results in partnership matters. This is a structural weakness that explains why Saturn and Rahu's occupation of the 7th creates persistent complexity in relationships. Avoid making major marriage or partnership decisions during Leo transits of slow-moving planets, especially Saturn or Jupiter.</p>
+
+      <p><strong style="color:#FF9800;">H10 (Scorpio) — 22 Bindus (Note):</strong> The 10th house — your career powerhouse — carries only 22 bindus. This is a nuanced finding: the 10th house has extraordinary planetary power through Mars (Ruchaka Yoga), Sun, and Mercury, yet the Ashtakvarga bindu count is below average. This means your career achievement is driven by the sheer force and dignity of the planets themselves rather than broad structural support. In practical terms: your career success comes through your own sustained effort, inner strength, and planetary yoga power — not through external ease or institutional support. This is earned achievement of the highest order. When Jupiter transits Scorpio, bindus increase and career opportunities multiply greatly.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION — UPAYAS (REMEDIES)
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">UPAYAS</span>
+    <div>
+      <div class="section-title">Upayas — Remedies &amp; Planetary Harmonisation</div>
+      <span class="section-sanskrit">उपाय · Ratna · Mantra · Dana · Kriya</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="callout info">
+    <strong style="color:var(--gold);font-family:'Cinzel',serif;">Upaya Philosophy:</strong> Upayas (remedies) in Vedic astrology are not magic solutions — they are systematic practices for harmonising with planetary energies, strengthening benefic planets, and pacifying challenging ones. They work through the subtle laws of correspondence: colour, sound (mantra), charity (dana), gemstone (ratna), and behavioural alignment. Practised with sincerity and consistency, they create meaningful shifts in life experience.
+  </div>
+
+  <!-- PRIMARY REMEDIES: STRENGTHEN BENEFICS -->
+  <div style="margin:28px 0;">
+    <h3 style="font-family:'Cinzel',serif;color:var(--gold-light);font-size:18px;margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid rgba(201,168,76,0.3);">
+      ✦ Priority Remedies — Strengthen Your Yogas
+    </h3>
+
+    <div class="remedy-grid">
+
+      <div class="remedy-card">
+        <div class="remedy-icon">💎</div>
+        <div class="remedy-title">Gemstone — White Sapphire (Venus)</div>
+        <div class="remedy-text">
+          Venus is your Yoga Karaka — the most auspicious planet in your chart. Wearing a natural White Sapphire (Safed Pukhraj) or Diamond in silver on the middle finger of your right hand on a Friday morning (after sunrise) strengthens Venus and amplifies the Dharma-Karmadhipati Yoga. Weight: 3–5 carats minimum. Consult a qualified gemologist; the stone must be natural, untreated, and without inclusions. <br/><br/>
+          <strong style="color:var(--gold);">Alternative:</strong> White Topaz or Goshenite (white beryl) for a more affordable option.
+        </div>
+      </div>
+
+      <div class="remedy-card">
+        <div class="remedy-icon">🔴</div>
+        <div class="remedy-title">Gemstone — Red Coral (Mars)</div>
+        <div class="remedy-text">
+          Mars (10th lord, Ruchaka Yoga) is at the peak of power in your chart. A natural Red Coral (Moonga) worn on the ring finger of your right hand in gold or copper on a Tuesday (after sunrise) amplifies Mars energy during the current Mars Mahadasha. Weight: 5–8 carats. This is especially recommended for the duration of the Mars Mahadasha (until 2029).<br/><br/>
+          <strong style="color:var(--gold);">Caution:</strong> Red Coral is a living material — ensure it is ethically sourced.
+        </div>
+      </div>
+
+      <div class="remedy-card">
+        <div class="remedy-icon">💛</div>
+        <div class="remedy-title">Gemstone — Yellow Sapphire (Jupiter)</div>
+        <div class="remedy-text">
+          Jupiter is exalted (Hamsa Yoga, Gajakesari Yoga) and is also your 2nd and 11th lord — governing wealth and gains. A natural Yellow Sapphire (Pukhraj) in gold worn on the index finger of the right hand on a Thursday morning strengthens Jupiter's exaltation and directly supports wealth accumulation, health, and wisdom. Weight: 3–5 carats.<br/><br/>
+          <strong style="color:var(--gold);">Note:</strong> This is the second most recommended gemstone after White Sapphire for your chart.
+        </div>
+      </div>
+
+      <div class="remedy-card">
+        <div class="remedy-icon">🚫</div>
+        <div class="remedy-title">Avoid — Blue Sapphire &amp; Emerald</div>
+        <div class="remedy-text">
+          Saturn (Lagna lord) is in enemy sign in the 7th — wearing Blue Sapphire (Neelam) risks intensifying Saturn's 7th house challenges. Emerald (Mercury) as 8th lord gemstone can activate transformative/difficult 8th house energies unexpectedly. These should only be worn after deep individual chart analysis and trial periods. <br/><br/>
+          <strong style="color:var(--gold);">For Saturn:</strong> Iron ring worn on Saturday is safer than Blue Sapphire.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MANTRAS -->
+  <div style="margin:28px 0;">
+    <h3 style="font-family:'Cinzel',serif;color:var(--gold-light);font-size:18px;margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid rgba(201,168,76,0.3);">
+      ✦ Mantras — Sound Remedies
+    </h3>
+    <div class="remedy-grid">
+
+      <div class="remedy-card">
+        <div class="remedy-icon">🕉️</div>
+        <div class="remedy-title">Venus Mantra (Primary)</div>
+        <div class="remedy-text">
+          <em style="color:var(--gold-pale);">"Om Shukraya Namaha"</em><br/>
+          Recite 108 times each Friday morning after bath, facing East. This strengthens your Yoga Karaka Venus and activates the Dharma-Karmadhipati Yoga. Over time, this mantra opens the channel of divine fortune (Bhagya) that Venus in the 9th represents.
+        </div>
+      </div>
+
+      <div class="remedy-card">
+        <div class="remedy-icon">🔱</div>
+        <div class="remedy-title">Mars Mantra (Current Dasha)</div>
+        <div class="remedy-text">
+          <em style="color:var(--gold-pale);">"Om Mangalaya Namaha"</em><br/>
+          or the Ruchaka Yoga mantra:<br/>
+          <em style="color:var(--gold-pale);">"Om Kraam Kreem Kraum Sah Bhaumaya Namaha"</em><br/>
+          Recite 108 times each Tuesday. Especially powerful during the current Mars Mahadasha. Aligns your will with Mars's Jyeshtha-Indra force of righteous authority.
+        </div>
+      </div>
+
+      <div class="remedy-card">
+        <div class="remedy-icon">🌟</div>
+        <div class="remedy-title">Jupiter Mantra (Hamsa Yoga)</div>
+        <div class="remedy-text">
+          <em style="color:var(--gold-pale);">"Om Gurave Namaha"</em><br/>
+          or the Guru Beej Mantra:<br/>
+          <em style="color:var(--gold-pale);">"Om Graam Greem Graum Sah Guruve Namaha"</em><br/>
+          Recite 108 times each Thursday. Activates the Hamsa Yoga and the Gajakesari Yoga. Brings wisdom, health, and Jupiterian grace to all domains of life.
+        </div>
+      </div>
+
+      <div class="remedy-card">
+        <div class="remedy-icon">🌀</div>
+        <div class="remedy-title">Ketu Mantra (Lagna Ketu)</div>
+        <div class="remedy-text">
+          <em style="color:var(--gold-pale);">"Om Ketave Namaha"</em><br/>
+          Recite 108 times on Tuesdays or Saturdays. Ketu in the Lagna requires acknowledgment and conscious integration. This mantra helps you work with Ketu's past-life energy constructively — channelling its spiritual detachment into wisdom rather than confusion about identity.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CHARITABLE ACTS -->
+  <div style="margin:28px 0;">
+    <h3 style="font-family:'Cinzel',serif;color:var(--gold-light);font-size:18px;margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid rgba(201,168,76,0.3);">
+      ✦ Dana (Charitable Acts) — Karmic Balancing
+    </h3>
+    <div class="remedy-grid">
+
+      <div class="remedy-card">
+        <div class="remedy-icon">🌿</div>
+        <div class="remedy-title">For Venus (Fridays)</div>
+        <div class="remedy-text">
+          Donate white items on Fridays: white rice, white flowers, white cloth, or dairy products to women or temples. Feed cows. Support causes related to women's welfare, arts, or beauty. Offering white lotus flowers at a Lakshmi temple on Friday evenings strengthens Venus directly.
+        </div>
+      </div>
+
+      <div class="remedy-card">
+        <div class="remedy-icon">🔥</div>
+        <div class="remedy-title">For Mars (Tuesdays)</div>
+        <div class="remedy-text">
+          Donate red items on Tuesdays: red lentils (masoor dal), red cloth, copper vessels. Feed soldiers, workers, or those in physical service. Lighting a ghee lamp at a Hanuman or Kartikeya temple on Tuesdays is especially effective for Mars — the deity of Ruchaka Yoga.
+        </div>
+      </div>
+
+      <div class="remedy-card">
+        <div class="remedy-icon">💛</div>
+        <div class="remedy-title">For Jupiter (Thursdays)</div>
+        <div class="remedy-text">
+          Donate yellow items on Thursdays: yellow dal (chana dal), turmeric, yellow cloth, books. Support education, teaching, or Brahmin scholars. Feeding elephants (if accessible) or donating to educational causes are among the most Jupiterian of charitable acts.
+        </div>
+      </div>
+
+      <div class="remedy-card">
+        <div class="remedy-icon">⚫</div>
+        <div class="remedy-title">For Saturn (Saturdays)</div>
+        <div class="remedy-text">
+          Saturn as Lagna lord in enemy sign in the 7th needs regular propitiation. On Saturdays: donate black sesame seeds (til), mustard oil, dark lentils (urad dal), iron, or black cloth to the poor, elderly, or disabled. Serving the underprivileged on Saturdays directly pacifies Saturn and reduces relationship karma.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LIFESTYLE & SPIRITUAL PRACTICES -->
+  <div style="margin:28px 0;">
+    <h3 style="font-family:'Cinzel',serif;color:var(--gold-light);font-size:18px;margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid rgba(201,168,76,0.3);">
+      ✦ Kriya — Lifestyle &amp; Spiritual Practices
+    </h3>
+    <div class="remedy-grid">
+
+      <div class="remedy-card">
+        <div class="remedy-icon">🧘</div>
+        <div class="remedy-title">Daily Meditation</div>
+        <div class="remedy-text">
+          Ketu in the Lagna makes meditation your most natural and powerful spiritual practice. Even 20 minutes of silent meditation at dawn aligns your Shatabhisha rising's Varuna-energy with cosmic order. Practices like Vipassana, Yoga Nidra, or silent sitting are deeply suited to your chart.
+        </div>
+      </div>
+
+      <div class="remedy-card">
+        <div class="remedy-icon">🌅</div>
+        <div class="remedy-title">Surya Namaskar</div>
+        <div class="remedy-text">
+          12 rounds of Surya Namaskar at sunrise on Sundays propitiate the Sun (7th lord in 10th) and strengthen physical vitality. Mars energy in the 10th is also harmonised through physical discipline. This practice simultaneously honours the Sun, activates Mars, and grounds Ketu's ethereal energy through the body.
+        </div>
+      </div>
+
+      <div class="remedy-card">
+        <div class="remedy-icon">🌊</div>
+        <div class="remedy-title">Water &amp; Varuna Ritual</div>
+        <div class="remedy-text">
+          Shatabhisha is ruled by Varuna — the deity of water, ocean, and cosmic law. Regular contact with large bodies of water (ocean, rivers, lakes) serves as a natural reset for your nervous system and aligns your Shatabhisha energy. Offering water with sesame seeds to ancestors (Pitru Tarpan) on new moon days supports karmic clearing.
+        </div>
+      </div>
+
+      <div class="remedy-card">
+        <div class="remedy-icon">📿</div>
+        <div class="remedy-title">Rudraksha Beads</div>
+        <div class="remedy-text">
+          <strong>6-mukhi Rudraksha</strong> (ruled by Venus/Kartikeya) — strengthens Venus as Yoga Karaka, supports creativity, relationships, and fortune.<br/>
+          <strong>3-mukhi Rudraksha</strong> (ruled by Agni/Mars) — supports Mars during the current Mahadasha, removes past-life obstacles, and activates Agni (fire/transformation).
+        </div>
+      </div>
+
+      <div class="remedy-card">
+        <div class="remedy-icon">🎨</div>
+        <div class="remedy-title">Favourable Colours</div>
+        <div class="remedy-text">
+          <strong>Most auspicious:</strong> White, cream, light blue (Venus/Saturn — Lagna lord colours).<br/>
+          <strong>For career power:</strong> Dark red, maroon, deep burgundy (Mars, current Mahadasha).<br/>
+          <strong>For wisdom:</strong> Yellow, golden (Jupiter).<br/>
+          <strong>Avoid:</strong> Bright orange, overuse of black for personal wear (Sun/Saturn tension in 7th).
+        </div>
+      </div>
+
+      <div class="remedy-card">
+        <div class="remedy-icon">📖</div>
+        <div class="remedy-title">Study &amp; Teaching</div>
+        <div class="remedy-text">
+          Jupiter exalted (Hamsa Yoga) and Ketu in Lagna both strongly indicate that regular study of spiritual, philosophical, or occult texts is a powerful upaya in itself. Teaching, mentoring, or sharing knowledge — even informally — activates Jupiter's Hamsa Yoga and fulfils a deep dharmic obligation. Your wisdom is meant to be transmitted.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FAVOURABLE PERIODS TABLE -->
+  <div style="margin:28px 0;">
+    <h3 style="font-family:'Cinzel',serif;color:var(--gold-light);font-size:18px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(201,168,76,0.3);">
+      ✦ Favourable &amp; Challenging Periods — Summary
+    </h3>
+    <table class="planet-table">
+      <thead>
+        <tr><th>Period</th><th>Type</th><th>Area</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Oct 2025 – Sep 2026</td>
+          <td><span style="color:#00C864;font-weight:700;">★★★ Excellent</span></td>
+          <td>Career, Intellect, Research</td>
+          <td>Mars–Mercury antardasha. Peak analytical and professional output.</td>
+        </tr>
+        <tr>
+          <td>Sep 2026 – Feb 2027</td>
+          <td><span style="color:#FF9800;font-weight:700;">⚠ Introspective</span></td>
+          <td>Spiritual, Self-reflection</td>
+          <td>Mars–Ketu period. Inner life intensifies. Reduce worldly commitments; deepen inner work.</td>
+        </tr>
+        <tr>
+          <td>Feb 2027 – Apr 2028</td>
+          <td><span style="color:#FFD700;font-weight:700;">★★★★ Peak Fortune</span></td>
+          <td>Fortune, Property, Dharma, Relationships</td>
+          <td>Mars–Venus antardasha. Yoga Karaka Venus activated. Most auspicious period of the decade. Major life decisions, property, relationships, financial decisions best made now.</td>
+        </tr>
+        <tr>
+          <td>Apr 2028 – Mar 2029</td>
+          <td><span style="color:#69F0AE;font-weight:700;">★★ Very Good</span></td>
+          <td>Career Authority, Public Life</td>
+          <td>Mars–Sun: Solar authority at peak, possible major career recognition or leadership appointment.</td>
+        </tr>
+        <tr>
+          <td>Mar 2029 – Mar 2047</td>
+          <td><span style="color:#FF9800;font-weight:700;">Complex–Expansive</span></td>
+          <td>Foreign, Partnerships, Expansion</td>
+          <td>Rahu Mahadasha begins. Massive expansion but intense dynamics. Stay rooted in dharma throughout.</td>
+        </tr>
+        <tr>
+          <td>When Jupiter transits Scorpio (H10)</td>
+          <td><span style="color:#FFD700;font-weight:700;">★★★ Career Peak</span></td>
+          <td>Career, Recognition, Gains</td>
+          <td>Jupiter's transit through the 10th activates all three planets there. Exceptional career advancement windows.</td>
+        </tr>
+        <tr>
+          <td>When Saturn transits Leo (H7)</td>
+          <td><span style="color:#FF4444;font-weight:700;">⚠ Caution</span></td>
+          <td>Relationships, Partnerships</td>
+          <td>Saturn returning to natal position in the 7th intensifies relationship karma. Practise patience, avoid hasty decisions.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION — ASTROLOGER'S CLOSING SYNTHESIS
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-number">SYNTHESIS</span>
+    <div>
+      <div class="section-title">Astrologer's Final Reading — The Complete Picture</div>
+      <span class="section-sanskrit">समग्र दर्शन · Complete Vision</span>
+    </div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="summary-banner">
+    <h3>The Chart of Vimal — An Overarching Reading</h3>
+    <p>
+      This is a chart of extraordinary karmic accumulation and dharmic power. Two Pancha Mahapurusha Yogas — Ruchaka and Hamsa — stand like twin pillars of a life destined for genuine achievement and wisdom. Venus as Yoga Karaka in own sign in the 9th house of fortune is the invisible hand of grace that guides this life. And at the centre of it all: a 10th house blazing with Sun, Mercury, and Mars in own sign — Scorpio — the sign of depth, transformation, and the relentless pursuit of mastery.
+    </p>
+  </div>
+
+  <div class="house-block" data-house-num="">
+    <div class="house-text">
+
+      <p><strong style="color:var(--gold-light);font-size:17px;">Vimal, here is what your chart reveals about your life's deepest architecture:</strong></p>
+
+      <p><strong style="color:var(--gold-light);">Your Identity (Lagna):</strong> You are, at your core, a Saturnine-Aquarian soul — intellectual, idealistic, drawn to truth above social comfort, and built for the long game. Ketu on your Lagna means you arrived in this life carrying the accumulated wisdom of prior lifetimes. The early years of your life may have felt like waking from a dream — finding your footing in a world that felt simultaneously familiar and strange. This is the hallmark of a soul in its advanced iterations of worldly experience.</p>
+
+      <p><strong style="color:var(--gold-light);">Your Life's Central Arena (Career/10th House):</strong> Your 10th house is your life's primary stage. Ruchaka Yoga — Mars in own sign in the 10th — is the signature of one who commands. Not because they demand it, but because their depth of preparation, courage, and authentic authority naturally draws others to follow. Sun in Anuradha gives you Mitra's quality: you build loyal alliances. Mercury in Jyeshtha gives you the elder's mind: penetrating, precise, and earned. You are not a performer of authority — you are authority itself, quietly demonstrated.</p>
+
+      <p><strong style="color:var(--gold-light);">Your Fortune (9th House Venus):</strong> The grace in your life is real, and it is Venus-shaped: beautiful, harmonious, and dharmic. But Venus retrograde in the 9th reminds us that this grace is not passive. It requires that you walk your path authentically — that you do not compromise your values for expedience, and that you return, again and again, to what is genuinely true for you. When you do, fortune follows with remarkable consistency.</p>
+
+      <p><strong style="color:var(--gold-light);">Your Challenge (7th House):</strong> Saturn and Rahu in the 7th house, with only 19 Ashtakvarga bindus — this is your life's most challenging terrain. Relationships and partnerships carry karmic weight. The BPHS is clear, and so must your consultant be: this area requires extraordinary patience, discernment, and the willingness to learn through friction. Saturn's lessons in the 7th are not punishments — they are the precise curriculum your soul enrolled in for this lifetime. The graduates of this curriculum become the most profoundly wise and genuinely compassionate partners. But the coursework is rigorous.</p>
+
+      <p><strong style="color:var(--gold-light);">Your Spiritual Path (Ketu + 12th House):</strong> Ketu in the Lagna and the liberation axis of your chart points clearly: you are walking a path that ends in moksha — not in this life necessarily, but this life is a significant stride toward it. Meditation, honest self-enquiry, service to others (6th house Jupiter), and walking in dharma (9th house Venus) are not merely suggestions for you. They are the operating instructions for your soul.</p>
+
+      <p><strong style="color:var(--gold-light);">Your Present Moment (February 2026):</strong> You are in the 4th year of your Mars Mahadasha — the most career-empowering period of your life. Within it, you are currently in the Mars–Mercury Antardasha, which activates your 5th house intelligence and 10th house career simultaneously. This is a period of remarkable intellectual productivity and professional impact. What you create, write, research, or communicate right now carries unusual lasting power. Do not underestimate the significance of this window.</p>
+
+      <p><strong style="color:var(--gold-light);">Looking Ahead:</strong> The Mars–Venus period arriving in February 2027 will be the single most auspicious period of the next decade. Begin preparing now for the most important decisions of your life in that window — property, significant relationships, financial structures, and dharmic commitments made during Mars–Venus will carry the full blessing of your Yoga Karaka in own sign. After Mars dasha concludes in 2029, Rahu's 18-year period will dramatically expand your world — internationally, socially, and professionally. The foundation you build in this Mars dasha is what you stand on during that expansion.</p>
+
+    </div>
+  </div>
+
+  <!-- FINAL BLESSING -->
+  <div style="text-align:center;padding:48px 32px;margin:40px 0;background:radial-gradient(ellipse at center, rgba(30,20,5,0.9) 0%, rgba(10,14,26,0.95) 70%);border:1px solid rgba(201,168,76,0.4);border-radius:8px;">
+    <div style="font-size:48px;color:var(--gold);margin-bottom:16px;text-shadow:0 0 30px rgba(201,168,76,0.5);">ॐ</div>
+    <div style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:4px;color:rgba(201,168,76,0.7);margin-bottom:20px;">CLOSING BENEDICTION</div>
+    <p style="font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;font-style:italic;color:var(--gold-pale);line-height:1.9;max-width:700px;margin:0 auto;">
+      "May the light of Jyotish illuminate your path. May Jupiter's wisdom guide your choices, Mars's courage sustain your effort, and Venus's grace crown your dharma. The stars do not compel — they reveal. What you do with this revelation is your sacred freedom."
+    </p>
+    <div style="margin-top:24px;width:120px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-left:auto;margin-right:auto;"></div>
+    <div style="margin-top:16px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:rgba(201,168,76,0.5);">
+      PREPARED WITH REVERENCE FOR THE ANCIENT SCIENCE OF LIGHT
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="report-footer">
+  <div style="font-size:16px;margin-bottom:8px;">ॐ नमो भगवते वासुदेवाय</div>
+  Vimal · Vedic Astrology Consultation · February 2026<br/>
+  Chart Source: AstroSage · Ayanamsa: Lahiri 23°33'42" · Lagna: Aquarius · Moon: Cancer (Ashlesha-4)<br/>
+  Cross-referenced: Brihat Parasara Hora Shastra (Girish Chand Sharma, Maharishi Parashara editions) · house_chapters.json · lord_effects.json<br/><br/>
+  <em>This consultation is prepared for spiritual and self-reflection purposes. The ancient science of Jyotish illuminates tendencies and potentials — your free will, effort, and dharmic choices remain the ultimate determinants of your life's expression.</em>
+</div>
+
+</div><!-- end page -->
+
+</body>
+</html>
