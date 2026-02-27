@@ -1,9 +1,22 @@
 """
-Deep Vedic Astrology Interpretation Engine
-==========================================
-Cross-references classical BPHS texts (lord_effects.json, house_chapters.json),
-planetary dignities, yoga detection, nakshatra analysis, and Vimshottari Dasha
-to produce a comprehensive, consultation-quality HTML report.
+Classical Parashari Jyotish Deep Consultation Engine
+=====================================================
+Role: Classical Parashari Jyotish Analyst — generates a complete life consultation
+strictly following the doctrinal framework of Brihat Parashara Hora Shastra.
+
+Interpretive Principles (from BPHS Doctrine):
+  - Synthesise results ONLY through classical Parashari logic
+  - Graha nature, Rāśi placement, Bhava outcomes, Yogas, Strength, Dasha unfolding
+  - No modern or pop-astrology interpretations
+  - Deterministic but advisory tone — classical register throughout
+
+Style Requirements:
+  - Classical tone — no casual language
+  - Deterministic but advisory; no generic personality descriptions
+  - Output: complete Parashari life consultation, not a personality reading
+
+Objective: Deliver a consultation reflecting structure of destiny, karmic unfolding,
+timing of experience, means of alignment, career, marriage, and spiritual direction.
 
 Cross-referenced sources:
   - Brihat Parasara Hora Shastra (Girish Chand Sharma & Maharishi Parashara eds.)
@@ -11,8 +24,6 @@ Cross-referenced sources:
   - house_chapters.json — BPHS chapter summaries for each house
   - interpretations.py  — classical planet-in-house text layer
   - bphs_engine.py      — existing BPHS sloka engine
-
-Author: Vedic Astrology Deep Engine
 """
 
 import os
@@ -23,6 +34,36 @@ from datetime import datetime, date
 from typing import Dict, List, Optional, Any
 
 logger = logging.getLogger("vedic.deep")
+
+# ── Parashari Engine Identity ─────────────────────────────────────────────────
+# This constant encodes the role, style, and objective that govern all
+# text generation in this engine.  Every narrative, verdict, and synthesis
+# produced here must comply with these principles.
+PARASHARI_ROLE = {
+    "role": "Classical Parashari Jyotish Analyst AI",
+    "doctrine": "Brihat Parashara Hora Shastra",
+    "interpretive_framework": [
+        "Graha nature (natural & functional benefic/malefic)",
+        "Rāśi placement and dignity",
+        "Bhava outcomes via lordship and occupation",
+        "Yoga identification from classical lists",
+        "Vimshottari Dasha timing",
+        "Ashtakavarga strength zones",
+        "Remedial structure (Ratna, Mantra, Dana, Kriya)",
+    ],
+    "style": {
+        "tone": "Classical — deterministic but advisory",
+        "language": "No casual phrasing; no generic personality descriptions",
+        "output_type": "Complete Parashari life consultation",
+        "forbidden": "Modern/pop-astrology interpretations",
+    },
+    "objective": [
+        "Structure of destiny and karmic unfolding",
+        "Timing of experience through Dasha periods",
+        "Means of alignment through Upaya",
+        "Career, marriage, family, and spiritual direction",
+    ],
+}
 
 # ── Sign / Planet constants ───────────────────────────────────────────────────
 
@@ -611,21 +652,54 @@ def generate_consultation_html(
     # Moon nakshatra
     moon_nak = nakshatra_info if nakshatra_info else get_nakshatra(moon_longitude)
 
-    # ── HTML Assembly ─────────────────────────────────────────────────────────
+    # ── HTML Assembly (Parashari Sequence) ────────────────────────────────────
+    # Sequence follows PARASHARI_ROLE["objective"] and Astro_prompt.docx doctrine:
+    # Cover → Cosmic Context → Planetary Positions + First Impression →
+    # Yogas → Houses (Bhava Vishleshan) → Dasha → Nakshatra →
+    # [Ashtakvarga if available] → Life Synthesis → Remedies → Footer
 
     html_parts = [_html_head(name)]
     html_parts.append(_html_cover(name, dob, tob, city, country,
                                    lagna_sign, lagna_skt, lagna_lord,
                                    lagna_nak, moon_nak, yogas, active_dasha))
     html_parts.append('<div class="page">')
+
+    # Section 1: Cosmic Context of Birth (role / framework declaration)
+    html_parts.append(_html_cosmic_context(
+        lagna_sign, lagna_lord, lagna_nak, planet_map, lagna_sign_idx, house_lord_map))
+
+    # Section 2: Planetary Positions table
     html_parts.append(_html_planet_table(positions, lagna_sign_idx, house_lord_map))
+
+    # Astrologer's First Impression callout (after table, before yogas)
+    html_parts.append(_html_first_impression(
+        positions, lagna_sign, lagna_lord, planet_map, yogas,
+        active_dasha, lagna_sign_idx, house_lord_map))
+
+    # Section 3: Yoga Detection
     html_parts.append(_html_yogas_section(yogas))
+
+    # Section 4: Bhava Vishleshan — All 12 Houses
     html_parts.append(_html_houses_section(house_interps))
+
+    # Section 5: Vimshottari Dasha
     html_parts.append(_html_dasha_section(dasha_timeline, active_dasha, birth_dt))
+
+    # Section 6: Nakshatra Analysis
     html_parts.append(_html_nakshatra_section(lagna_nak, moon_nak, planet_map))
+
+    # Section 7: Ashtakvarga (when data available)
     if ashtakvarga:
         html_parts.append(_html_ashtakvarga(ashtakvarga))
+
+    # Section 8: Life Outcome Synthesis (Parashari closing reading)
+    html_parts.append(_html_synthesis(
+        lagna_sign, lagna_lord, planet_map, yogas, active_dasha,
+        house_lord_map, lagna_sign_idx))
+
+    # Section 9: Remedies
     html_parts.append(_html_remedies(lagna_lord, house_lord_map, planet_map, yogas))
+
     html_parts.append(_html_footer(name))
     html_parts.append('</div>')
     html_parts.append('</body></html>')
@@ -792,7 +866,7 @@ def _html_cover(name, dob, tob, city, country,
     return f"""
 <div class="cover">
   <div class="cover-om">&#2384;</div>
-  <div class="cover-sup">Brihat Parasara Hora Shastra &middot; Classical Vedic Consultation</div>
+  <div class="cover-sup">Classical Parashari Jyotish Analyst &middot; Brihat Parashara Hora Shastra</div>
   <div class="cover-title">Jyotish Kundali Vishleshan</div>
   <div class="cover-name">{name.upper()}</div>
   <div class="cover-div"></div>
@@ -813,7 +887,7 @@ def _html_cover(name, dob, tob, city, country,
   </div>
   <div class="cover-badges">{yoga_badges}</div>
   <div style="font-size:11px;color:rgba(201,168,76,.45);letter-spacing:2px;margin-top:16px;">
-    BPHS Cross-Referenced &middot; Lahiri Ayanamsa &middot; Generated {datetime.now().strftime("%B %Y")}
+    Classical Parashari Doctrine &middot; Lahiri Ayanamsa &middot; Generated {datetime.now().strftime("%B %Y")}
   </div>
 </div>"""
 
@@ -965,27 +1039,90 @@ def _html_houses_section(house_interps: List[dict]) -> str:
 </div>"""
 
 
-def _lord_verdict(planet: str, own_house: int, placed_house: int, dignity: str) -> str:
-    """Generate a brief verdict for a lord's placement."""
-    if placed_house in KENDRA_HOUSES:
-        pos = "a Kendra (angular house) — strong and fully expressed."
-    elif placed_house in TRIKONA_HOUSES:
-        pos = "a Trikona (trine) — auspicious and dharmic."
-    elif placed_house in DUSTHANA_HOUSES:
-        pos = "a Dusthana (difficult house) — challenges but potential for Viparita Yoga."
-    else:
-        pos = "a neutral house."
+def _parashari_combination(own_house: int, placed_house: int) -> str:
+    """Return a Parashari doctrine note for a specific lord-in-house combination."""
+    combos = {
+        (1, 1): "The Lagna lord in the Lagna itself grants a strong self-directed nature — physical vitality is preserved and the personality commands respect.",
+        (1, 4): "Lagna lord in the 4th bestows domestic happiness, property, and maternal blessings; the native finds identity through hearth and homeland.",
+        (1, 5): "Lagna lord in the 5th: intellect and progeny illuminate the life path; creative self-expression and spiritual inclination are both heightened.",
+        (1, 7): "Lagna lord in the 7th: partnerships become the mirror of the self — marriage and alliance are primary karmic theatres for this native.",
+        (1, 9): "Lagna lord in the 9th produces a dharmic life orientation; fortune, father, and divine grace flow readily toward the native.",
+        (1, 10): "Lagna lord in the 10th: the self merges with career — public authority and professional legacy become expressions of personal dharma.",
+        (2, 2): "2nd lord in own house: wealth accumulates through self-effort; speech carries conviction and the family lineage is preserved.",
+        (2, 11): "2nd lord in the 11th: income through networks; accumulated wealth and speech serve the fulfilment of long-held desires.",
+        (3, 3): "3rd lord in own house: courage is abundant; siblings are supportive and communication thrives; short journeys prove auspicious.",
+        (4, 4): "4th lord in own house: strong roots and lasting peace; property, mother, and inner contentment are naturally available.",
+        (4, 1): "4th lord in the Lagna: home and mother shape the identity decisively; the native is oriented toward security and continuity.",
+        (5, 5): "5th lord in own house: intelligence is acute, progeny is blessed, and past-life merit flows easily into present enjoyment.",
+        (5, 9): "5th lord in the 9th: the highest dharmic combination — intelligence aligned with fortune; a life touched by wisdom and pilgrimage.",
+        (5, 1): "5th lord in the Lagna: intelligence and creativity pervade the personality; recognition for intellect or progeny follows.",
+        (6, 6): "6th lord in own house: enemies are contained; service-based career; health requires consistent disciplined management.",
+        (6, 8): "6th lord in the 8th forms Viparita Harsha Yoga — what manifests as adversity ultimately resolves as liberation or unexpected gain.",
+        (6, 12): "6th lord in the 12th forms Viparita Yoga — expenditures and losses may transmute into spiritual or material gain.",
+        (7, 7): "7th lord in own house: marriage is productive and partnership is a source of sustained strength.",
+        (7, 8): "7th lord in the 8th: hidden karmas govern partnerships; the native must navigate transformation through relationship.",
+        (8, 8): "8th lord in own house: occult depth, research orientation, and extended longevity; the native is drawn to hidden knowledge.",
+        (8, 12): "8th lord in the 12th forms Viparita Sarala Yoga — transformation generates liberation; loss becomes the gateway to mastery.",
+        (9, 9): "9th lord in own house: fortune is self-generated; dharma is lived with conviction; the father's influence is deeply positive.",
+        (9, 10): "9th lord in the 10th: Dharma-Karmadhipati Yoga — divine fortune activates through the career; a blessed professional life.",
+        (9, 1): "9th lord in the Lagna: the personality carries an innate sense of dharma; fortunate circumstances attend personal initiative.",
+        (10, 9): "10th lord in the 9th: career is elevated by grace and mentorship; father, guru, or higher dharma governs professional rise.",
+        (10, 10): "10th lord in own house: career is powerful and self-driven; authority and public recognition come through direct effort.",
+        (11, 11): "11th lord in own house: gains accumulate consistently; the network of allies is wide, loyal, and beneficial.",
+        (11, 1): "11th lord in the Lagna: gains come easily and the native is known for enterprise; desires translate readily into achievement.",
+        (12, 8): "12th lord in the 8th forms Viparita Yoga — losses and exile become vehicles for occult wisdom and eventual mastery.",
+        (12, 12): "12th lord in own house: liberation and foreign lands hold karmic significance; expenditure on worthy causes brings spiritual merit.",
+    }
+    key = (own_house, placed_house)
+    if key in combos:
+        return combos[key]
+    # Generic Parashari-style fallback
+    bhava_names = {
+        1:"Tanu",2:"Dhana",3:"Sahaj",4:"Bandhu",5:"Putra",6:"Ari",
+        7:"Yuvati",8:"Randhra",9:"Dharma",10:"Karma",11:"Labha",12:"Vyaya"
+    }
+    own_nm  = bhava_names.get(own_house, f"{own_house}th")
+    plcd_nm = bhava_names.get(placed_house, f"{placed_house}th")
+    return (f"The {own_nm} Bhava agenda is expressed through the {plcd_nm} arena — "
+            f"examine the condition of the {plcd_nm} Bhava, its lord, and its occupants "
+            f"to determine the full quality of results.")
 
+
+def _lord_verdict(planet: str, own_house: int, placed_house: int, dignity: str) -> str:
+    """Generate a Parashari-quality verdict for a lord's placement."""
+    # House classification
+    if placed_house in KENDRA_HOUSES:
+        pos = ("a Kendra — the lord operates from a position of full angular strength; "
+               "results manifest visibly in the material and social world.")
+    elif placed_house in TRIKONA_HOUSES:
+        pos = ("a Trikona — placement here is inherently auspicious; dharmic momentum "
+               "supports the native in all matters of this house.")
+    elif placed_house in DUSTHANA_HOUSES:
+        pos = ("a Dusthana (6th, 8th, or 12th) — the lord encounters resistance; "
+               "however, lords of difficult houses in difficult houses may form Viparita Yoga, "
+               "converting apparent adversity into concealed fortune.")
+    else:
+        pos = ("a neutral Bhava — outcomes are mixed and depend on planetary association, "
+               "aspect, and transit activation.")
+
+    # Dignity note — Parashari framing
     dig_note = {
-        "Exalted":     "The planet is exalted — maximum strength and grace.",
-        "Own Sign":    "The planet is in own sign — fully comfortable and expressive.",
-        "Friendly":    "In a friendly sign — positive and supportive.",
-        "Enemy Sign":  "In an enemy sign — some tension; results require effort.",
-        "Debilitated": "Debilitated — significant challenges; Neecha Bhanga if applicable.",
-        "Neutral":     "In a neutral sign — moderate results.",
+        "Exalted":
+            "Being exalted, the planet delivers the full promise of its significations with maximum grace and minimal obstruction.",
+        "Own Sign":
+            "In own sign, the planet acts from authority and comfort — its significations are expressed freely and completely.",
+        "Friendly":
+            "In a friendly sign, the planet receives support; results are broadly positive, though shaped by the sign lord's condition.",
+        "Enemy Sign":
+            "In an enemy sign, the planet operates under strain; effort and discipline are required before results materialise.",
+        "Debilitated":
+            "Debilitation reduces the planet's capacity to deliver; examine whether Neecha Bhanga applies through planetary conjunctions or lordship.",
+        "Neutral":
+            "In a neutral sign, outcomes are moderate — neither flowing freely nor obstructed; association and aspect govern the final quality.",
     }.get(dignity, "")
 
-    return f"Placed in {pos} {dig_note} This connects the {own_house}th house themes to the {placed_house}th house arena."
+    combination_note = _parashari_combination(own_house, placed_house)
+    return f"Placed in {pos} {dig_note} {combination_note}"
 
 
 def _html_dasha_section(timeline: List[dict], active: Optional[dict], birth_dt: datetime) -> str:
@@ -1229,6 +1366,351 @@ def _html_remedies(lagna_lord: str, house_lord_map: Dict[int, str],
     Always consult a qualified gemologist before wearing any gemstone.
   </div>
   <div class="remedy-grid">{"".join(cards)}</div>
+</div>"""
+
+
+def _html_cosmic_context(lagna_sign: str, lagna_lord: str, lagna_nak: dict,
+                         planet_map: Dict[str, dict], lagna_sign_idx: int,
+                         house_lord_map: Dict[int, str]) -> str:
+    """
+    Section 1 — Cosmic Context of Birth (Parashari Doctrine).
+    Establishes the nature of the Lagna, dominant Guna, and karmic positioning
+    before any detailed house or yoga analysis begins.
+    """
+    # ── Lagna element and Guna ────────────────────────────────────────────────
+    fire_signs  = {"Aries","Leo","Sagittarius"}
+    earth_signs = {"Taurus","Virgo","Capricorn"}
+    air_signs   = {"Gemini","Libra","Aquarius"}
+    water_signs = {"Cancer","Scorpio","Pisces"}
+
+    if lagna_sign in fire_signs:
+        element, element_desc = "Fire (Agni)", (
+            "Fire Lagnas orient the native toward initiative, authority, and dharmic action. "
+            "The life-force is combustive — best expressed through leadership, courage, and decisive will.")
+    elif lagna_sign in earth_signs:
+        element, element_desc = "Earth (Prithvi)", (
+            "Earth Lagnas give a grounded, patient, and acquisitive nature. "
+            "The life-force consolidates — prosperity, craft, and material mastery are the natural outlets.")
+    elif lagna_sign in air_signs:
+        element, element_desc = "Air (Vayu)", (
+            "Air Lagnas produce a restless, communicative, and intellectually oriented native. "
+            "The life-force circulates — knowledge, discourse, relationship, and social movement define the path.")
+    else:
+        element, element_desc = "Water (Jala)", (
+            "Water Lagnas impart deep emotional intelligence, intuitive perception, and spiritual receptivity. "
+            "The life-force is receptive — home, devotion, healing, and inner life are primary theatres.")
+
+    # ── Guna inference from lagna sign ───────────────────────────────────────
+    sattva_signs = {"Aries","Leo","Sagittarius","Cancer","Scorpio","Pisces"}
+    rajas_signs  = {"Gemini","Libra","Aquarius","Taurus","Virgo","Capricorn"}
+    if lagna_sign in sattva_signs:
+        guna = "Sattva"
+        guna_desc = ("Sattvic orientation predominates — wisdom, dharma, and inner purity are the native's natural "
+                     "gravitational field. The soul aspires toward light and righteous conduct.")
+    else:
+        guna = "Rajas"
+        guna_desc = ("Rajasic orientation predominates — ambition, activity, and engagement with the world are "
+                     "the native's driving forces. Achievement, acquisition, and social participation define the life arc.")
+
+    # ── Functional benefic/malefic summary for this Lagna ────────────────────
+    kendra_lords  = {house_lord_map[h] for h in KENDRA_HOUSES  if h in house_lord_map}
+    trikona_lords = {house_lord_map[h] for h in TRIKONA_HOUSES if h in house_lord_map}
+    dusthana_lords= {house_lord_map[h] for h in DUSTHANA_HOUSES if h in house_lord_map}
+    func_benefics = sorted(kendra_lords | trikona_lords - dusthana_lords)
+    yoga_karaka_set = kendra_lords & trikona_lords
+    yk_text = ""
+    if yoga_karaka_set:
+        yk = list(yoga_karaka_set)[0]
+        yk_text = (f"<strong>{yk}</strong> holds the coveted position of Yoga Karaka — "
+                   f"lord of both a Kendra and a Trikona — and therefore carries the highest "
+                   f"capacity to elevate this native's fortune when well-placed and strong.")
+
+    # ── Nakshatra deity statement ─────────────────────────────────────────────
+    nak_name = lagna_nak.get("name","")
+    nak_lord = lagna_nak.get("lord","")
+    nak_pada = lagna_nak.get("pada","")
+    nak_deities = {
+        "Ashwini":"the divine Ashwini Kumars (celestial physicians)",
+        "Bharani":"Yama (lord of dharmic reckoning)",
+        "Krittika":"Agni (the purifying fire)",
+        "Rohini":"Brahma (the creator)",
+        "Mrigashira":"Soma (the wandering moon-god)",
+        "Ardra":"Rudra (the storm-force of transformation)",
+        "Punarvasu":"Aditi (mother of the gods)",
+        "Pushya":"Brihaspati (guru of the immortals)",
+        "Ashlesha":"the Nagas (keepers of serpent wisdom)",
+        "Magha":"the Pitrs (ancestral spirits)",
+        "Purvaphalguni":"Bhaga (lord of conjugal delight)",
+        "Uttaraphalguni":"Aryaman (solar dharma and alliance)",
+        "Hasta":"Savitar (the solar craftsman)",
+        "Chitra":"Vishwakarma (the divine architect)",
+        "Swati":"Vayu (the wind-god of independence)",
+        "Vishakha":"Indra-Agni (the dual power of purpose and fire)",
+        "Anuradha":"Mitra (the lord of divine friendship)",
+        "Jyeshtha":"Indra (king of the gods, sovereign authority)",
+        "Mula":"Nirriti (the dissolution goddess at the root of all things)",
+        "Purvashadha":"Apas (the water deity of philosophical purification)",
+        "Uttarashadha":"the Vishwadevas (universal gods of final victory)",
+        "Shravana":"Vishnu (the preserver of cosmic order)",
+        "Dhanishtha":"the eight Vasus (elemental lords of abundance)",
+        "Shatabhisha":"Varuna (cosmic law and healing)",
+        "Purvabhadrapada":"Aja Ekapada (the ascetic flame of purification)",
+        "Uttarabhadrapada":"Ahir Budhnya (the serpent of the deep — compassionate sage)",
+        "Revati":"Pushan (the nourisher who guides souls toward completion)",
+    }
+    deity = nak_deities.get(nak_name, "a presiding deity of cosmic significance")
+
+    nak_statement = (
+        f"The Lagna rises in <strong>{nak_name}</strong> Nakshatra (Pada {nak_pada}), "
+        f"presided over by {deity}. Its lord <strong>{nak_lord}</strong> governs the "
+        f"quality of the ascending impulse — the native's instinctive approach to life "
+        f"carries the vibrational signature of this star."
+    )
+
+    yk_block = f"<p>{yk_text}</p>" if yk_text else ""
+
+    return f"""
+<div class="section">
+  <div class="sec-hd">
+    <span class="sec-tag">COSMIC CONTEXT</span>
+    <div>
+      <div class="sec-title">Janma Pravesh &mdash; Context of Birth</div>
+      <span class="sec-skt">&#2332;&#2344;&#2381;&#2350; &#2346;&#2381;&#2352;&#2357;&#2375;&#2358; &middot; Parashari Graha Svarūpa</span>
+    </div>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="callout" style="background:rgba(201,168,76,.07);border-color:rgba(201,168,76,.4);border-left-color:var(--gold);">
+    <strong style="color:var(--gold);">Analytical Framework:</strong>
+    This consultation follows the doctrinal sequence of Brihat Parashara Hora Shastra.
+    All judgements are derived through classical Parashari logic — Graha nature,
+    Rāśi placement, Bhava lordship, Yoga identification, and Dasha timing.
+    No modern interpretive overlays have been applied.
+  </div>
+
+  <div class="house-block" style="margin-top:24px;">
+    <div class="house-hd">
+      <span class="house-name">Lagna: {lagna_sign}</span>
+      <span class="house-sign">Element: {element}</span>
+      <span style="font-size:12px;color:var(--gold);opacity:.85;">Dominant Guna: {guna}</span>
+    </div>
+    <div class="house-text">
+      <p>{element_desc}</p>
+      <p>{guna_desc}</p>
+      <p>{nak_statement}</p>
+      {yk_block}
+    </div>
+  </div>
+</div>"""
+
+
+def _html_first_impression(positions: dict, lagna_sign: str, lagna_lord: str,
+                            planet_map: Dict[str, dict], yogas: List[dict],
+                            active_dasha: Optional[dict], lagna_sign_idx: int,
+                            house_lord_map: Dict[int, str]) -> str:
+    """
+    Astrologer's First Impression — a synthesising callout that appears
+    immediately after the planetary table, giving the overall Parashari
+    'read' of the chart before detailed house analysis begins.
+    """
+    # ── Find dominant planets ─────────────────────────────────────────────────
+    dignity_rank = {"Exalted": 5, "Own Sign": 4, "Friendly": 3,
+                    "Neutral": 2, "Enemy Sign": 1, "Debilitated": 0, "Unknown": 2}
+    strongest = sorted(
+        [(n, get_dignity(n, p["rashi"]["name"])) for n, p in planet_map.items()
+         if n not in ("Rahu","Ketu","Uranus","Neptune","Pluto")],
+        key=lambda x: dignity_rank.get(x[1], 2), reverse=True
+    )
+    top_planet, top_dignity = strongest[0] if strongest else ("Saturn", "Neutral")
+
+    # ── House loading ─────────────────────────────────────────────────────────
+    kendra_loaded = sum(
+        1 for p in planet_map.values()
+        if planet_house(SIGN_NAMES.index(p["rashi"]["name"]) if p["rashi"]["name"] in SIGN_NAMES else 0,
+                        lagna_sign_idx) in KENDRA_HOUSES
+    )
+    yoga_count = len(yogas)
+    pancha = sum(1 for y in yogas if y.get("category") == "Pancha Mahapurusha")
+
+    # ── Compose impression ────────────────────────────────────────────────────
+    strength_stmt = (
+        f"<strong>{top_planet}</strong> stands as the pre-eminent planet in this chart, "
+        f"placed in {top_dignity.lower()} — its significations are the primary vehicle "
+        f"of fortune and destiny for this native."
+    )
+
+    yoga_stmt = ""
+    if pancha > 0:
+        yoga_stmt = (
+            f"The chart carries <strong>{pancha} Pancha Mahapurusha Yoga(s)</strong> "
+            f"— a rare configuration that elevates the native above ordinary circumstance "
+            f"and points toward exceptional achievement in the Yoga planet's domain."
+        )
+    elif yoga_count > 0:
+        yoga_stmt = (
+            f"<strong>{yoga_count} significant Yoga(s)</strong> have been identified. "
+            f"These planetary power concentrations must be read in conjunction with "
+            f"Dasha timing to determine when their fruits become accessible."
+        )
+
+    kendra_stmt = ""
+    if kendra_loaded >= 3:
+        kendra_stmt = (
+            "The angular houses carry a strong planetary load — worldly action, career, "
+            "and social engagement are primary life theatres."
+        )
+
+    dasha_stmt = ""
+    if active_dasha:
+        dasha_stmt = (
+            f"The native is presently in <strong>{active_dasha['planet']} Mahadasha</strong> "
+            f"({active_dasha['start'].strftime('%b %Y')} – {active_dasha['end'].strftime('%b %Y')}). "
+            f"All current experience is filtered through {active_dasha['planet']}'s "
+            f"functional nature from the {lagna_sign} Lagna."
+        )
+
+    parts = [p for p in [strength_stmt, yoga_stmt, kendra_stmt, dasha_stmt] if p]
+    body = " ".join(parts)
+
+    return f"""
+<div class="callout" style="background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.4);
+     border-left:3px solid var(--gold);padding:18px 22px;margin:20px 0;border-radius:0 4px 4px 0;">
+  <strong style="color:var(--gold);font-size:11px;letter-spacing:2px;display:block;margin-bottom:8px;text-transform:uppercase;">
+    Astrologer's First Impression
+  </strong>
+  <div style="font-size:15px;color:rgba(250,246,238,.92);line-height:1.85;">
+    {body}
+  </div>
+</div>"""
+
+
+def _html_synthesis(lagna_sign: str, lagna_lord: str, planet_map: Dict[str, dict],
+                    yogas: List[dict], active_dasha: Optional[dict],
+                    house_lord_map: Dict[int, str], lagna_sign_idx: int) -> str:
+    """
+    Section 19 — Life Outcome Synthesis (Parashari Doctrine).
+    Integrates character, wealth potential, relationships, career, and
+    spiritual direction into a final Parashari reading.
+    """
+    # ── Identify key life indicators ──────────────────────────────────────────
+    planet_7  = house_lord_map.get(7, "")   # marriage significator
+    planet_10 = house_lord_map.get(10, "")  # career significator
+    planet_9  = house_lord_map.get(9, "")   # fortune / dharma
+    planet_11 = house_lord_map.get(11, "")  # gains / fulfilment
+
+    dignity_10 = get_dignity(planet_10, planet_map[planet_10]["rashi"]["name"]) if planet_10 in planet_map else "Unknown"
+    dignity_7  = get_dignity(planet_7,  planet_map[planet_7]["rashi"]["name"])  if planet_7  in planet_map else "Unknown"
+    dignity_9  = get_dignity(planet_9,  planet_map[planet_9]["rashi"]["name"])  if planet_9  in planet_map else "Unknown"
+
+    # ── Yoga Karaka ───────────────────────────────────────────────────────────
+    kendra_lords  = {house_lord_map[h] for h in KENDRA_HOUSES  if h in house_lord_map}
+    trikona_lords = {house_lord_map[h] for h in TRIKONA_HOUSES if h in house_lord_map}
+    yk_set = kendra_lords & trikona_lords
+    yk = list(yk_set)[0] if yk_set else ""
+
+    # ── Career block ──────────────────────────────────────────────────────────
+    career_quality = {
+        "Exalted":     "exceptionally strong career prospects; public recognition and authority are strongly indicated",
+        "Own Sign":    "a confident and self-directed career; the native commands respect in professional domains",
+        "Friendly":    "a productive and generally supported career trajectory",
+        "Neutral":     "a career that progresses through consistent effort without marked obstruction or extraordinary elevation",
+        "Enemy Sign":  "a career marked by friction; the native must navigate resistance before professional credibility is established",
+        "Debilitated": "career development requires careful remedial support; Dasha periods of the 10th lord must be evaluated carefully",
+    }.get(dignity_10, "a career whose quality depends on the Dasha lord's strength at key junctures")
+
+    # ── Relationship block ────────────────────────────────────────────────────
+    marriage_quality = {
+        "Exalted":     "marriage is a source of great strength and joy; the partner brings refinement and prosperity",
+        "Own Sign":    "the 7th lord in own sign supports lasting partnership; the native attracts a capable and committed companion",
+        "Friendly":    "relationships are generally harmonious; partnership brings support and mutual growth",
+        "Neutral":     "marriage is neither especially challenging nor exceptionally blessed; compatibility determines outcome",
+        "Enemy Sign":  "partnership requires conscious cultivation; differences in temperament or values create tension",
+        "Debilitated": "the 7th lord is under strain; delay in marriage or difficulty in sustaining partnership is possible without remedial support",
+    }.get(dignity_7, "relationships whose quality unfolds through time and the activation of the 7th house by Dasha")
+
+    # ── Fortune block ─────────────────────────────────────────────────────────
+    fortune_quality = {
+        "Exalted":     "fortune flows abundantly; grace, mentorship, and divine support are available throughout the life",
+        "Own Sign":    "fortune is self-sustaining; dharmic choices reliably attract positive outcomes",
+        "Friendly":    "fortune is accessible through right action; the 9th house themes are supportive",
+        "Neutral":     "fortune is moderate and depends on disciplined effort and adherence to dharma",
+        "Enemy Sign":  "fortune requires effort to access; father or guru relationships may be complex",
+        "Debilitated": "fortune must be cultivated through sustained dharmic practice; prayer and charity are strongly recommended",
+    }.get(dignity_9, "fortune that reveals itself gradually through dharmic engagement")
+
+    # ── Yoga summary ──────────────────────────────────────────────────────────
+    pancha = [y for y in yogas if y.get("category") == "Pancha Mahapurusha"]
+    pancha_text = ""
+    if pancha:
+        pancha_names = ", ".join(y["name"] for y in pancha)
+        pancha_text = (
+            f"The presence of <strong>{pancha_names}</strong> — "
+            f"among the supreme Pancha Mahapurusha Yogas — is a profound indication "
+            f"of destined excellence in the Yoga planet's domain. "
+            f"These Yogas do not guarantee ease; they guarantee that extraordinary potential exists "
+            f"and will express itself when the corresponding Mahadasha activates."
+        )
+
+    # ── Dasha timing note ─────────────────────────────────────────────────────
+    dasha_text = ""
+    if active_dasha:
+        dasha_text = (
+            f"In the current <strong>{active_dasha['planet']} Mahadasha</strong>, "
+            f"all Yoga potential, house themes, and life events are being filtered "
+            f"through {active_dasha['planet']}'s functional nature from the {lagna_sign} Lagna. "
+            f"The quality of this Dasha lord's placement and dignity determines "
+            f"whether the native experiences this as a period of ascent, consolidation, or trial."
+        )
+
+    yk_text = ""
+    if yk:
+        yk_text = (
+            f"<strong>{yk}</strong> — Yoga Karaka for the {lagna_sign} Lagna — "
+            f"deserves special attention in all life planning. Strengthening this planet "
+            f"through its gemstone, mantra, and associated charitable acts "
+            f"is the single most impactful intervention available to this native."
+        )
+
+    return f"""
+<div class="section">
+  <div class="sec-hd">
+    <span class="sec-tag">SYNTHESIS</span>
+    <div>
+      <div class="sec-title">Jyotish Nirnaya &mdash; Life Outcome Synthesis</div>
+      <span class="sec-skt">&#2332;&#2381;&#2351;&#2379;&#2340;&#2367;&#2359; &#2344;&#2367;&#2352;&#2381;&#2339;&#2351; &middot; Final Parashari Reading</span>
+    </div>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="summary-banner">
+    <h3>Astrologer's Closing Synthesis</h3>
+    <p>
+      The {lagna_sign} Lagna orients this native toward
+      {"dharmic initiative and self-authority" if lagna_sign in {"Aries","Leo","Sagittarius"} else
+       "material consolidation and patient mastery" if lagna_sign in {"Taurus","Virgo","Capricorn"} else
+       "intellectual engagement and relational wisdom" if lagna_sign in {"Gemini","Libra","Aquarius"} else
+       "emotional intelligence and devotional depth"}.
+      The planetary configuration reveals {career_quality}; in relationships,
+      {marriage_quality}; and in matters of fortune and dharma, {fortune_quality}.
+    </p>
+  </div>
+
+  <div class="house-block">
+    <div class="house-hd">
+      <span class="house-name" style="font-size:15px;">Key Life Indicators</span>
+    </div>
+    <div class="house-text">
+      {"<p>" + pancha_text + "</p>" if pancha_text else ""}
+      {"<p>" + dasha_text + "</p>" if dasha_text else ""}
+      {"<p>" + yk_text + "</p>" if yk_text else ""}
+      <p>
+        <strong>Objective of this consultation</strong> — Structure of destiny and karmic unfolding;
+        timing of experience through Dasha periods; means of alignment through Upaya.
+        Jyotish illuminates tendencies and potentials. Free will, dharmic choices, and sustained
+        effort remain the ultimate determinants of how these patterns are lived.
+      </p>
+    </div>
+  </div>
 </div>"""
 
 
