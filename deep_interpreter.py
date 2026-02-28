@@ -35,6 +35,14 @@ from typing import Dict, List, Optional, Any
 
 logger = logging.getLogger("vedic.deep")
 
+# ── B.V. Raman Rule Engine Integration ───────────────────────────────────────
+try:
+    import bv_raman_rules
+    HAS_RAMAN_RULES = True
+except ImportError:
+    HAS_RAMAN_RULES = False
+    logger.warning("bv_raman_rules module not found — falling back to basic yoga detection")
+
 # ── Parashari Engine Identity ─────────────────────────────────────────────────
 # This constant encodes the role, style, and objective that govern all
 # text generation in this engine.  Every narrative, verdict, and synthesis
@@ -638,8 +646,33 @@ def generate_consultation_html(
     dasha_timeline = calculate_dasha_timeline(birth_dt, moon_longitude)
     active_dasha = get_current_dasha(dasha_timeline)
 
-    # Yogas
-    yogas = detect_yogas(positions, lagna_sign_idx, house_lord_map)
+    # Yogas — use B.V. Raman rule engine if available, else fall back
+    if HAS_RAMAN_RULES:
+        raman_yogas = bv_raman_rules.detect_all_yogas(positions)
+        # Convert to format expected by rendering functions
+        yogas = []
+        for ry in raman_yogas:
+            yogas.append({
+                "name": ry["name"],
+                "category": ry["category"],
+                "planet": ", ".join(ry.get("planets", [])),
+                "house": ", ".join(str(h) for h in ry.get("houses", [])) if ry.get("houses") else "",
+                "dignity": "",
+                "description": ry.get("description", ""),
+                "strength": ry.get("strength", "Moderate"),
+                "classical_result": ry.get("classical_result", ""),
+                "source": ry.get("source", ""),
+            })
+    else:
+        yogas = detect_yogas(positions, lagna_sign_idx, house_lord_map)
+
+    # B.V. Raman chart analysis (planet effects + dasha readings)
+    raman_analysis = None
+    if HAS_RAMAN_RULES:
+        try:
+            raman_analysis = bv_raman_rules.analyze_chart(positions, birth_dt, moon_longitude)
+        except Exception as e:
+            logger.warning(f"B.V. Raman analysis error: {e}")
 
     # House interpretations
     house_interps = generate_house_interpretations(
@@ -706,7 +739,7 @@ def generate_consultation_html(
         html_parts.append(_html_aragala(ext["aragala"]))
 
     # Sec 6-7: Bhava Vishleshan — All 12 Houses + Lordship Effects
-    html_parts.append(_html_houses_section(house_interps))
+    html_parts.append(_html_houses_section(house_interps, raman_analysis))
 
     # Sec 5: Shodasha Varga (Divisional Charts)
     if ext.get("vargas"):
@@ -717,7 +750,7 @@ def generate_consultation_html(
         html_parts.append(_html_longevity_maraka(ext["longevity_maraka"]))
 
     # Sec 15: Vimshottari Dasha
-    html_parts.append(_html_dasha_section(dasha_timeline, active_dasha, birth_dt))
+    html_parts.append(_html_dasha_section(dasha_timeline, active_dasha, birth_dt, raman_analysis))
 
     # Sec 6 (cont): Nakshatra Analysis
     html_parts.append(_html_nakshatra_section(lagna_nak, moon_nak, planet_map))
@@ -991,38 +1024,89 @@ def _html_yogas_section(yogas: List[dict]) -> str:
         return ""
     cards = ""
     for y in yogas:
-        cls = "yoga-card pancha" if y.get("category") == "Pancha Mahapurusha" else "yoga-card"
-        strength_color = {"Very Strong": "#FFD700", "Strong": "#69F0AE", "Moderate": "var(--gold)"}.get(
-            y.get("strength", ""), "var(--gold)")
+        cat = y.get("category", "Yoga")
+        if cat == "Pancha Mahapurusha":
+            cls = "yoga-card pancha"
+        elif "Raja" in cat:
+            cls = "yoga-card raja"
+        elif "Adverse" in cat or y.get("strength") == "Adverse":
+            cls = "yoga-card adverse"
+        else:
+            cls = "yoga-card"
+        strength_color = {
+            "Very Strong": "#FFD700", "Strong": "#69F0AE",
+            "Moderate": "var(--gold)", "Adverse": "#FF6B6B",
+            "Background": "rgba(250,246,238,.5)"
+        }.get(y.get("strength", ""), "var(--gold)")
+
+        # Classical result text from B.V. Raman
+        classical = y.get("classical_result", "")
+        classical_block = ""
+        if classical:
+            classical_block = f"""
+            <div style="font-size:11px;color:rgba(250,246,238,.7);margin-top:6px;
+                 padding-top:6px;border-top:1px solid rgba(201,168,76,.15);
+                 font-style:italic;">
+              <strong style="color:var(--gold);font-style:normal;">Classical Result:</strong> {classical}
+            </div>"""
+
+        source = y.get("source", "")
+        source_block = ""
+        if source:
+            source_block = f'<div style="font-size:9px;color:rgba(201,168,76,.35);margin-top:4px;">{source}</div>'
+
         cards += f"""
       <div class="{cls}">
         <div class="yname">{y["name"]}</div>
-        <div class="ytype">{y.get("category","Yoga")}</div>
+        <div class="ytype">{cat}</div>
         <div class="yform">{y.get("planet","")} &middot; House {y.get("house","")}</div>
         <div style="font-size:11px;color:{strength_color};margin-bottom:8px;">
           Strength: {y.get("strength","")}</div>
         <div class="ytext">{y.get("description","")}</div>
+        {classical_block}
+        {source_block}
       </div>"""
+
+    # Categorize yogas for summary
+    raja_count = sum(1 for y in yogas if "Raja" in y.get("category", ""))
+    dhana_count = sum(1 for y in yogas if "Wealth" in y.get("category", "") or "Dhana" in y.get("name", ""))
+    pancha_count = sum(1 for y in yogas if y.get("category") == "Pancha Mahapurusha")
+    lunar_count = sum(1 for y in yogas if "Lunar" in y.get("category", ""))
+    adverse_count = sum(1 for y in yogas if y.get("strength") == "Adverse" or "Adverse" in y.get("category", ""))
+
+    summary_parts = []
+    if pancha_count:
+        summary_parts.append(f"{pancha_count} Pancha Mahapurusha")
+    if raja_count:
+        summary_parts.append(f"{raja_count} Raja Yoga(s)")
+    if dhana_count:
+        summary_parts.append(f"{dhana_count} Dhana/Wealth Yoga(s)")
+    if lunar_count:
+        summary_parts.append(f"{lunar_count} Lunar Yoga(s)")
+    if adverse_count:
+        summary_parts.append(f"{adverse_count} adverse combination(s)")
+
+    summary_text = ", ".join(summary_parts) if summary_parts else "various planetary combinations"
 
     return f"""
 <div class="section">
   <div class="sec-hd">
     <span class="sec-tag">YOGAS</span>
     <div><div class="sec-title">Graha Yogas &mdash; Planetary Power Combinations</div>
-         <span class="sec-skt">Pancha Mahapurusha &middot; Raja Yoga &middot; Dhana Yoga</span></div>
+         <span class="sec-skt">Pancha Mahapurusha &middot; Raja Yoga &middot; Dhana Yoga &middot; Lunar Yoga</span></div>
     <div class="sec-line"></div>
   </div>
   <div class="callout">
     <strong style="color:var(--gold);">Yoga Summary:</strong>
-    {len(yogas)} significant yoga(s) detected in this chart, including
-    {sum(1 for y in yogas if y.get("category")=="Pancha Mahapurusha")} Pancha Mahapurusha Yoga(s).
-    These represent the chart's primary power concentrations.
+    {len(yogas)} significant yoga(s) detected in this chart &mdash; {summary_text}.
+    These represent the chart's primary power concentrations and karmic signatures
+    as defined by B.V. Raman's classical methodology.
   </div>
   <div class="yoga-grid">{cards}</div>
 </div>"""
 
 
-def _html_houses_section(house_interps: List[dict]) -> str:
+def _html_houses_section(house_interps: List[dict], raman_analysis: dict = None) -> str:
     blocks = ""
     for h in house_interps:
         occ_tags = "".join(
@@ -1038,6 +1122,27 @@ def _html_houses_section(house_interps: List[dict]) -> str:
             <div class="sloka">"{h["bphs_sloka"]}"
               <cite>— BPHS, Lord of {h["house"]}th in {h["lord_house"]}th Bhava</cite>
             </div>"""
+
+        # B.V. Raman's planet-in-house effects for each occupant
+        raman_effects_block = ""
+        if raman_analysis and h["occupant_details"]:
+            pe = raman_analysis.get("planet_effects", {})
+            for od in h["occupant_details"]:
+                pname = od["planet"]
+                if pname in pe:
+                    peff = pe[pname]
+                    interp_text = peff.get("interpretation", "")
+                    if interp_text:
+                        raman_effects_block += f"""
+              <div style="margin:8px 0;padding:8px 12px;border-left:2px solid {_planet_colour(pname)};
+                   background:rgba(0,0,0,.15);border-radius:0 4px 4px 0;">
+                <div style="font-size:11px;color:{_planet_colour(pname)};font-weight:600;margin-bottom:4px;">
+                  {pname} in House {h["house"]} ({od["dignity"]})</div>
+                <div style="font-size:12px;color:rgba(250,246,238,.75);line-height:1.5;">
+                  {interp_text}</div>
+                <div style="font-size:9px;color:rgba(201,168,76,.3);margin-top:3px;">
+                  — B.V. Raman, How to Judge a Horoscope</div>
+              </div>"""
 
         blocks += f"""
       <div class="house-block">
@@ -1062,6 +1167,7 @@ def _html_houses_section(house_interps: List[dict]) -> str:
           <strong>{h["lord_house"]}th house</strong> ({h["lord_sign"]}).
           {_lord_verdict(h["lord"], h["house"], h["lord_house"], h["lord_dignity"])}
         </div>
+        {raman_effects_block}
       </div>"""
 
     return f"""
@@ -1162,9 +1268,12 @@ def _lord_verdict(planet: str, own_house: int, placed_house: int, dignity: str) 
     return f"Placed in {pos} {dig_note} {combination_note}"
 
 
-def _html_dasha_section(timeline: List[dict], active: Optional[dict], birth_dt: datetime) -> str:
+def _html_dasha_section(timeline: List[dict], active: Optional[dict], birth_dt: datetime,
+                        raman_analysis: dict = None) -> str:
     rows = ""
     now = datetime.now()
+    dasha_readings = raman_analysis.get("dasha_readings", {}) if raman_analysis else {}
+
     for period in timeline:
         is_current = period["start"] <= now <= period["end"]
         cls = "dasha-row current" if is_current else "dasha-row"
@@ -1172,6 +1281,26 @@ def _html_dasha_section(timeline: List[dict], active: Optional[dict], birth_dt: 
         pc = _planet_colour(period["planet"])
         start_str = period["start"].strftime("%b %Y")
         end_str = period["end"].strftime("%b %Y")
+
+        # Use B.V. Raman's dasha reading if available
+        brief = _dasha_brief(period["planet"])
+        raman_reading = ""
+        dr = dasha_readings.get(period["planet"], {})
+        if dr.get("strength_reading"):
+            strength_level = dr.get("strength_level", "General")
+            strength_color = {"Strong": "#69F0AE", "Weak": "#FF6B6B", "Mixed": "var(--gold)"}.get(
+                strength_level, "rgba(250,246,238,.6)")
+            ctx = dr.get("contextual_note", "")
+            raman_reading = f"""
+              <div style="margin-top:6px;font-size:11px;color:rgba(250,246,238,.65);line-height:1.5;">
+                <span style="color:{strength_color};font-weight:600;">
+                  [{strength_level}]</span> {dr["strength_reading"][:300]}
+              </div>"""
+            if ctx:
+                raman_reading += f"""
+              <div style="font-size:10px;color:rgba(201,168,76,.4);margin-top:3px;font-style:italic;">
+                {ctx}</div>"""
+
         rows += f"""
       <div class="{cls}">
         <div class="dp-col">
@@ -1180,17 +1309,22 @@ def _html_dasha_section(timeline: List[dict], active: Optional[dict], birth_dt: 
         </div>
         <div class="dd-col">
           <div class="dd-range">{start_str} &rarr; {end_str} {cur}</div>
-          <div class="dd-text">{_dasha_brief(period["planet"])}</div>
+          <div class="dd-text">{brief}</div>
+          {raman_reading}
         </div>
       </div>"""
 
     active_block = ""
     if active:
+        active_dr = dasha_readings.get(active["planet"], {})
+        active_strength = active_dr.get("strength_reading", _dasha_brief(active["planet"]))
+        active_ctx = active_dr.get("contextual_note", "")
         active_block = f"""
       <div class="callout pos" style="margin-top:24px;">
         <strong style="color:#00C864;">Active Mahadasha: {active["planet"]}</strong>
         ({active["start"].strftime("%b %Y")} &ndash; {active["end"].strftime("%b %Y")})<br/>
-        {_dasha_brief(active["planet"])}
+        {active_strength[:400]}
+        {"<br/><em style='font-size:11px;color:rgba(250,246,238,.5);'>" + active_ctx + "</em>" if active_ctx else ""}
       </div>"""
 
     return f"""
