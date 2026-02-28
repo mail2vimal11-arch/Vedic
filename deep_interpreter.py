@@ -599,6 +599,7 @@ def generate_consultation_html(
     dasha_report: str,
     current_dasha: Optional[dict],
     ashtakvarga: Optional[dict] = None,
+    extended_data: Optional[dict] = None,
 ) -> str:
     """
     Generate a full, standalone consultation-quality HTML report.
@@ -652,11 +653,12 @@ def generate_consultation_html(
     # Moon nakshatra
     moon_nak = nakshatra_info if nakshatra_info else get_nakshatra(moon_longitude)
 
-    # ── HTML Assembly (Parashari Sequence) ────────────────────────────────────
-    # Sequence follows PARASHARI_ROLE["objective"] and Astro_prompt.docx doctrine:
-    # Cover → Cosmic Context → Planetary Positions + First Impression →
-    # Yogas → Houses (Bhava Vishleshan) → Dasha → Nakshatra →
-    # [Ashtakvarga if available] → Life Synthesis → Remedies → Footer
+    # Extended data from parashari_engine
+    ext = extended_data or {}
+
+    # ── HTML Assembly — Full 20-Section Parashari Sequence ───────────────────
+    # Follows Brihat Parashara Hora Shastra doctrinal order
+    # as specified in Astro_prompt.docx
 
     html_parts = [_html_head(name)]
     html_parts.append(_html_cover(name, dob, tob, city, country,
@@ -664,40 +666,75 @@ def generate_consultation_html(
                                    lagna_nak, moon_nak, yogas, active_dasha))
     html_parts.append('<div class="page">')
 
-    # Section 1: Cosmic Context of Birth (role / framework declaration)
+    # Sec 1-3: Cosmic Context + Lagna + Elemental/Guna Profile
     html_parts.append(_html_cosmic_context(
         lagna_sign, lagna_lord, lagna_nak, planet_map, lagna_sign_idx, house_lord_map))
 
-    # Section 2: Planetary Positions table
+    # Sec 4: Special Lagnas (Hora, Ghati, Bhava, Varnada)
+    if ext.get("special_lagnas"):
+        html_parts.append(_html_special_lagnas(ext["special_lagnas"]))
+
+    # Sec 2 (table): Planetary Positions
     html_parts.append(_html_planet_table(positions, lagna_sign_idx, house_lord_map))
 
-    # Astrologer's First Impression callout (after table, before yogas)
+    # Sec 14: Avasthas (immediately after planet table)
+    if ext.get("avasthas"):
+        html_parts.append(_html_avasthas(ext["avasthas"]))
+
+    # Sec 9: Shadbala & Isht/Kasht
+    if ext.get("shadbala"):
+        html_parts.append(_html_shadbala(ext["shadbala"]))
+
+    # Sec 11: Chara Karakas (Atmakaraka → Darakaraka)
+    if ext.get("karakas"):
+        html_parts.append(_html_karakas(ext["karakas"]))
+
+    # Astrologer's First Impression callout
     html_parts.append(_html_first_impression(
         positions, lagna_sign, lagna_lord, planet_map, yogas,
         active_dasha, lagna_sign_idx, house_lord_map))
 
-    # Section 3: Yoga Detection
+    # Sec 12: Yoga Detection
     html_parts.append(_html_yogas_section(yogas))
 
-    # Section 4: Bhava Vishleshan — All 12 Houses
+    # Sec 8: Drishti Analysis (Graha + Rashi aspects)
+    if ext.get("drishti"):
+        html_parts.append(_html_drishti(ext["drishti"], planet_map, lagna_sign_idx))
+
+    # Sec 10: Aragala (Intervention / Obstruction)
+    if ext.get("aragala"):
+        html_parts.append(_html_aragala(ext["aragala"]))
+
+    # Sec 6-7: Bhava Vishleshan — All 12 Houses + Lordship Effects
     html_parts.append(_html_houses_section(house_interps))
 
-    # Section 5: Vimshottari Dasha
+    # Sec 5: Shodasha Varga (Divisional Charts)
+    if ext.get("vargas"):
+        html_parts.append(_html_vargas(ext["vargas"]))
+
+    # Sec 13: Longevity & Maraka
+    if ext.get("longevity_maraka"):
+        html_parts.append(_html_longevity_maraka(ext["longevity_maraka"]))
+
+    # Sec 15: Vimshottari Dasha
     html_parts.append(_html_dasha_section(dasha_timeline, active_dasha, birth_dt))
 
-    # Section 6: Nakshatra Analysis
+    # Sec 6 (cont): Nakshatra Analysis
     html_parts.append(_html_nakshatra_section(lagna_nak, moon_nak, planet_map))
 
-    # Section 7: Ashtakvarga (when data available)
+    # Sec 16: Ashtakvarga
     if ashtakvarga:
         html_parts.append(_html_ashtakvarga(ashtakvarga))
 
-    # Section 8: Life Outcome Synthesis (Parashari closing reading)
+    # Sec 18: Karmic Indications
+    html_parts.append(_html_karmic(planet_map, lagna_sign_idx, house_lord_map))
+
+    # Sec 19: Life Outcome Synthesis
     html_parts.append(_html_synthesis(
         lagna_sign, lagna_lord, planet_map, yogas, active_dasha,
         house_lord_map, lagna_sign_idx))
 
-    # Section 9: Remedies
+    # Sec 20: Remedies
     html_parts.append(_html_remedies(lagna_lord, house_lord_map, planet_map, yogas))
 
     html_parts.append(_html_footer(name))
@@ -1710,6 +1747,473 @@ def _html_synthesis(lagna_sign: str, lagna_lord: str, planet_map: Dict[str, dict
         effort remain the ultimate determinants of how these patterns are lived.
       </p>
     </div>
+  </div>
+</div>"""
+
+
+# ── NEW 20-SECTION HTML RENDERERS ────────────────────────────────────────────
+
+def _html_special_lagnas(lagnas: dict) -> str:
+    """Section 4 — Special Lagnas (Hora, Ghati, Bhava, Varnada)."""
+    cards = ""
+    for key in ["hora_lagna", "ghati_lagna", "bhava_lagna", "varnada_lagna"]:
+        lg = lagnas.get(key, {})
+        if not lg:
+            continue
+        cards += f"""
+      <div class="ic" style="padding:16px;">
+        <span class="ic-l">{lg.get('name', key)}</span>
+        <span class="ic-v" style="font-size:16px;font-weight:700;">{lg.get('sign','')}</span>
+        <div style="font-size:11px;color:rgba(201,168,76,.65);margin-top:2px;">
+          Lord: {lg.get('lord','')} &middot; {lg.get('degree',0)}&deg;</div>
+        <div style="font-size:12.5px;color:rgba(250,246,238,.8);margin-top:8px;line-height:1.65;">
+          {lg.get('interpretation','')}</div>
+      </div>"""
+
+    return f"""
+<div class="section">
+  <div class="sec-hd">
+    <span class="sec-tag">SPECIAL LAGNAS</span>
+    <div><div class="sec-title">Vishishta Lagna &mdash; Special Ascendants</div>
+         <span class="sec-skt">&#2357;&#2367;&#2358;&#2367;&#2359;&#2381;&#2335; &#2354;&#2327;&#2381;&#2344; &middot; BPHS Chapter 17</span></div>
+    <div class="sec-line"></div>
+  </div>
+  <div class="callout">
+    <strong style="color:var(--gold);">Doctrine:</strong>
+    Special Lagnas reveal hidden dimensions — Hora Lagna governs wealth,
+    Ghati Lagna governs power, Bhava Lagna confirms the birth Lagna,
+    and Varnada Lagna indicates longevity and life-force trajectory.
+  </div>
+  <div class="info-grid" style="grid-template-columns:repeat(2,1fr);">
+    {cards}
+  </div>
+</div>"""
+
+
+def _html_avasthas(avasthas: dict) -> str:
+    """Section 14 — Baladi Avasthas (Planetary States)."""
+    rows = ""
+    avastha_colour = {
+        "Yuva": "#00E676", "Kumara": "#FFD700", "Bala": "#FF9800",
+        "Vriddha": "#FF7043", "Mrita": "#FF1744",
+    }
+    for p_name in ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"]:
+        av = avasthas.get(p_name)
+        if not av:
+            continue
+        col = avastha_colour.get(av["avastha"], "#FFD700")
+        rows += f"""<tr>
+          <td style="color:{_planet_colour(p_name)};font-weight:600;">{p_name}</td>
+          <td>{av['sign']}</td>
+          <td>{av['degree_in_sign']}&deg;</td>
+          <td style="color:{col};font-weight:700;">{av['avastha']}</td>
+          <td style="color:{col};">{av['delivery']}</td>
+          <td style="font-size:12px;">{av['description']}</td>
+        </tr>"""
+
+    return f"""
+<div class="section">
+  <div class="sec-hd">
+    <span class="sec-tag">AVASTHAS</span>
+    <div><div class="sec-title">Baladi Avastha &mdash; Planetary States</div>
+         <span class="sec-skt">&#2348;&#2366;&#2354;&#2366;&#2342;&#2367; &#2309;&#2357;&#2360;&#2381;&#2341;&#2366; &middot; BPHS Chapter 45</span></div>
+    <div class="sec-line"></div>
+  </div>
+  <div class="callout">
+    <strong style="color:var(--gold);">Doctrine:</strong>
+    A planet's Avastha determines what percentage of its promised results it can deliver.
+    Yuva (prime) delivers 100%; Bala/Mrita deliver 0&ndash;25%. This modifies all other readings.
+  </div>
+  <table class="planet-table">
+    <tr><th>PLANET</th><th>SIGN</th><th>DEGREE</th><th>AVASTHA</th><th>DELIVERY</th><th>INTERPRETATION</th></tr>
+    {rows}
+  </table>
+</div>"""
+
+
+def _html_shadbala(shadbala: dict) -> str:
+    """Section 9 — Shadbala & Isht/Kasht strength."""
+    rows = ""
+    for p_name in ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]:
+        sb = shadbala.get(p_name)
+        if not sb:
+            continue
+        cat_col = {"Exceptionally Strong": "#00E676", "Strong": "#69F0AE",
+                   "Moderate": "#FFD700", "Weak": "#FF7043", "Very Weak": "#FF1744"
+                   }.get(sb["category"], "#FFD700")
+        retro = " &#8634;" if sb["retrograde"] else ""
+        rows += f"""<tr>
+          <td style="color:{_planet_colour(p_name)};font-weight:600;">
+            {p_name}{retro} <span style="font-size:10px;color:rgba(255,255,255,.4);">#{sb.get('rank','')}</span></td>
+          <td>{sb['sthana_bala']}</td><td>{sb['dig_bala']}</td>
+          <td>{sb['naisargika_bala']}</td><td>{sb['chesta_bala']}</td>
+          <td style="font-weight:700;">{sb['total']}</td>
+          <td style="color:{cat_col};">{sb['category']}</td>
+          <td style="color:#69F0AE;">{sb['isht']}</td>
+          <td style="color:#FF7043;">{sb['kasht']}</td>
+        </tr>"""
+
+    return f"""
+<div class="section">
+  <div class="sec-hd">
+    <span class="sec-tag">SHADBALA</span>
+    <div><div class="sec-title">Shadbala &mdash; Sixfold Planetary Strength</div>
+         <span class="sec-skt">&#2359;&#2337;&#2381;&#2348;&#2354; &middot; Isht &amp; Kasht Phala &middot; BPHS Chapter 27</span></div>
+    <div class="sec-line"></div>
+  </div>
+  <div class="callout">
+    <strong style="color:var(--gold);">Doctrine:</strong>
+    Shadbala quantifies a planet's capacity to deliver results. Isht Phala = benefic delivery capacity;
+    Kasht Phala = harmful delivery capacity. Higher total = stronger planet in the chart.
+  </div>
+  <table class="planet-table" style="font-size:12.5px;">
+    <tr><th>PLANET</th><th>STHANA</th><th>DIG</th><th>NAISARGIKA</th><th>CHESTA</th>
+        <th>TOTAL</th><th>CATEGORY</th><th>ISHT</th><th>KASHT</th></tr>
+    {rows}
+  </table>
+</div>"""
+
+
+def _html_karakas(karakas: dict) -> str:
+    """Section 11 — Chara Karakas (Soul to Spouse significators)."""
+    cards = ""
+    karaka_icons = {
+        "Atmakaraka": "&#9728;", "Amatyakaraka": "&#9878;",
+        "Bhratrikaraka": "&#9876;", "Matrikaraka": "&#127968;",
+        "Pitrikaraka": "&#128081;", "Putrakaraka": "&#127891;",
+        "Gnatikaraka": "&#128101;", "Darakaraka": "&#128141;",
+    }
+    for kname in ["Atmakaraka", "Amatyakaraka", "Bhratrikaraka", "Matrikaraka",
+                  "Pitrikaraka", "Putrakaraka", "Gnatikaraka", "Darakaraka"]:
+        k = karakas.get(kname)
+        if not k:
+            continue
+        icon = karaka_icons.get(kname, "&#9733;")
+        cards += f"""
+      <div class="yoga-card" style="padding:18px;">
+        <div style="font-size:18px;margin-bottom:4px;">{icon}</div>
+        <div class="yname" style="font-size:14px;">{kname}</div>
+        <div class="ytype">{k.get('meaning','')}</div>
+        <div class="yform">{k['planet']} in {k['sign']} ({k['degree_in_sign']}&deg;)</div>
+        <div class="ytext" style="font-size:12.5px;">{k.get('interpretation','')}</div>
+      </div>"""
+
+    return f"""
+<div class="section">
+  <div class="sec-hd">
+    <span class="sec-tag">KARAKAS</span>
+    <div><div class="sec-title">Chara Karaka &mdash; Soul &amp; Destiny Significators</div>
+         <span class="sec-skt">&#2330;&#2352; &#2325;&#2366;&#2352;&#2325; &middot; Jaimini Sutra &middot; BPHS Chapter 32</span></div>
+    <div class="sec-line"></div>
+  </div>
+  <div class="callout">
+    <strong style="color:var(--gold);">Doctrine:</strong>
+    Chara Karakas rank planets by degree within their sign. The highest-degree planet
+    becomes Atmakaraka (soul significator) — the king of the chart whose sign in the
+    Navamsha (D9) reveals the deepest karmic lessons.
+  </div>
+  <div class="yoga-grid" style="grid-template-columns:repeat(2,1fr);">
+    {cards}
+  </div>
+</div>"""
+
+
+def _html_drishti(drishti: dict, planet_map: Dict[str, dict], lagna_sign_idx: int) -> str:
+    """Section 8 — Drishti Analysis (Graha + Rashi aspects)."""
+    graha = drishti.get("graha", {})
+    houses_aspected = drishti.get("houses_aspected", {})
+
+    # Build per-house aspect summary
+    house_rows = ""
+    for h in range(1, 13):
+        planets = houses_aspected.get(h, [])
+        if not planets:
+            house_rows += f"""<tr>
+              <td style="color:var(--gold);font-weight:600;">H{h}</td>
+              <td colspan="2" style="color:rgba(255,255,255,.4);">No aspects received</td>
+            </tr>"""
+        else:
+            p_tags = " ".join(
+                f'<span class="ptag" style="color:{_planet_colour(p)};">{p}</span>'
+                for p in planets
+            )
+            ben = sum(1 for p in planets if p in ("Jupiter", "Venus", "Mercury", "Moon"))
+            mal = sum(1 for p in planets if p in ("Saturn", "Mars", "Rahu", "Ketu", "Sun"))
+            quality = "Benefic influence dominates" if ben > mal else \
+                      "Malefic influence dominates" if mal > ben else "Mixed influence"
+            house_rows += f"""<tr>
+              <td style="color:var(--gold);font-weight:600;">H{h}</td>
+              <td><div class="planet-tags">{p_tags}</div></td>
+              <td style="font-size:12px;">{quality}</td>
+            </tr>"""
+
+    # Special aspects detail
+    special_cards = ""
+    for p_name in ["Mars", "Jupiter", "Saturn", "Rahu"]:
+        if p_name not in graha:
+            continue
+        aspects = graha[p_name]
+        targets = ", ".join(f"H{a['house']} ({a['label']})" for a in aspects)
+        special_cards += f"""
+      <div class="ic" style="padding:12px;">
+        <span class="ic-l">{p_name} ASPECTS</span>
+        <span class="ic-v" style="font-size:12px;">{targets}</span>
+      </div>"""
+
+    return f"""
+<div class="section">
+  <div class="sec-hd">
+    <span class="sec-tag">DRISHTI</span>
+    <div><div class="sec-title">Drishti Vishleshan &mdash; Aspect Analysis</div>
+         <span class="sec-skt">&#2342;&#2371;&#2359;&#2381;&#2335;&#2367; &#2357;&#2367;&#2358;&#2381;&#2354;&#2375;&#2359;&#2339; &middot; Graha &amp; Rashi Drishti</span></div>
+    <div class="sec-line"></div>
+  </div>
+  <div class="callout">
+    <strong style="color:var(--gold);">Doctrine:</strong>
+    All planets cast a 7th-house aspect. Mars, Jupiter, Saturn, and the Nodes cast
+    additional special aspects. These aspects create the web of planetary influence
+    that governs interactions between life areas.
+  </div>
+  <div class="info-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:20px;">
+    {special_cards}
+  </div>
+  <table class="planet-table">
+    <tr><th>HOUSE</th><th>ASPECTED BY</th><th>NET INFLUENCE</th></tr>
+    {house_rows}
+  </table>
+</div>"""
+
+
+def _html_aragala(aragala: dict) -> str:
+    """Section 10 — Aragala (Intervention / Obstruction)."""
+    rows = ""
+    verdict_col = {"Supported": "#00E676", "Obstructed": "#FF7043",
+                   "Mixed": "#FFD700", "Neutral": "rgba(250,246,238,.5)"}
+    for h in range(1, 13):
+        ar = aragala.get(h, aragala.get(str(h), {}))
+        if not ar:
+            continue
+        v = ar.get("verdict", "Neutral")
+        sup = ", ".join(f"{p[0]} ({p[1]})" for p in ar.get("supporters", []))
+        blk = ", ".join(f"{p[0]} ({p[1]})" for p in ar.get("blockers", []))
+        rows += f"""<tr>
+          <td style="color:var(--gold);font-weight:600;">H{h}</td>
+          <td style="font-size:12px;">{sup or '—'}</td>
+          <td style="font-size:12px;">{blk or '—'}</td>
+          <td style="color:{verdict_col.get(v, '#FFD700')};font-weight:600;">{v}</td>
+        </tr>"""
+
+    return f"""
+<div class="section">
+  <div class="sec-hd">
+    <span class="sec-tag">ARAGALA</span>
+    <div><div class="sec-title">Aragala &mdash; Intervention &amp; Obstruction</div>
+         <span class="sec-skt">&#2309;&#2352;&#2381;&#2327;&#2354;&#2366; &middot; BPHS Chapter 31</span></div>
+    <div class="sec-line"></div>
+  </div>
+  <div class="callout">
+    <strong style="color:var(--gold);">Doctrine:</strong>
+    Aragala identifies which planets support or block each house's outcomes.
+    Planets in the 2nd, 4th, and 11th from a house create intervention (support);
+    planets in the 3rd, 10th, and 12th create obstruction.
+  </div>
+  <table class="planet-table" style="font-size:12.5px;">
+    <tr><th>HOUSE</th><th>SUPPORT (ARAGALA)</th><th>OBSTRUCTION (VIRODHA)</th><th>VERDICT</th></tr>
+    {rows}
+  </table>
+</div>"""
+
+
+def _html_vargas(vargas: dict) -> str:
+    """Section 5 — Shodasha Varga (Divisional Charts)."""
+    # Key charts to display with descriptions
+    chart_info = {
+        "D9":  ("Navamsha", "Marriage, inner nature, dharmic strength — the soul chart"),
+        "D10": ("Dashamsha", "Career, profession, public action, and social contribution"),
+        "D3":  ("Drekkana", "Siblings, courage, and vitality"),
+        "D7":  ("Saptamsha", "Children, progeny, and creative legacy"),
+        "D12": ("Dwadashamsha", "Parents and ancestral lineage"),
+        "D2":  ("Hora", "Wealth polarity — Leo (solar) or Cancer (lunar) accumulation"),
+        "D16": ("Shodashamsha", "Vehicles, comforts, and luxury"),
+        "D20": ("Vimsamsha", "Spiritual practice and upasana"),
+        "D24": ("Chaturvimsamsha", "Education, learning, and academic achievement"),
+        "D27": ("Nakshatramsha", "Physical strength and vitality"),
+        "D30": ("Trimsamsha", "Misfortune, disease, and hidden challenges"),
+    }
+
+    tables = ""
+    for chart_key in ["D9", "D10", "D3", "D7", "D12", "D2", "D16", "D20", "D24", "D27", "D30"]:
+        chart_data = vargas.get(chart_key, {})
+        if not chart_data:
+            continue
+        cname, cdesc = chart_info.get(chart_key, (chart_key, ""))
+        cells = ""
+        for body in ["Lagna", "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"]:
+            sign = chart_data.get(body, "")
+            if sign:
+                cells += f'<td style="font-size:12px;">{sign}</td>'
+            else:
+                cells += '<td style="color:rgba(255,255,255,.3);">—</td>'
+
+        tables += f"""
+      <div class="house-block" style="padding:16px 20px;margin-bottom:14px;">
+        <div class="house-hd" style="margin-bottom:8px;">
+          <span class="house-name" style="font-size:15px;">{chart_key} — {cname}</span>
+          <span class="house-sign" style="font-size:11px;">{cdesc}</span>
+        </div>
+        <table class="planet-table" style="font-size:12px;margin:4px 0;">
+          <tr><th>LAGNA</th><th>SUN</th><th>MOON</th><th>MARS</th><th>MERC</th>
+              <th>JUP</th><th>VEN</th><th>SAT</th><th>RAHU</th><th>KETU</th></tr>
+          <tr>{cells}</tr>
+        </table>
+      </div>"""
+
+    return f"""
+<div class="section">
+  <div class="sec-hd">
+    <span class="sec-tag">DIVISIONAL CHARTS</span>
+    <div><div class="sec-title">Shodasha Varga &mdash; Divisional Chart Analysis</div>
+         <span class="sec-skt">&#2359;&#2379;&#2337;&#2358; &#2357;&#2352;&#2381;&#2327; &middot; BPHS Chapters 6&ndash;7</span></div>
+    <div class="sec-line"></div>
+  </div>
+  <div class="callout">
+    <strong style="color:var(--gold);">Doctrine:</strong>
+    Divisional charts reveal specific life dimensions. The D9 Navamsha is the soul chart —
+    a planet strong in both D1 and D9 delivers its full promise. D10 governs career;
+    D7 governs children; D3 governs siblings and courage.
+  </div>
+  {tables}
+</div>"""
+
+
+def _html_longevity_maraka(data: dict) -> str:
+    """Section 13 — Longevity & Maraka Grahas."""
+    cat = data.get("longevity_category", "Unknown")
+    desc = data.get("longevity_description", "")
+    basis = data.get("basis", {})
+    marakas = data.get("maraka_grahas", [])
+
+    basis_text = (
+        f"Lagna Lord <strong>{basis.get('lagna_lord','')}</strong> in {basis.get('lagna_lord_sign','')}, "
+        f"8th Lord <strong>{basis.get('eighth_lord','')}</strong> in {basis.get('eighth_lord_sign','')}, "
+        f"Moon in {basis.get('moon_sign','')}"
+    )
+
+    maraka_rows = ""
+    for m in marakas:
+        maraka_rows += f"""<tr>
+          <td style="color:{_planet_colour(m['planet'])};font-weight:600;">{m['planet']}</td>
+          <td style="font-size:12.5px;">{m['reason']}</td>
+          <td style="font-size:12px;color:#FF7043;">{m['danger_period']}</td>
+        </tr>"""
+
+    cat_col = "#00E676" if "Long" in cat else "#FFD700" if "Medium" in cat else "#FF7043"
+
+    return f"""
+<div class="section">
+  <div class="sec-hd">
+    <span class="sec-tag">LONGEVITY</span>
+    <div><div class="sec-title">Ayurdaya &mdash; Longevity &amp; Maraka Analysis</div>
+         <span class="sec-skt">&#2310;&#2351;&#2369;&#2352;&#2381;&#2342;&#2366;&#2351; &middot; BPHS Chapter 44</span></div>
+    <div class="sec-line"></div>
+  </div>
+  <div class="summary-banner" style="text-align:left;padding:22px 28px;">
+    <h3 style="font-size:18px;">Longevity Assessment:
+      <span style="color:{cat_col};">{cat}</span></h3>
+    <p style="font-size:14px;text-align:left;">{desc}</p>
+    <div style="margin-top:10px;font-size:13px;color:rgba(250,246,238,.7);">
+      Basis: {basis_text}</div>
+  </div>
+  <div style="margin-top:20px;">
+    <div class="vl">MARAKA GRAHAS — HEALTH-CRITICAL PERIODS</div>
+    <table class="planet-table">
+      <tr><th>PLANET</th><th>REASON</th><th>DANGER PERIOD</th></tr>
+      {maraka_rows}
+    </table>
+  </div>
+</div>"""
+
+
+def _html_karmic(planet_map: Dict[str, dict], lagna_sign_idx: int,
+                 house_lord_map: Dict[int, str]) -> str:
+    """Section 18 — Karmic Indications (Rahu/Ketu axis + 12th house)."""
+    # Rahu/Ketu axis
+    rahu_house = ketu_house = 0
+    rahu_sign = ketu_sign = ""
+    if "Rahu" in planet_map:
+        r_lon = planet_map["Rahu"].get("longitude", 0.0)
+        r_si = int(r_lon / 30) % 12
+        rahu_house = ((r_si - lagna_sign_idx) % 12) + 1
+        rahu_sign = SIGN_NAMES[r_si]
+    if "Ketu" in planet_map:
+        k_lon = planet_map["Ketu"].get("longitude", 0.0)
+        k_si = int(k_lon / 30) % 12
+        ketu_house = ((k_si - lagna_sign_idx) % 12) + 1
+        ketu_sign = SIGN_NAMES[k_si]
+
+    rahu_text = ""
+    if rahu_house:
+        rahu_text = (
+            f"<strong>Rahu</strong> in House {rahu_house} ({rahu_sign}) — the north node "
+            f"indicates the area of karmic desire and worldly ambition. "
+            f"The native is drawn toward the significations of the {rahu_house}th house "
+            f"with an insatiable drive. Over-attachment here creates bondage; "
+            f"conscious engagement creates extraordinary growth."
+        )
+
+    ketu_text = ""
+    if ketu_house:
+        ketu_text = (
+            f"<strong>Ketu</strong> in House {ketu_house} ({ketu_sign}) — the south node "
+            f"indicates past-life mastery. The native has already achieved in this domain "
+            f"and may feel detached from its worldly rewards. This house area serves as "
+            f"a source of spiritual wisdom rather than material accumulation."
+        )
+
+    # 12th house — past karma
+    lord_12 = house_lord_map.get(12, "")
+    lord_12_sign = ""
+    lord_12_house = 12
+    if lord_12 in planet_map:
+        l12_lon = planet_map[lord_12].get("longitude", 0.0)
+        l12_si = int(l12_lon / 30) % 12
+        lord_12_house = ((l12_si - lagna_sign_idx) % 12) + 1
+        lord_12_sign = SIGN_NAMES[l12_si]
+
+    vyaya_text = (
+        f"The 12th lord <strong>{lord_12}</strong> placed in House {lord_12_house} "
+        f"({'(' + lord_12_sign + ')' if lord_12_sign else ''}) — "
+        f"this placement governs past-life karmic residue, losses that serve as lessons, "
+        f"and the native's relationship with moksha (liberation). "
+        f"{'In a Kendra, the 12th lord redirects loss into visible transformation.' if lord_12_house in {1,4,7,10} else ''}"
+        f"{'In a Trikona, losses ultimately feed dharmic growth.' if lord_12_house in {1,5,9} else ''}"
+        f"{'In a Dusthana, Viparita Yoga may convert adversity into hidden advantage.' if lord_12_house in {6,8,12} else ''}"
+    )
+
+    return f"""
+<div class="section">
+  <div class="sec-hd">
+    <span class="sec-tag">KARMA</span>
+    <div><div class="sec-title">Karmic Indications &mdash; Past-Life Residue &amp; Soul Direction</div>
+         <span class="sec-skt">&#2325;&#2352;&#2381;&#2350; &#2357;&#2367;&#2330;&#2366;&#2352; &middot; Rahu-Ketu Axis &middot; Vyaya Bhava</span></div>
+    <div class="sec-line"></div>
+  </div>
+  <div class="callout">
+    <strong style="color:var(--gold);">Doctrine:</strong>
+    The Rahu-Ketu axis reveals the soul's karmic trajectory — where it has been (Ketu)
+    and where it is headed (Rahu). The 12th house governs past-life debts,
+    spiritual aspiration, and the mechanism of karmic release.
+  </div>
+  <div class="house-block" style="margin-top:18px;">
+    <div class="house-hd"><span class="house-name">Rahu-Ketu Axis</span></div>
+    <div class="house-text">
+      {'<p>' + rahu_text + '</p>' if rahu_text else ''}
+      {'<p>' + ketu_text + '</p>' if ketu_text else ''}
+    </div>
+  </div>
+  <div class="house-block">
+    <div class="house-hd"><span class="house-name">Vyaya Bhava (12th House) — Karmic Release</span></div>
+    <div class="house-text"><p>{vyaya_text}</p></div>
   </div>
 </div>"""
 

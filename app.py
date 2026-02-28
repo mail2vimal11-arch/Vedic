@@ -33,6 +33,7 @@ from vims_engine import (
     get_dasha_timeline, find_active_periods
 )
 from deep_interpreter import generate_consultation_html
+from parashari_engine import compute_extended_data
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -407,7 +408,12 @@ def create_app():
                     current_dasha["pratyantar_start"] = active["pratyantar"]["start_date"].strftime("%d-%b-%Y")
                     current_dasha["pratyantar_end"]   = active["pratyantar"]["end_date"].strftime("%d-%b-%Y")
 
-            # 5. Build deep consultation HTML via the BPHS cross-referenced engine
+            # 5. Extended Parashari computations (Shadbala, Vargas, Karakas, etc.)
+            extended_data = compute_extended_data(
+                positions=positions, birth=birth, moon_longitude=moon_lon
+            )
+
+            # 6. Build deep consultation HTML via the BPHS cross-referenced engine
             html_report = generate_consultation_html(
                 birth=birth,
                 positions=positions,
@@ -416,6 +422,7 @@ def create_app():
                 dasha_report=dasha_report,
                 current_dasha=current_dasha,
                 ashtakvarga=None,  # Future: wire in Ashtakvarga computation
+                extended_data=extended_data,
             )
 
             logger.info(f"Deep consultation generated for {birth['name']} — "
