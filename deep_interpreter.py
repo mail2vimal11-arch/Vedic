@@ -43,6 +43,14 @@ except ImportError:
     HAS_RAMAN_RULES = False
     logger.warning("bv_raman_rules module not found — falling back to basic yoga detection")
 
+# ── AI Interpretation Layer ──────────────────────────────────────────────────
+try:
+    import ai_interpreter
+    HAS_AI_LAYER = True
+except ImportError:
+    HAS_AI_LAYER = False
+    logger.info("ai_interpreter module not found — AI narrative layer disabled")
+
 # ── Parashari Engine Identity ─────────────────────────────────────────────────
 # This constant encodes the role, style, and objective that govern all
 # text generation in this engine.  Every narrative, verdict, and synthesis
@@ -608,6 +616,7 @@ def generate_consultation_html(
     current_dasha: Optional[dict],
     ashtakvarga: Optional[dict] = None,
     extended_data: Optional[dict] = None,
+    ai_narratives: Optional[Dict[str, str]] = None,
 ) -> str:
     """
     Generate a full, standalone consultation-quality HTML report.
@@ -762,6 +771,10 @@ def generate_consultation_html(
     # Sec 18: Karmic Indications
     html_parts.append(_html_karmic(planet_map, lagna_sign_idx, house_lord_map))
 
+    # ── AI Consultation Narrative (powered by Claude) ─────────────────────
+    if ai_narratives and HAS_AI_LAYER and any(ai_narratives.values()):
+        html_parts.append(ai_interpreter.render_ai_narrative_html(ai_narratives))
+
     # Sec 19: Life Outcome Synthesis
     html_parts.append(_html_synthesis(
         lagna_sign, lagna_lord, planet_map, yogas, active_dasha,
@@ -904,6 +917,20 @@ body { background:var(--deep-navy); color:var(--cream);
 .nak-title { font-size:17px; font-weight:700; color:var(--gold-light); margin-bottom:3px; }
 .nak-sub { font-size:11px; color:rgba(201,168,76,.6); letter-spacing:1px; margin-bottom:12px; }
 .nak-text { font-size:13.5px; color:rgba(250,246,238,.85); line-height:1.75; }
+
+/* ── AI CONSULTATION NARRATIVE ── */
+.ai-consultation { border:1px solid rgba(201,168,76,.25); border-radius:8px; padding:0; margin-top:32px; }
+.ai-section { margin:24px 0; padding:0 20px; }
+.ai-section-hd { margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid rgba(201,168,76,.15); }
+.ai-section-title { font-size:17px; font-weight:600; color:var(--gold); letter-spacing:0.5px; }
+.ai-section-skt { font-size:11px; color:rgba(201,168,76,.5); font-style:italic; margin-top:2px; }
+.ai-section-sub { font-size:12px; color:rgba(250,246,238,.45); margin-top:3px; }
+.ai-narrative { font-size:14px; line-height:1.75; color:rgba(250,246,238,.82); }
+.ai-narrative p { margin:0 0 14px 0; text-indent:1.5em; }
+.ai-narrative p:first-child { text-indent:0; }
+.ai-narrative p:first-child::first-letter { font-size:2em; float:left; line-height:1; margin-right:6px; color:var(--gold); font-weight:700; }
+.ai-narrative strong { color:var(--gold); }
+
 @media print { body { background:white; color:#111; } }
 </style>
 """

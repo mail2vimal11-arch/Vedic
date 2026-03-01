@@ -33,6 +33,11 @@ class Config:
     # CORS
     CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "*")
 
+    # AI Interpretation Layer (Claude API)
+    ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+    VEDIC_AI_MODEL = os.environ.get("VEDIC_AI_MODEL", "claude-sonnet-4-5-20250929")
+    VEDIC_AI_ENABLED = os.environ.get("VEDIC_AI_ENABLED", "true").lower() == "true"
+
 
 class DevelopmentConfig(Config):
     DEBUG = True

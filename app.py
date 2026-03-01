@@ -35,6 +35,20 @@ from vims_engine import (
 from deep_interpreter import generate_consultation_html
 from parashari_engine import compute_extended_data
 
+# AI Interpretation Layer (optional — requires ANTHROPIC_API_KEY)
+try:
+    from ai_interpreter import generate_ai_narratives
+    HAS_AI_LAYER = True
+except ImportError:
+    HAS_AI_LAYER = False
+
+# B.V. Raman Rule Engine (optional — enhances yoga detection)
+try:
+    from bv_raman_rules import analyze_chart as raman_analyze_chart
+    HAS_RAMAN_RULES = True
+except ImportError:
+    HAS_RAMAN_RULES = False
+
 # ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
@@ -413,6 +427,31 @@ def create_app():
                 positions=positions, birth=birth, moon_longitude=moon_lon
             )
 
+            # 5b. B.V. Raman rule engine analysis
+            raman_analysis = None
+            if HAS_RAMAN_RULES:
+                try:
+                    raman_analysis = raman_analyze_chart(positions, birth_dt, moon_lon)
+                except Exception as e:
+                    logger.warning(f"B.V. Raman analysis error: {e}")
+
+            # 5c. AI Interpretation Layer (generates organic prose via Claude API)
+            ai_narratives = None
+            if HAS_AI_LAYER and os.environ.get("ANTHROPIC_API_KEY"):
+                try:
+                    ai_narratives = generate_ai_narratives(
+                        positions=positions,
+                        birth=birth,
+                        raman_analysis=raman_analysis,
+                        extended_data=extended_data,
+                        current_dasha=current_dasha,
+                    )
+                    ai_count = sum(1 for v in ai_narratives.values() if v)
+                    logger.info(f"AI narratives generated: {ai_count} sections")
+                except Exception as e:
+                    logger.warning(f"AI narrative generation error: {e}")
+                    ai_narratives = None
+
             # 6. Build deep consultation HTML via the BPHS cross-referenced engine
             html_report = generate_consultation_html(
                 birth=birth,
@@ -423,6 +462,7 @@ def create_app():
                 current_dasha=current_dasha,
                 ashtakvarga=None,  # Future: wire in Ashtakvarga computation
                 extended_data=extended_data,
+                ai_narratives=ai_narratives,
             )
 
             logger.info(f"Deep consultation generated for {birth['name']} — "
