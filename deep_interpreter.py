@@ -128,6 +128,8 @@ def _generate_chart_svg(planet_data: list, asc_sign_index: int,
             else:
                 label = p.get("symbol", p["name"][:2])
             retro = p.get("retrograde", False)
+            # Delete any pre-existing planet first (IsFullChart may pre-populate)
+            chart.delete_planet(planet=jc_planet)
             chart.add_planet(planet=jc_planet, symbol=label,
                            housenum=house_num, retrograde=retro)
 
@@ -179,19 +181,19 @@ def _generate_d1_d9_html(positions: dict, name: str) -> str:
     </div>
     <div class="sec-line"></div>
   </div>
-  <div style="display:flex; gap:24px; justify-content:center; flex-wrap:wrap; margin:16px 0;">
-    <div style="flex:1; min-width:300px; max-width:48%; text-align:center;">
+  <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin:16px 0; max-width:100%; overflow:hidden;">
+    <div style="flex:1 1 45%; min-width:240px; max-width:48%; text-align:center;">
       <div style="font-weight:700; color:var(--gold); margin-bottom:8px; font-size:1.05em;">
         D1 — Rashi (Birth Chart)</div>
-      <div style="background:#0d0d0d; border:1px solid rgba(201,168,76,.3); border-radius:8px; padding:12px;">
-        {d1_svg}
+      <div style="background:#0d0d0d; border:1px solid rgba(201,168,76,.3); border-radius:8px; padding:8px; overflow:hidden;">
+        <div style="width:100%; max-width:100%;" class="chart-wrap">{d1_svg}</div>
       </div>
     </div>
-    <div style="flex:1; min-width:300px; max-width:48%; text-align:center;">
+    <div style="flex:1 1 45%; min-width:240px; max-width:48%; text-align:center;">
       <div style="font-weight:700; color:var(--gold); margin-bottom:8px; font-size:1.05em;">
         D9 — Navamsha (Destiny Chart)</div>
-      <div style="background:#0d0d0d; border:1px solid rgba(201,168,76,.3); border-radius:8px; padding:12px;">
-        {d9_svg}
+      <div style="background:#0d0d0d; border:1px solid rgba(201,168,76,.3); border-radius:8px; padding:8px; overflow:hidden;">
+        <div style="width:100%; max-width:100%;" class="chart-wrap">{d9_svg}</div>
       </div>
     </div>
   </div>
@@ -298,15 +300,15 @@ def _generate_transit_chart_html(positions: dict, name: str) -> str:
     </div>
     <div class="sec-line"></div>
   </div>
-  <div style="display:flex; gap:24px; justify-content:center; flex-wrap:wrap; margin:16px 0;">
-    <div style="flex:1; min-width:300px; max-width:45%; text-align:center;">
+  <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin:16px 0; max-width:100%; overflow:hidden;">
+    <div style="flex:1 1 45%; min-width:240px; max-width:48%; text-align:center;">
       <div style="font-weight:700; color:#2E86AB; margin-bottom:8px; font-size:1.05em;">
         Transit Chart — {date_str}</div>
-      <div style="background:#0d0d0d; border:1px solid rgba(46,134,171,.3); border-radius:8px; padding:12px;">
-        {transit_svg}
+      <div style="background:#0d0d0d; border:1px solid rgba(46,134,171,.3); border-radius:8px; padding:8px; overflow:hidden;">
+        <div style="width:100%; max-width:100%;" class="chart-wrap">{transit_svg}</div>
       </div>
     </div>
-    <div style="flex:1; min-width:300px; max-width:52%;">
+    <div style="flex:1 1 45%; min-width:240px; max-width:50%;">
       <div style="font-weight:700; color:#2E86AB; margin-bottom:8px; font-size:1.05em;">
         Transit Positions from {natal_lagna} Lagna</div>
       <table style="width:100%;border-collapse:collapse;font-size:0.92em;">
@@ -1114,6 +1116,7 @@ body { background:var(--deep-navy); color:var(--cream);
          font-size:10px; letter-spacing:2px; color:var(--gold);
          background:rgba(201,168,76,.08); }
 .page { max-width:1080px; margin:0 auto; padding:0 36px; }
+.chart-wrap svg { width:100%; height:auto; max-width:100%; display:block; }
 .section { padding:50px 0 36px; border-bottom:1px solid rgba(201,168,76,.15); }
 .sec-hd { display:flex; align-items:center; gap:16px; margin-bottom:30px; }
 .sec-tag { font-size:10px; letter-spacing:3px; color:var(--gold); opacity:.7; min-width:80px; }
