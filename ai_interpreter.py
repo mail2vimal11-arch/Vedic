@@ -452,9 +452,11 @@ def generate_ai_narratives(
     chart_context = _format_chart_context(positions, birth, raman_analysis, extended_data)
     dasha_context = _format_current_dasha_context(current_dasha)
 
-    # Which sections to generate — all 7 narrative sections
+    # Which sections to generate — start with 3 key sections for reliable deploys
+    # After upgrading instance type to Standard, restore all 7:
+    #   sections = list(SECTION_PROMPTS.keys())
     if sections is None:
-        sections = list(SECTION_PROMPTS.keys())
+        sections = ["life_overview", "career_wealth", "current_period"]
 
     narratives = {}
     for section_name in sections:
