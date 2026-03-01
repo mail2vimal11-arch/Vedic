@@ -30,10 +30,25 @@ import os
 import json
 import math
 import logging
-from datetime import datetime, date
+import tempfile
+from datetime import datetime, date, timezone
 from typing import Dict, List, Optional, Any
 
 logger = logging.getLogger("vedic.deep")
+
+# ── Chart generation imports ─────────────────────────────────────────────────
+try:
+    import swisseph as swe
+    import jyotichart
+    from chart_gen import (
+        RASHI_NAMES, RASHI_SANSKRIT, RASHI_LORDS,
+        JYOTICHART_PLANET_MAP, deg_to_dms, rashi_to_house,
+        generate_south_chart, EPHE_PATH,
+    )
+    HAS_CHART_GEN = True
+except ImportError as e:
+    HAS_CHART_GEN = False
+    logger.warning(f"Chart generation imports unavailable: {e}")
 
 # ── B.V. Raman Rule Engine Integration ───────────────────────────────────────
 try:
@@ -50,6 +65,270 @@ try:
 except ImportError:
     HAS_AI_LAYER = False
     logger.info("ai_interpreter module not found — AI narrative layer disabled")
+
+# ── Chart Helpers — D1, D9, Transit SVG generation ───────────────────────────
+
+def _read_svg(path: str) -> str:
+    """Read an SVG file and return its content as a string."""
+    if path and os.path.exists(path):
+        with open(path, "rb") as f:
+            raw = f.read()
+        for enc in ("utf-8-sig", "utf-16", "utf-16-le", "latin-1"):
+            try:
+                return raw.decode(enc)
+            except (UnicodeDecodeError, UnicodeError):
+                continue
+    return ""
+
+
+def _navamsha_sign_index(sidereal_longitude: float) -> int:
+    """Compute Navamsha (D9) sign index from sidereal longitude."""
+    sign_idx = int(sidereal_longitude / 30) % 12
+    deg_in_sign = sidereal_longitude % 30
+    navamsha_num = int(deg_in_sign / (30 / 9))
+    fire_signs = [0, 4, 8]
+    earth_signs = [1, 5, 9]
+    air_signs = [2, 6, 10]
+    if sign_idx in fire_signs:
+        start = 0
+    elif sign_idx in earth_signs:
+        start = 3
+    elif sign_idx in air_signs:
+        start = 6
+    else:
+        start = 9
+    return (start + navamsha_num) % 12
+
+
+def _generate_chart_svg(planet_data: list, asc_sign_index: int,
+                        chart_name: str, person_name: str) -> str:
+    """Generate a South Indian chart SVG string using jyotichart.
+    Returns inline SVG content or empty string on failure."""
+    if not HAS_CHART_GEN:
+        return ""
+    try:
+        chart = jyotichart.SouthChart(
+            chartname=chart_name,
+            personname=person_name,
+            IsFullChart=True,
+        )
+        asc_sign = RASHI_NAMES[asc_sign_index]
+        chart.set_ascendantsign(asc_sign)
+
+        for p in planet_data:
+            sign_idx = p.get("sign_index", p.get("d9_sign_index", 0))
+            house_num = rashi_to_house(sign_idx, asc_sign_index)
+            jc_planet = JYOTICHART_PLANET_MAP.get(p["name"])
+            if not jc_planet:
+                continue
+            deg = p.get("sign_deg", 0)
+            if deg:
+                d, m, _ = deg_to_dms(deg)
+                label = f"{p.get('symbol', '')} {d}:{m:02d}"
+            else:
+                label = p.get("symbol", p["name"][:2])
+            retro = p.get("retrograde", False)
+            chart.add_planet(planet=jc_planet, symbol=label,
+                           housenum=house_num, retrograde=retro)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            chart.draw(location=tmpdir, filename=chart_name)
+            svg_path = os.path.join(tmpdir, f"{chart_name}.svg")
+            return _read_svg(svg_path)
+    except Exception as e:
+        logger.warning(f"Chart generation failed for {chart_name}: {e}")
+        return ""
+
+
+def _generate_d1_d9_html(positions: dict, name: str) -> str:
+    """Generate D1 (Rashi) and D9 (Navamsha) charts side by side as HTML."""
+    if not HAS_CHART_GEN:
+        return ""
+
+    asc_idx = positions.get("ascendant", {}).get("sign_index", 0)
+    planets = positions.get("planets", [])
+
+    # D1 Rashi chart
+    d1_svg = _generate_chart_svg(planets, asc_idx, "D1_Rashi", name)
+
+    # D9 Navamsha chart — compute navamsha positions
+    d9_planets = []
+    for p in planets:
+        d9_sign = _navamsha_sign_index(p["longitude"])
+        d9_planets.append({
+            "name": p["name"],
+            "symbol": p["symbol"],
+            "sign_index": d9_sign,
+            "sign_deg": p["longitude"] % (30 / 9) * 9,  # approx degree in D9 sign
+            "retrograde": p["retrograde"],
+        })
+    d9_asc = _navamsha_sign_index(positions["ascendant"]["longitude"])
+    d9_svg = _generate_chart_svg(d9_planets, d9_asc, "D9_Navamsha", name)
+
+    if not d1_svg and not d9_svg:
+        return ""
+
+    return f"""
+<div class="section">
+  <div class="sec-hd">
+    <span class="sec-tag">BIRTH CHARTS</span>
+    <div>
+      <div class="sec-title">Rashi &amp; Navamsha Charts</div>
+      <span class="sec-skt">&#2352;&#2366;&#2358;&#2367; &#2330;&#2325;&#2381;&#2352;
+        &amp; &#2344;&#2357;&#2366;&#2306;&#2358; &#2330;&#2325;&#2381;&#2352;</span>
+    </div>
+    <div class="sec-line"></div>
+  </div>
+  <div style="display:flex; gap:24px; justify-content:center; flex-wrap:wrap; margin:16px 0;">
+    <div style="flex:1; min-width:300px; max-width:48%; text-align:center;">
+      <div style="font-weight:700; color:var(--gold); margin-bottom:8px; font-size:1.05em;">
+        D1 — Rashi (Birth Chart)</div>
+      <div style="background:#0d0d0d; border:1px solid rgba(201,168,76,.3); border-radius:8px; padding:12px;">
+        {d1_svg}
+      </div>
+    </div>
+    <div style="flex:1; min-width:300px; max-width:48%; text-align:center;">
+      <div style="font-weight:700; color:var(--gold); margin-bottom:8px; font-size:1.05em;">
+        D9 — Navamsha (Destiny Chart)</div>
+      <div style="background:#0d0d0d; border:1px solid rgba(201,168,76,.3); border-radius:8px; padding:12px;">
+        {d9_svg}
+      </div>
+    </div>
+  </div>
+  <div class="callout" style="background:rgba(201,168,76,.05);border-color:rgba(201,168,76,.3);">
+    <strong style="color:var(--gold);">Reading Guide:</strong>
+    The D1 (Rashi) chart shows your birth positions — the foundation of all predictions.
+    The D9 (Navamsha) chart reveals your soul's deeper destiny, marriage prospects, and
+    the ultimate strength of each planet. A planet strong in both D1 and D9 delivers
+    its full promise.
+  </div>
+</div>"""
+
+
+def _generate_transit_chart_html(positions: dict, name: str) -> str:
+    """Generate a current transit chart showing today's planetary positions
+    in South Indian format, with interpretation of transits from natal Lagna."""
+    if not HAS_CHART_GEN:
+        return ""
+    try:
+        swe.set_ephe_path(EPHE_PATH)
+        swe.set_sid_mode(swe.SIDM_LAHIRI)
+
+        now = datetime.now(timezone.utc)
+        jd = swe.julday(now.year, now.month, now.day,
+                        now.hour + now.minute / 60.0 + now.second / 3600.0)
+        flags = swe.FLG_SWIEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED
+
+        planet_ids = {
+            "Sun": swe.SUN, "Moon": swe.MOON, "Mars": swe.MARS,
+            "Mercury": swe.MERCURY, "Jupiter": swe.JUPITER,
+            "Venus": swe.VENUS, "Saturn": swe.SATURN,
+        }
+        symbols = {"Sun": "☉", "Moon": "☾", "Mars": "♂", "Mercury": "☿",
+                   "Jupiter": "♃", "Venus": "♀", "Saturn": "♄"}
+
+        transit_planets = []
+        transit_info_lines = []
+        natal_asc_idx = positions.get("ascendant", {}).get("sign_index", 0)
+        natal_lagna = RASHI_NAMES[natal_asc_idx]
+
+        for pname, pid in planet_ids.items():
+            pos, _ = swe.calc_ut(jd, pid, flags)
+            lon = pos[0]
+            sign_idx = int(lon / 30) % 12
+            deg_in_sign = lon - sign_idx * 30
+            retro = pos[3] < 0
+            transit_planets.append({
+                "name": pname,
+                "symbol": symbols.get(pname, "?"),
+                "sign_index": sign_idx,
+                "sign_deg": deg_in_sign,
+                "retrograde": retro,
+            })
+            house_from_lagna = ((sign_idx - natal_asc_idx) % 12) + 1
+            sign_name = RASHI_NAMES[sign_idx]
+            r_mark = " (R)" if retro else ""
+            transit_info_lines.append(
+                f"<tr><td style='color:var(--gold);font-weight:600;'>{pname}</td>"
+                f"<td>{sign_name} {deg_in_sign:.1f}°{r_mark}</td>"
+                f"<td>House {house_from_lagna} from {natal_lagna}</td></tr>"
+            )
+
+        # Rahu/Ketu
+        rahu_pos, _ = swe.calc_ut(jd, swe.MEAN_NODE, flags)
+        rahu_lon = rahu_pos[0]
+        rahu_sign_idx = int(rahu_lon / 30) % 12
+        rahu_deg = rahu_lon - rahu_sign_idx * 30
+        ketu_lon = (rahu_lon + 180) % 360
+        ketu_sign_idx = int(ketu_lon / 30) % 12
+        ketu_deg = ketu_lon - ketu_sign_idx * 30
+
+        transit_planets.append({"name": "Rahu", "symbol": "☊", "sign_index": rahu_sign_idx,
+                                "sign_deg": rahu_deg, "retrograde": True})
+        transit_planets.append({"name": "Ketu", "symbol": "☋", "sign_index": ketu_sign_idx,
+                                "sign_deg": ketu_deg, "retrograde": True})
+
+        rahu_house = ((rahu_sign_idx - natal_asc_idx) % 12) + 1
+        ketu_house = ((ketu_sign_idx - natal_asc_idx) % 12) + 1
+        transit_info_lines.append(
+            f"<tr><td style='color:var(--gold);font-weight:600;'>Rahu</td>"
+            f"<td>{RASHI_NAMES[rahu_sign_idx]} {rahu_deg:.1f}° (R)</td>"
+            f"<td>House {rahu_house} from {natal_lagna}</td></tr>")
+        transit_info_lines.append(
+            f"<tr><td style='color:var(--gold);font-weight:600;'>Ketu</td>"
+            f"<td>{RASHI_NAMES[ketu_sign_idx]} {ketu_deg:.1f}° (R)</td>"
+            f"<td>House {ketu_house} from {natal_lagna}</td></tr>")
+
+        # Generate transit chart SVG
+        transit_svg = _generate_chart_svg(transit_planets, natal_asc_idx,
+                                          "Gochara_Transit", name)
+
+        date_str = now.strftime("%d %B %Y")
+        info_rows = "\n".join(transit_info_lines)
+
+        return f"""
+<div class="section">
+  <div class="sec-hd">
+    <span class="sec-tag" style="background:linear-gradient(135deg,#2E86AB,#1a5276);
+          color:#fff;">CURRENT TRANSITS</span>
+    <div>
+      <div class="sec-title">Gochara — Live Transit Positions</div>
+      <span class="sec-skt">&#2327;&#2379;&#2330;&#2352; &#2347;&#2354;
+        &middot; as of {date_str}</span>
+    </div>
+    <div class="sec-line"></div>
+  </div>
+  <div style="display:flex; gap:24px; justify-content:center; flex-wrap:wrap; margin:16px 0;">
+    <div style="flex:1; min-width:300px; max-width:45%; text-align:center;">
+      <div style="font-weight:700; color:#2E86AB; margin-bottom:8px; font-size:1.05em;">
+        Transit Chart — {date_str}</div>
+      <div style="background:#0d0d0d; border:1px solid rgba(46,134,171,.3); border-radius:8px; padding:12px;">
+        {transit_svg}
+      </div>
+    </div>
+    <div style="flex:1; min-width:300px; max-width:52%;">
+      <div style="font-weight:700; color:#2E86AB; margin-bottom:8px; font-size:1.05em;">
+        Transit Positions from {natal_lagna} Lagna</div>
+      <table style="width:100%;border-collapse:collapse;font-size:0.92em;">
+        <thead>
+          <tr style="border-bottom:2px solid rgba(46,134,171,.4);">
+            <th style="text-align:left;padding:6px;color:#2E86AB;">Planet</th>
+            <th style="text-align:left;padding:6px;color:#2E86AB;">Position</th>
+            <th style="text-align:left;padding:6px;color:#2E86AB;">Transit House</th>
+          </tr>
+        </thead>
+        <tbody>
+          {info_rows}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>"""
+
+    except Exception as e:
+        logger.warning(f"Transit chart generation failed: {e}")
+        return ""
+
 
 # ── Parashari Engine Identity ─────────────────────────────────────────────────
 # This constant encodes the role, style, and objective that govern all
@@ -708,6 +987,11 @@ def generate_consultation_html(
                                    lagna_nak, moon_nak, yogas, active_dasha))
     html_parts.append('<div class="page">')
 
+    # D1 (Rashi) + D9 (Navamsha) charts side by side — before Janma Pravesh
+    d1_d9_html = _generate_d1_d9_html(positions, name)
+    if d1_d9_html:
+        html_parts.append(d1_d9_html)
+
     # Sec 1-3: Cosmic Context + Lagna + Elemental/Guna Profile
     html_parts.append(_html_cosmic_context(
         lagna_sign, lagna_lord, lagna_nak, planet_map, lagna_sign_idx, house_lord_map))
@@ -770,6 +1054,11 @@ def generate_consultation_html(
 
     # Sec 18: Karmic Indications
     html_parts.append(_html_karmic(planet_map, lagna_sign_idx, house_lord_map))
+
+    # ── Current Transit Chart (Gochara) ──────────────────────────────────
+    transit_html = _generate_transit_chart_html(positions, name)
+    if transit_html:
+        html_parts.append(transit_html)
 
     # ── AI Consultation Narrative (powered by Claude) ─────────────────────
     if ai_narratives and HAS_AI_LAYER and any(ai_narratives.values()):

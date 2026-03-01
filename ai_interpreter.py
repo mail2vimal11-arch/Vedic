@@ -71,6 +71,8 @@ Your consultation style:
 - NEVER fabricate chart data — only reference what is provided in the context
 - Keep each section focused and between 200-350 words
 - End each section with a practical takeaway or timing insight
+- NEVER include meta-commentary about word count, token count, or writing process in your output
+- Your output is the consultation itself — no behind-the-scenes notes
 
 Interpretive priorities:
 1. Dignity of planets (exalted/own/friendly/debilitated) shapes their expression
@@ -146,6 +148,43 @@ def _get_current_transits() -> str:
         ketu_deg = ketu_long - ketu_sign_idx * 30
         ketu_sign = _SIGNS[ketu_sign_idx % 12]
         lines.append(f"  Ketu: {ketu_sign} {ketu_deg:.1f}° (R)")
+
+        # ── Scan ahead: major sign ingresses in next 12 months ──────────
+        lines.append("\nKEY TRANSIT SIGN CHANGES IN NEXT 12 MONTHS:")
+        lines.append("(Computed by scanning Swiss Ephemeris month by month)\n")
+
+        slow_planets = {
+            "Jupiter": swe.JUPITER,
+            "Saturn": swe.SATURN,
+            "Rahu": swe.MEAN_NODE,
+            "Mars": swe.MARS,
+        }
+
+        for pname, pid in slow_planets.items():
+            current_pos, _ = swe.calc_ut(jd, pid, flags)
+            current_sign = int(current_pos[0] / 30) % 12
+
+            # Check each month for the next 12 months
+            for month_offset in range(1, 13):
+                future_month = now.month + month_offset
+                future_year = now.year + (future_month - 1) // 12
+                future_month = ((future_month - 1) % 12) + 1
+                future_jd = swe.julday(future_year, future_month, 15, 12.0)
+                future_pos, _ = swe.calc_ut(future_jd, pid, flags)
+                future_sign = int(future_pos[0] / 30) % 12
+
+                if future_sign != current_sign:
+                    month_names = ["Jan","Feb","Mar","Apr","May","Jun",
+                                   "Jul","Aug","Sep","Oct","Nov","Dec"]
+                    mname = month_names[future_month - 1]
+                    if pname == "Rahu":
+                        ketu_future = (future_sign + 6) % 12
+                        lines.append(f"  Rahu moves to {_SIGNS[future_sign]} "
+                                     f"(Ketu to {_SIGNS[ketu_future]}) — ~{mname} {future_year}")
+                    else:
+                        lines.append(f"  {pname} enters {_SIGNS[future_sign]} "
+                                     f"— ~{mname} {future_year}")
+                    current_sign = future_sign
 
         return "\n".join(lines)
 
@@ -393,27 +432,43 @@ Length: 300-400 words.
 CHART DATA:
 {chart_context}""",
 
-    "year_ahead": """Based on the chart data below, write the YEAR AHEAD FORECAST section.
+    "year_ahead": """Based on the chart data below, write the YEAR AHEAD FORECAST — an advanced,
+predictive month-by-month transit analysis for the next 12 months.
 
-This should be practical, month-aware guidance for the next 12 months.
+This is the most customer-valued section. It must be SPECIFIC, PREDICTIVE, and ACTIONABLE.
 
-Cover these themes in flowing prose:
-- The current Dasha/Bhukti and what it means for the coming year
-- Key planetary transits and their likely effects (based on natal chart)
-- Career and financial outlook for the next 12 months
-- Relationship developments expected
-- Health focus areas
-- Auspicious periods for major decisions (starting ventures, property, travel)
-- Challenging periods that require caution
-- Overall theme or 'flavour' of the year ahead
-- 3-5 specific, actionable pieces of advice
+STRUCTURE YOUR RESPONSE AS FOLLOWS:
 
-CRITICAL: When discussing transits, you MUST use ONLY the actual transit positions
-provided below. Do NOT guess or rely on memorised ephemeris data. The transit data
-below is computed in real time from Swiss Ephemeris and is authoritative.
+1. OPENING (2-3 sentences): State the overall theme of the year, anchored in the
+   Dasha/Bhukti the native is running.
 
-Address the native directly. Be optimistic but realistic.
-Length: 250-350 words.
+2. TRANSIT-BY-TRANSIT BREAKDOWN: For each major transit happening in the next 12 months,
+   write a dated paragraph explaining:
+   - WHICH planet is transiting WHERE (use ONLY the transit data below — never guess)
+   - WHEN it enters/exits each sign (approximate month)
+   - Which natal houses it activates (count from the native's Lagna)
+   - What this specifically means for the native's career, finances, relationships, health
+   - Whether this transit aspects or conjoins key natal planets
+
+   Cover at minimum: Jupiter's transit, Saturn's transit, Rahu-Ketu axis,
+   and any significant Mars or Venus transits through sensitive natal houses.
+
+3. QUARTERLY HIGHLIGHTS: Break the 12 months into 4 quarters and give each quarter
+   a 2-3 sentence prediction with specific advice (best months for career moves,
+   caution periods, auspicious windows for major decisions).
+
+4. CLOSING (2-3 sentences): Summarise the most powerful opportunity and the most
+   important caution for the year.
+
+CRITICAL RULES:
+- Use ONLY the actual transit positions provided below — these are computed in real time
+  from Swiss Ephemeris. Do NOT guess or rely on memorised ephemeris data.
+- Every transit claim must match the transit data provided.
+- Be boldly predictive — this is what customers pay for. No hedging or vague generalities.
+- Reference specific Vedic principles (Sade Sati, Ashtama Shani, Guru Peyarchi, etc.)
+  where applicable.
+
+Length: 500-700 words (this section deserves depth).
 
 CHART DATA:
 {chart_context}
@@ -550,6 +605,9 @@ def generate_ai_narratives(
         )
 
         try:
+            # Year Ahead gets more tokens for the expanded transit-by-transit format
+            section_max_tokens = 3000 if section_name == "year_ahead" else MAX_TOKENS_PER_SECTION
+
             logger.info(f"Generating AI narrative: {section_name}")
             start = time.time()
             raw_text = _call_claude(
@@ -557,6 +615,7 @@ def generate_ai_narratives(
                 user_prompt=user_prompt,
                 api_key=api_key,
                 model=model,
+                max_tokens=section_max_tokens,
             )
             elapsed = time.time() - start
             logger.info(f"  → {section_name}: {len(raw_text)} chars in {elapsed:.1f}s")
