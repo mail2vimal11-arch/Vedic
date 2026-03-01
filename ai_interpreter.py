@@ -82,6 +82,79 @@ Interpretive priorities:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# CURRENT TRANSIT CALCULATOR — real-time planetary positions via Swiss Ephemeris
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Zodiac signs for degree → sign conversion
+_SIGNS = [
+    "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+    "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+]
+
+def _get_current_transits() -> str:
+    """
+    Compute today's sidereal planetary positions using Swiss Ephemeris (Lahiri ayanamsa).
+    Returns a formatted string of current transit positions for major planets.
+    This ensures the AI uses REAL astronomical data for year-ahead forecasts,
+    rather than hallucinating transit positions from training data.
+    """
+    try:
+        import swisseph as swe
+        from datetime import datetime, timezone
+
+        ephe_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ephe")
+        swe.set_ephe_path(ephe_path)
+        swe.set_sid_mode(swe.SIDM_LAHIRI)
+
+        now = datetime.now(timezone.utc)
+        jd = swe.julday(now.year, now.month, now.day,
+                        now.hour + now.minute / 60.0 + now.second / 3600.0)
+
+        flags = swe.FLG_SWIEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED
+
+        # Planet IDs: Sun=0, Moon=1, Mars=4, Mercury=2, Jupiter=5, Venus=3, Saturn=6
+        # Rahu (Mean Node) = 10
+        planet_ids = {
+            "Jupiter": swe.JUPITER,
+            "Saturn": swe.SATURN,
+            "Rahu": swe.MEAN_NODE,
+            "Sun": swe.SUN,
+            "Mars": swe.MARS,
+            "Mercury": swe.MERCURY,
+            "Venus": swe.VENUS,
+        }
+
+        lines = []
+        lines.append(f"CURRENT TRANSIT POSITIONS (as of {now.strftime('%d %B %Y')}):")
+        lines.append("These are the ACTUAL sidereal positions computed via Swiss Ephemeris.")
+        lines.append("Use ONLY these positions when discussing transits — do NOT guess or use memorised data.\n")
+
+        for name, pid in planet_ids.items():
+            pos, _ = swe.calc_ut(jd, pid, flags)
+            longitude = pos[0]
+            sign_idx = int(longitude / 30)
+            degrees = longitude - sign_idx * 30
+            sign = _SIGNS[sign_idx % 12]
+            retro = " (R)" if pos[3] < 0 else ""
+
+            lines.append(f"  {name}: {sign} {degrees:.1f}°{retro}")
+
+        # Ketu is always 180° from Rahu
+        rahu_pos, _ = swe.calc_ut(jd, swe.MEAN_NODE, flags)
+        ketu_long = (rahu_pos[0] + 180.0) % 360.0
+        ketu_sign_idx = int(ketu_long / 30)
+        ketu_deg = ketu_long - ketu_sign_idx * 30
+        ketu_sign = _SIGNS[ketu_sign_idx % 12]
+        lines.append(f"  Ketu: {ketu_sign} {ketu_deg:.1f}° (R)")
+
+        return "\n".join(lines)
+
+    except Exception as e:
+        logger.warning(f"Could not compute current transits: {e}")
+        return ""
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # CHART DATA FORMATTER — prepares structured data for Claude
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -335,13 +408,19 @@ Cover these themes in flowing prose:
 - Overall theme or 'flavour' of the year ahead
 - 3-5 specific, actionable pieces of advice
 
+CRITICAL: When discussing transits, you MUST use ONLY the actual transit positions
+provided below. Do NOT guess or rely on memorised ephemeris data. The transit data
+below is computed in real time from Swiss Ephemeris and is authoritative.
+
 Address the native directly. Be optimistic but realistic.
 Length: 250-350 words.
 
 CHART DATA:
 {chart_context}
 
-{dasha_context}""",
+{dasha_context}
+
+{transit_context}""",
 }
 
 
@@ -451,6 +530,7 @@ def generate_ai_narratives(
     # Format chart context once (shared across all sections)
     chart_context = _format_chart_context(positions, birth, raman_analysis, extended_data)
     dasha_context = _format_current_dasha_context(current_dasha)
+    transit_context = _get_current_transits()  # Real-time Swiss Ephemeris transit data
 
     # All 7 sections restored — Standard instance (2GB RAM, 1 CPU) active
     if sections is None:
@@ -466,6 +546,7 @@ def generate_ai_narratives(
         user_prompt = template.format(
             chart_context=chart_context,
             dasha_context=dasha_context,
+            transit_context=transit_context,
         )
 
         try:
