@@ -122,11 +122,13 @@ def _generate_chart_svg(planet_data: list, asc_sign_index: int,
             if not jc_planet:
                 continue
             deg = p.get("sign_deg", 0)
+            # Use clean 2-letter abbreviation (no symbols) for readability
+            abbr = p["name"][:2]
             if deg:
                 d, m, _ = deg_to_dms(deg)
-                label = f"{p.get('symbol', '')} {d}:{m:02d}"
+                label = f"{abbr} {d}:{m:02d}"
             else:
-                label = p.get("symbol", p["name"][:2])
+                label = abbr
             retro = p.get("retrograde", False)
             # Delete any pre-existing planet first (IsFullChart may pre-populate)
             chart.delete_planet(planet=jc_planet)
