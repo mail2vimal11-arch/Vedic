@@ -262,6 +262,34 @@ def _format_chart_context(positions: dict, birth: dict,
                 if reading.get("strength_reading"):
                     lines.append(f"    → {reading['strength_reading'][:200]}")
 
+    # D9 (Navamsha) and D10 (Dasamsa) positions
+    try:
+        from deep_interpreter import (
+            _navamsha_sign_index, _dasamsa_sign_index, get_dignity, SIGN_NAMES
+        )
+        asc_lon = asc.get("longitude", 0)
+        d9_asc_idx = _navamsha_sign_index(asc_lon)
+        d10_asc_idx = _dasamsa_sign_index(asc_lon)
+        lines.append(f"\nD9 (NAVAMSHA) POSITIONS — Ascendant: {SIGN_NAMES[d9_asc_idx]}:")
+        for p in positions.get("planets", []):
+            p_lon = p.get("longitude", 0)
+            d9_si = _navamsha_sign_index(p_lon)
+            d9_sign = SIGN_NAMES[d9_si]
+            d9_dig = get_dignity(p["name"], d9_sign) if p["name"] not in ("Rahu", "Ketu") else "Neutral"
+            d9_house = ((d9_si - d9_asc_idx) % 12) + 1
+            lines.append(f"  {p['name']}: {d9_sign} (H{d9_house}) — {d9_dig}")
+
+        lines.append(f"\nD10 (DASAMSA) POSITIONS — Ascendant: {SIGN_NAMES[d10_asc_idx]}:")
+        for p in positions.get("planets", []):
+            p_lon = p.get("longitude", 0)
+            d10_si = _dasamsa_sign_index(p_lon)
+            d10_sign = SIGN_NAMES[d10_si]
+            d10_dig = get_dignity(p["name"], d10_sign) if p["name"] not in ("Rahu", "Ketu") else "Neutral"
+            d10_house = ((d10_si - d10_asc_idx) % 12) + 1
+            lines.append(f"  {p['name']}: {d10_sign} (H{d10_house}) — {d10_dig}")
+    except Exception as e:
+        logger.debug(f"Could not compute D9/D10 for AI context: {e}")
+
     # Extended data from parashari_engine
     if extended_data:
         # Shadbala
@@ -476,6 +504,36 @@ CHART DATA:
 {dasha_context}
 
 {transit_context}""",
+
+    "bhava_deep": """Based on the chart data below, write an EXPANDED BHAVA VISHLESHAN (House Analysis)
+that cross-references D1 (Rashi), D9 (Navamsha), and D10 (Dasamsa) charts.
+
+For each of the 12 houses, provide a detailed 3-4 sentence interpretation that synthesises:
+- The D1 placement: which sign rules this house and its lord's condition
+- The D9 perspective: how the Navamsha modifies the promise (is the lord strong or weak in D9?)
+- The D10 perspective: what career/professional implications arise from this house's D10 placement
+- The combined verdict: does the planet deliver its full promise across all three charts?
+
+STRUCTURE YOUR RESPONSE:
+Write exactly 12 paragraphs, one per house. Start each paragraph with the house number and name
+in bold using **House X — Name** format.
+
+Focus especially on:
+- Houses 1, 7, 10 (self, marriage, career) — give these 4-5 sentences each
+- Houses 5 and 9 (intelligence/children, fortune/dharma) — give these 3-4 sentences
+- Other houses — give 2-3 focused sentences
+
+Key analytical rules:
+- A planet exalted or in own sign in D1 BUT debilitated in D9 = unfulfilled promise
+- A planet weak in D1 BUT strong in D9 = hidden strength that emerges over time
+- D10 strength determines how career potential manifests
+- Lord of D1 house placed well in D10 = that house's themes manifest in professional life
+
+Address the native directly. Be specific about dignities and placements.
+Length: 600-800 words.
+
+CHART DATA:
+{chart_context}""",
 }
 
 
@@ -605,8 +663,11 @@ def generate_ai_narratives(
         )
 
         try:
-            # Year Ahead gets more tokens for the expanded transit-by-transit format
-            section_max_tokens = 3000 if section_name == "year_ahead" else MAX_TOKENS_PER_SECTION
+            # Year Ahead and Bhava Deep get more tokens for expanded formats
+            if section_name in ("year_ahead", "bhava_deep"):
+                section_max_tokens = 3000
+            else:
+                section_max_tokens = MAX_TOKENS_PER_SECTION
 
             logger.info(f"Generating AI narrative: {section_name}")
             start = time.time()
@@ -647,6 +708,7 @@ SECTION_TITLES = {
     "health_longevity":    ("Health & Longevity", "Arogya & Ayu", "Constitutional tendencies and preventive guidance"),
     "spiritual_direction": ("Spiritual Direction & Remedies", "Dharma & Moksha Marga", "Your soul's deepest purpose and remedial path"),
     "year_ahead":          ("Year Ahead Forecast", "Varsha Phala", "Practical guidance for the next 12 months"),
+    "bhava_deep":          ("Expanded Bhava Vishleshan", "D1 · D9 · D10 Cross-Reference", "Deep house analysis across three divisional charts"),
 }
 
 

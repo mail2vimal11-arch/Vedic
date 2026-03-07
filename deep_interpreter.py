@@ -100,6 +100,48 @@ def _navamsha_sign_index(sidereal_longitude: float) -> int:
     return (start + navamsha_num) % 12
 
 
+def _dasamsa_sign_index(sidereal_longitude: float) -> int:
+    """Compute Dasamsa (D10) sign index from sidereal longitude.
+    Each sign is divided into 10 equal parts of 3° each.
+    For odd signs: count starts from the sign itself.
+    For even signs: count starts from the 9th sign from it."""
+    sign_idx = int(sidereal_longitude / 30) % 12
+    deg_in_sign = sidereal_longitude % 30
+    dasamsa_num = int(deg_in_sign / 3)  # 0-9 (each pada = 3°)
+    # Odd signs (0-indexed: Aries=0 is odd sign #1): start from sign itself
+    # Even signs (Taurus=1 is even sign #2): start from 9th sign
+    if sign_idx % 2 == 0:  # Odd signs (Aries, Gemini, Leo, etc.)
+        start = sign_idx
+    else:  # Even signs (Taurus, Cancer, Virgo, etc.)
+        start = (sign_idx + 9) % 12
+    return (start + dasamsa_num) % 12
+
+
+def _build_position_table(planet_data: list, asc_sign_index: int,
+                          color: str = "var(--gold)") -> str:
+    """Build an HTML position table for a chart's planet data."""
+    rows = ""
+    for p in planet_data:
+        sign_idx = p.get("sign_index", p.get("d9_sign_index", 0))
+        house_num = rashi_to_house(sign_idx, asc_sign_index)
+        sign_name = SIGN_NAMES[sign_idx] if sign_idx < 12 else "?"
+        deg = p.get("sign_deg", 0)
+        retro = p.get("retrograde", False)
+        r_mark = " (R)" if retro else ""
+        deg_str = f"{deg:.1f}°{r_mark}" if deg else r_mark.strip()
+        rows += (
+            f"<tr><td style='color:{color};font-weight:600;'>{p['name']}</td>"
+            f"<td>{sign_name} {deg_str}</td>"
+            f"<td>House {house_num}</td></tr>\n"
+        )
+    return f"""<table style="width:100%;border-collapse:collapse;font-size:0.92em;">
+      <thead><tr style="border-bottom:2px solid rgba(201,168,76,.4);">
+        <th style="text-align:left;padding:6px;color:{color};">Planet</th>
+        <th style="text-align:left;padding:6px;color:{color};">Position</th>
+        <th style="text-align:left;padding:6px;color:{color};">House</th>
+      </tr></thead><tbody>{rows}</tbody></table>"""
+
+
 def _generate_chart_svg(planet_data: list, asc_sign_index: int,
                         chart_name: str, person_name: str) -> str:
     """Generate a South Indian chart SVG string using jyotichart.
@@ -144,67 +186,107 @@ def _generate_chart_svg(planet_data: list, asc_sign_index: int,
         return ""
 
 
-def _generate_d1_d9_html(positions: dict, name: str) -> str:
-    """Generate D1 (Rashi) and D9 (Navamsha) charts side by side as HTML."""
+def _generate_d1_d9_d10_html(positions: dict, name: str) -> str:
+    """Generate D1 (Rashi), D9 (Navamsha), and D10 (Dasamsa) charts
+    stacked vertically, each with a position table alongside."""
     if not HAS_CHART_GEN:
         return ""
 
     asc_idx = positions.get("ascendant", {}).get("sign_index", 0)
+    asc_lon = positions.get("ascendant", {}).get("longitude", 0)
     planets = positions.get("planets", [])
+    lagna_name = SIGN_NAMES[asc_idx] if asc_idx < 12 else "Aries"
 
-    # D1 Rashi chart
+    # ── D1 Rashi ─────────────────────────────────────────────────
     d1_svg = _generate_chart_svg(planets, asc_idx, "D1_Rashi", name)
+    d1_table = _build_position_table(planets, asc_idx, color="var(--gold)")
 
-    # D9 Navamsha chart — compute navamsha positions
+    # ── D9 Navamsha ──────────────────────────────────────────────
     d9_planets = []
     for p in planets:
         d9_sign = _navamsha_sign_index(p["longitude"])
         d9_planets.append({
             "name": p["name"],
-            "symbol": p["symbol"],
             "sign_index": d9_sign,
-            "sign_deg": p["longitude"] % (30 / 9) * 9,  # approx degree in D9 sign
+            "sign_deg": p["longitude"] % (30 / 9) * 9,
             "retrograde": p["retrograde"],
         })
-    d9_asc = _navamsha_sign_index(positions["ascendant"]["longitude"])
+    d9_asc = _navamsha_sign_index(asc_lon)
     d9_svg = _generate_chart_svg(d9_planets, d9_asc, "D9_Navamsha", name)
+    d9_table = _build_position_table(d9_planets, d9_asc, color="#B07DC9")
 
-    if not d1_svg and not d9_svg:
+    # ── D10 Dasamsa ──────────────────────────────────────────────
+    d10_planets = []
+    for p in planets:
+        d10_sign = _dasamsa_sign_index(p["longitude"])
+        d10_planets.append({
+            "name": p["name"],
+            "sign_index": d10_sign,
+            "sign_deg": p["longitude"] % 3 * 10,  # approx degree in D10 sign
+            "retrograde": p["retrograde"],
+        })
+    d10_asc = _dasamsa_sign_index(asc_lon)
+    d10_svg = _generate_chart_svg(d10_planets, d10_asc, "D10_Dasamsa", name)
+    d10_table = _build_position_table(d10_planets, d10_asc, color="#2E86AB")
+
+    if not d1_svg and not d9_svg and not d10_svg:
         return ""
+
+    def _chart_block(title, subtitle, svg, table, tag_color, border_color):
+        return f"""
+    <div style="margin-bottom:36px;">
+      <div style="font-weight:700; color:{tag_color}; margin-bottom:12px; font-size:1.15em;
+           border-bottom:2px solid {border_color}; padding-bottom:6px;">
+        {title}
+        <span style="font-size:0.75em; color:rgba(250,246,238,.5); margin-left:8px;">{subtitle}</span>
+      </div>
+      <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start;">
+        <div style="flex:1 1 340px; min-width:280px; max-width:500px;">
+          <div style="background:#0d0d0d; border:1px solid {border_color}; border-radius:8px;
+               padding:10px; overflow:hidden;">
+            <div style="width:100%; max-width:100%;" class="chart-wrap">{svg}</div>
+          </div>
+        </div>
+        <div style="flex:1 1 300px; min-width:250px;">
+          <div style="font-weight:600; color:{tag_color}; margin-bottom:8px; font-size:0.95em;">
+            Planetary Positions</div>
+          {table}
+        </div>
+      </div>
+    </div>"""
+
+    d1_block = _chart_block(
+        "D1 — Rashi (Birth Chart)", "Foundation of all predictions",
+        d1_svg, d1_table, "var(--gold)", "rgba(201,168,76,.3)")
+    d9_block = _chart_block(
+        "D9 — Navamsha (Destiny Chart)", "Soul strength · Marriage · Inner dignity",
+        d9_svg, d9_table, "#B07DC9", "rgba(176,125,201,.3)")
+    d10_block = _chart_block(
+        "D10 — Dasamsa (Career Chart)", "Professional destiny · Status · Karma in action",
+        d10_svg, d10_table, "#2E86AB", "rgba(46,134,171,.3)")
 
     return f"""
 <div class="section">
   <div class="sec-hd">
     <span class="sec-tag">BIRTH CHARTS</span>
     <div>
-      <div class="sec-title">Rashi &amp; Navamsha Charts</div>
+      <div class="sec-title">Divisional Charts &mdash; D1, D9 &amp; D10</div>
       <span class="sec-skt">&#2352;&#2366;&#2358;&#2367; &#2330;&#2325;&#2381;&#2352;
-        &amp; &#2344;&#2357;&#2366;&#2306;&#2358; &#2330;&#2325;&#2381;&#2352;</span>
+        &middot; &#2344;&#2357;&#2366;&#2306;&#2358; &middot; &#2342;&#2358;&#2366;&#2306;&#2358;</span>
     </div>
     <div class="sec-line"></div>
   </div>
-  <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin:16px 0; max-width:100%; overflow:hidden;">
-    <div style="flex:1 1 45%; min-width:240px; max-width:48%; text-align:center;">
-      <div style="font-weight:700; color:var(--gold); margin-bottom:8px; font-size:1.05em;">
-        D1 — Rashi (Birth Chart)</div>
-      <div style="background:#0d0d0d; border:1px solid rgba(201,168,76,.3); border-radius:8px; padding:8px; overflow:hidden;">
-        <div style="width:100%; max-width:100%;" class="chart-wrap">{d1_svg}</div>
-      </div>
-    </div>
-    <div style="flex:1 1 45%; min-width:240px; max-width:48%; text-align:center;">
-      <div style="font-weight:700; color:var(--gold); margin-bottom:8px; font-size:1.05em;">
-        D9 — Navamsha (Destiny Chart)</div>
-      <div style="background:#0d0d0d; border:1px solid rgba(201,168,76,.3); border-radius:8px; padding:8px; overflow:hidden;">
-        <div style="width:100%; max-width:100%;" class="chart-wrap">{d9_svg}</div>
-      </div>
-    </div>
-  </div>
+  {d1_block}
+  {d9_block}
+  {d10_block}
   <div class="callout" style="background:rgba(201,168,76,.05);border-color:rgba(201,168,76,.3);">
     <strong style="color:var(--gold);">Reading Guide:</strong>
-    The D1 (Rashi) chart shows your birth positions — the foundation of all predictions.
-    The D9 (Navamsha) chart reveals your soul's deeper destiny, marriage prospects, and
-    the ultimate strength of each planet. A planet strong in both D1 and D9 delivers
-    its full promise.
+    The <strong>D1 (Rashi)</strong> chart is the foundation — all predictions begin here.
+    The <strong>D9 (Navamsha)</strong> reveals your soul's deeper destiny, marriage, and the true
+    strength of each planet. A planet strong in both D1 and D9 delivers its full promise.
+    The <strong>D10 (Dasamsa)</strong> is the career chart — it shows your professional karma,
+    status in society, and which planets drive your public achievements. A planet strong in
+    D1 and D10 together indicates exceptional professional success in that domain.
   </div>
 </div>"""
 
@@ -991,10 +1073,10 @@ def generate_consultation_html(
                                    lagna_nak, moon_nak, yogas, active_dasha))
     html_parts.append('<div class="page">')
 
-    # D1 (Rashi) + D9 (Navamsha) charts side by side — before Janma Pravesh
-    d1_d9_html = _generate_d1_d9_html(positions, name)
-    if d1_d9_html:
-        html_parts.append(d1_d9_html)
+    # D1 (Rashi) + D9 (Navamsha) + D10 (Dasamsa) charts stacked vertically
+    charts_html = _generate_d1_d9_d10_html(positions, name)
+    if charts_html:
+        html_parts.append(charts_html)
 
     # Sec 1-3: Cosmic Context + Lagna + Elemental/Guna Profile
     html_parts.append(_html_cosmic_context(
@@ -1035,8 +1117,30 @@ def generate_consultation_html(
     if ext.get("aragala"):
         html_parts.append(_html_aragala(ext["aragala"]))
 
-    # Sec 6-7: Bhava Vishleshan — All 12 Houses + Lordship Effects
-    html_parts.append(_html_houses_section(house_interps, raman_analysis))
+    # Compute D9/D10 planet-to-house mappings for Bhava Vishleshan
+    d9_house_map = {}   # planet_name → {sign, house, dignity}
+    d10_house_map = {}
+    asc_lon = asc.get("longitude", 0)
+    d9_asc_idx = _navamsha_sign_index(asc_lon)
+    d10_asc_idx = _dasamsa_sign_index(asc_lon)
+    for pname, pdata in planet_map.items():
+        p_lon = pdata.get("longitude", 0)
+        # D9
+        d9_si = _navamsha_sign_index(p_lon)
+        d9_house_map[pname] = {
+            "sign": SIGN_NAMES[d9_si], "house": rashi_to_house(d9_si, d9_asc_idx),
+            "dignity": get_dignity(pname, SIGN_NAMES[d9_si]),
+        }
+        # D10
+        d10_si = _dasamsa_sign_index(p_lon)
+        d10_house_map[pname] = {
+            "sign": SIGN_NAMES[d10_si], "house": rashi_to_house(d10_si, d10_asc_idx),
+            "dignity": get_dignity(pname, SIGN_NAMES[d10_si]),
+        }
+
+    # Sec 6-7: Bhava Vishleshan — All 12 Houses + D9/D10 context
+    html_parts.append(_html_houses_section(
+        house_interps, raman_analysis, d9_house_map, d10_house_map))
 
     # Sec 5: Shodasha Varga (Divisional Charts)
     if ext.get("vargas"):
@@ -1427,7 +1531,10 @@ def _html_yogas_section(yogas: List[dict]) -> str:
 </div>"""
 
 
-def _html_houses_section(house_interps: List[dict], raman_analysis: dict = None) -> str:
+def _html_houses_section(house_interps: List[dict], raman_analysis: dict = None,
+                         d9_house_map: dict = None, d10_house_map: dict = None) -> str:
+    d9_house_map = d9_house_map or {}
+    d10_house_map = d10_house_map or {}
     blocks = ""
     for h in house_interps:
         occ_tags = "".join(
@@ -1465,6 +1572,33 @@ def _html_houses_section(house_interps: List[dict], raman_analysis: dict = None)
                   — B.V. Raman, How to Judge a Horoscope</div>
               </div>"""
 
+        # ── D9 / D10 sub-blocks for each occupant ────────────────────
+        divisional_block = ""
+        if h["occupant_details"] and (d9_house_map or d10_house_map):
+            div_rows = ""
+            for od in h["occupant_details"]:
+                pname = od["planet"]
+                d9 = d9_house_map.get(pname, {})
+                d10 = d10_house_map.get(pname, {})
+                d9_text = f'{d9.get("sign","?")} (H{d9.get("house","?")}) — <span style="color:{_dignity_colour(d9.get("dignity","Neutral"))}">{d9.get("dignity","?")}</span>' if d9 else "—"
+                d10_text = f'{d10.get("sign","?")} (H{d10.get("house","?")}) — <span style="color:{_dignity_colour(d10.get("dignity","Neutral"))}">{d10.get("dignity","?")}</span>' if d10 else "—"
+                div_rows += f"""<tr>
+                  <td style="padding:4px 8px;color:{_planet_colour(pname)};font-weight:600;">{pname}</td>
+                  <td style="padding:4px 8px;color:#B07DC9;">{d9_text}</td>
+                  <td style="padding:4px 8px;color:#2E86AB;">{d10_text}</td></tr>"""
+            divisional_block = f"""
+            <div style="margin:12px 0;padding:10px 14px;background:rgba(0,0,0,.2);
+                 border:1px solid rgba(201,168,76,.15);border-radius:4px;">
+              <div style="font-size:11px;letter-spacing:2px;color:var(--gold);opacity:.7;margin-bottom:6px;">
+                DIVISIONAL CHART POSITIONS</div>
+              <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                <thead><tr style="border-bottom:1px solid rgba(201,168,76,.2);">
+                  <th style="text-align:left;padding:4px 8px;color:var(--gold);font-size:10px;">Planet</th>
+                  <th style="text-align:left;padding:4px 8px;color:#B07DC9;font-size:10px;">D9 (Navamsha)</th>
+                  <th style="text-align:left;padding:4px 8px;color:#2E86AB;font-size:10px;">D10 (Dasamsa)</th>
+                </tr></thead><tbody>{div_rows}</tbody></table>
+            </div>"""
+
         blocks += f"""
       <div class="house-block">
         <div class="house-hd">
@@ -1489,6 +1623,7 @@ def _html_houses_section(house_interps: List[dict], raman_analysis: dict = None)
           {_lord_verdict(h["lord"], h["house"], h["lord_house"], h["lord_dignity"])}
         </div>
         {raman_effects_block}
+        {divisional_block}
       </div>"""
 
     return f"""
@@ -1496,8 +1631,16 @@ def _html_houses_section(house_interps: List[dict], raman_analysis: dict = None)
   <div class="sec-hd">
     <span class="sec-tag">HOUSES</span>
     <div><div class="sec-title">Bhava Vishleshan &mdash; All 12 Houses</div>
-         <span class="sec-skt">&#2349;&#2366;&#2357; &#2357;&#2367;&#2358;&#2381;&#2354;&#2375;&#2359;&#2339;</span></div>
+         <span class="sec-skt">&#2349;&#2366;&#2357; &#2357;&#2367;&#2358;&#2381;&#2354;&#2375;&#2359;&#2339;
+         &middot; D1 &middot; D9 &middot; D10</span></div>
     <div class="sec-line"></div>
+  </div>
+  <div class="callout" style="background:rgba(201,168,76,.05);border-color:rgba(201,168,76,.3);">
+    <strong style="color:var(--gold);">Comprehensive Analysis:</strong>
+    Each house below shows the D1 (Rashi) placement as the primary analysis, with
+    D9 (Navamsha) and D10 (Dasamsa) positions for every occupying planet. This
+    three-chart cross-reference reveals the full depth of each planet's karma —
+    its birth promise (D1), soul strength (D9), and professional expression (D10).
   </div>
   {blocks}
 </div>"""
