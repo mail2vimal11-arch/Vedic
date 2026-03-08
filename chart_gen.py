@@ -30,10 +30,10 @@ import jyotichart
 EPHE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ephe")
 
 # The 12 Rashis (sidereal zodiac signs) in order, index 0-11.
-# Note: "Saggitarius" spelling matches jyotichart's expected input.
+# Correct English spelling used throughout; jyotichart fallback handled in render_chart().
 RASHI_NAMES = [
     "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-    "Libra", "Scorpio", "Saggitarius", "Capricorn", "Aquarius", "Pisces"
+    "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
 ]
 
 # Sanskrit Rashi names (for display)
@@ -436,7 +436,10 @@ def generate_south_chart(positions, person_name="Native", output_dir=None,
 
     asc_sign = positions["ascendant"]["sign"]
     asc_idx = positions["ascendant"]["sign_index"]
+    # jyotichart may use "Saggitarius" internally; try correct first, then fallback
     res = chart.set_ascendantsign(asc_sign)
+    if res != "Success" and asc_sign == "Sagittarius":
+        res = chart.set_ascendantsign("Saggitarius")
     if res != "Success":
         print(f"Error setting ascendant: {res}")
         return None
@@ -445,8 +448,8 @@ def generate_south_chart(positions, person_name="Native", output_dir=None,
         house_num = rashi_to_house(planet["sign_index"], asc_idx)
         jc_planet = JYOTICHART_PLANET_MAP[planet["name"]]
 
-        d, m, _ = deg_to_dms(planet["sign_deg"])
-        label = f"{planet['symbol']} {d}:{m:02d}"
+        # Short 2-letter label to avoid overlap in crowded houses
+        label = planet["name"][:2]
 
         res = chart.add_planet(
             planet=jc_planet,

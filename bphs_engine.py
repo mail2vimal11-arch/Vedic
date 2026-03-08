@@ -96,7 +96,10 @@ def _get_ascendant_sign(chart_data: List[Dict[str, Any]]) -> str:
 
 def _get_house_sign(ascendant_sign: str, house_num: int) -> str:
     """Calculate which sign occupies a given house"""
-    asc_index = SIGN_ORDER.index(ascendant_sign)
+    try:
+        asc_index = SIGN_ORDER.index(ascendant_sign)
+    except ValueError:
+        asc_index = 0  # default to Aries if sign name not recognised
     house_index = (asc_index + house_num - 1) % 12
     return SIGN_ORDER[house_index]
 

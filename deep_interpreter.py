@@ -155,7 +155,9 @@ def _generate_chart_svg(planet_data: list, asc_sign_index: int,
             IsFullChart=True,
         )
         asc_sign = RASHI_NAMES[asc_sign_index]
-        chart.set_ascendantsign(asc_sign)
+        res = chart.set_ascendantsign(asc_sign)
+        if res != "Success" and asc_sign == "Sagittarius":
+            chart.set_ascendantsign("Saggitarius")  # jyotichart fallback
 
         for p in planet_data:
             sign_idx = p.get("sign_index", p.get("d9_sign_index", 0))
@@ -163,14 +165,9 @@ def _generate_chart_svg(planet_data: list, asc_sign_index: int,
             jc_planet = JYOTICHART_PLANET_MAP.get(p["name"])
             if not jc_planet:
                 continue
-            deg = p.get("sign_deg", 0)
-            # Use clean 2-letter abbreviation (no symbols) for readability
+            # Short label to avoid overlap; full details in the position table
             abbr = p["name"][:2]
-            if deg:
-                d, m, _ = deg_to_dms(deg)
-                label = f"{abbr} {d}:{m:02d}"
-            else:
-                label = abbr
+            label = abbr
             retro = p.get("retrograde", False)
             # Delete any pre-existing planet first (IsFullChart may pre-populate)
             chart.delete_planet(planet=jc_planet)
