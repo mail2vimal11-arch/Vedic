@@ -1184,6 +1184,230 @@ def generate_consultation_html(
     return "\n".join(html_parts)
 
 
+# ── All valid section keys for partial generation ─────────────────────────────
+SECTION_KEYS = [
+    "d1_d9_d10_context",
+    "bhava_vishleshan",
+    "shodasha_varga",
+    "ayurdaya",
+    "vimshottari_dasha",
+    "nakshatra_reading",
+    "karmic_indications",
+    "gochara_transits",
+    "special_yogas_aspects",
+    "remedies",
+    "jyotish_nirnaya",
+]
+
+SECTION_LABELS = {
+    "d1_d9_d10_context":    "Charts, Birth Context & Planetary Data",
+    "bhava_vishleshan":     "Bhava Vishleshan (All 12 Houses)",
+    "shodasha_varga":       "Shodasha Varga (Divisional Charts)",
+    "ayurdaya":             "Ayurdaya (Longevity & Maraka)",
+    "vimshottari_dasha":    "Vimshottari Dasha (Timeline of Life)",
+    "nakshatra_reading":    "Star Constellation Reading",
+    "karmic_indications":   "Karmic Indications (Rahu-Ketu Axis)",
+    "gochara_transits":     "Gochara Live Transit Positions",
+    "special_yogas_aspects": "Special Lagnas, Yogas, Aspects & Aragala",
+    "remedies":             "Remedies & Planetary Harmonisation",
+    "jyotish_nirnaya":      "Jyotish Nirnaya (Life Outcome Synthesis)",
+}
+
+
+def generate_consultation_html_partial(
+    birth: dict,
+    positions: dict,
+    moon_longitude: float,
+    nakshatra_info: dict,
+    dasha_report: str,
+    current_dasha: Optional[dict],
+    ashtakvarga: Optional[dict] = None,
+    extended_data: Optional[dict] = None,
+    ai_narratives: Optional[Dict[str, str]] = None,
+    sections_list: Optional[List[str]] = None,
+) -> str:
+    """
+    Generate a consultation HTML report containing only the requested sections.
+
+    Parameters
+    ----------
+    sections_list : list of str, optional
+        Which section keys to include (see SECTION_KEYS).
+        If None or empty, all sections are included (same as full report).
+    """
+    if not sections_list:
+        sections_list = list(SECTION_KEYS)
+
+    want = set(sections_list)
+
+    name = birth.get("name", "Native")
+    dob = f"{birth.get('day', ''):02d} {_month_name(birth.get('month', 1))} {birth.get('year', '')}"
+    tob = f"{birth.get('hour', 0):02d}:{birth.get('minute', 0):02d}"
+    city = birth.get("city", "")
+    country = birth.get("country", "")
+
+    # Core chart data (always needed)
+    asc = positions.get("ascendant", {})
+    lagna_sign = asc.get("rashi", {}).get("name", "Aquarius")
+    lagna_skt = asc.get("rashi", {}).get("sanskrit", "Kumbha")
+    try:
+        lagna_sign_idx = SIGN_NAMES.index(lagna_sign)
+    except ValueError:
+        lagna_sign_idx = 0
+    lagna_lord = SIGN_LORDS.get(lagna_sign, "Saturn")
+    lagna_deg = round(asc.get("sign_deg", asc.get("longitude", 0)) % 30, 2)
+
+    planet_map = build_planet_map(positions)
+    house_lord_map = build_house_lord_map(lagna_sign_idx)
+
+    try:
+        birth_dt = datetime(
+            int(birth.get("year", 2000)), int(birth.get("month", 1)),
+            int(birth.get("day", 1)), int(birth.get("hour", 0)),
+            int(birth.get("minute", 0)), int(birth.get("second", 0))
+        )
+    except Exception:
+        birth_dt = datetime(2000, 1, 1)
+
+    dasha_timeline = calculate_dasha_timeline(birth_dt, moon_longitude)
+    active_dasha = get_current_dasha(dasha_timeline)
+
+    # Yogas
+    if HAS_RAMAN_RULES:
+        raman_yogas = bv_raman_rules.detect_all_yogas(positions)
+        yogas = []
+        for ry in raman_yogas:
+            yogas.append({
+                "name": ry["name"], "category": ry["category"],
+                "planet": ", ".join(ry.get("planets", [])),
+                "house": ", ".join(str(h) for h in ry.get("houses", [])) if ry.get("houses") else "",
+                "dignity": "", "description": ry.get("description", ""),
+                "strength": ry.get("strength", "Moderate"),
+                "classical_result": ry.get("classical_result", ""),
+                "source": ry.get("source", ""),
+            })
+    else:
+        yogas = detect_yogas(positions, lagna_sign_idx, house_lord_map)
+
+    raman_analysis = None
+    if HAS_RAMAN_RULES:
+        try:
+            raman_analysis = bv_raman_rules.analyze_chart(positions, birth_dt, moon_longitude)
+        except Exception:
+            pass
+
+    lagna_lon = asc.get("longitude", 0)
+    lagna_nak = get_nakshatra(lagna_lon)
+    moon_nak = nakshatra_info if nakshatra_info else get_nakshatra(moon_longitude)
+    ext = extended_data or {}
+
+    # ── HTML Assembly — only requested sections ──────────────────────────
+    html_parts = [_html_head(name)]
+    html_parts.append(_html_cover(name, dob, tob, city, country,
+                                   lagna_sign, lagna_skt, lagna_lord,
+                                   lagna_nak, moon_nak, yogas, active_dasha))
+    html_parts.append('<div class="page">')
+
+    # --- Section: d1_d9_d10_context ---
+    if "d1_d9_d10_context" in want:
+        charts_html = _generate_d1_d9_d10_html(positions, name)
+        if charts_html:
+            html_parts.append(charts_html)
+        html_parts.append(_html_cosmic_context(
+            lagna_sign, lagna_lord, lagna_nak, planet_map, lagna_sign_idx, house_lord_map))
+        html_parts.append(_html_planet_table(positions, lagna_sign_idx, house_lord_map))
+        if ext.get("avasthas"):
+            html_parts.append(_html_avasthas(ext["avasthas"]))
+        if ext.get("shadbala"):
+            html_parts.append(_html_shadbala(ext["shadbala"]))
+
+    # --- Section: special_yogas_aspects ---
+    if "special_yogas_aspects" in want:
+        if ext.get("special_lagnas"):
+            html_parts.append(_html_special_lagnas(ext["special_lagnas"]))
+        if ext.get("karakas"):
+            html_parts.append(_html_karakas(ext["karakas"]))
+        html_parts.append(_html_first_impression(
+            positions, lagna_sign, lagna_lord, planet_map, yogas,
+            active_dasha, lagna_sign_idx, house_lord_map))
+        html_parts.append(_html_yogas_section(yogas))
+        if ext.get("drishti"):
+            html_parts.append(_html_drishti(ext["drishti"], planet_map, lagna_sign_idx))
+        if ext.get("aragala"):
+            html_parts.append(_html_aragala(ext["aragala"]))
+
+    # --- Section: bhava_vishleshan ---
+    if "bhava_vishleshan" in want:
+        house_interps = generate_house_interpretations(
+            positions, lagna_sign_idx, house_lord_map, planet_map)
+        d9_house_map, d10_house_map = {}, {}
+        asc_lon = asc.get("longitude", 0)
+        d9_asc_idx = _navamsha_sign_index(asc_lon)
+        d10_asc_idx = _dasamsa_sign_index(asc_lon)
+        for pname, pdata in planet_map.items():
+            p_lon = pdata.get("longitude", 0)
+            d9_si = _navamsha_sign_index(p_lon)
+            d9_house_map[pname] = {
+                "sign": SIGN_NAMES[d9_si], "house": rashi_to_house(d9_si, d9_asc_idx),
+                "dignity": get_dignity(pname, SIGN_NAMES[d9_si]),
+            }
+            d10_si = _dasamsa_sign_index(p_lon)
+            d10_house_map[pname] = {
+                "sign": SIGN_NAMES[d10_si], "house": rashi_to_house(d10_si, d10_asc_idx),
+                "dignity": get_dignity(pname, SIGN_NAMES[d10_si]),
+            }
+        html_parts.append(_html_houses_section(
+            house_interps, raman_analysis, d9_house_map, d10_house_map))
+
+    # --- Section: shodasha_varga ---
+    if "shodasha_varga" in want and ext.get("vargas"):
+        html_parts.append(_html_vargas(ext["vargas"]))
+
+    # --- Section: ayurdaya ---
+    if "ayurdaya" in want and ext.get("longevity_maraka"):
+        html_parts.append(_html_longevity_maraka(ext["longevity_maraka"]))
+
+    # --- Section: vimshottari_dasha ---
+    if "vimshottari_dasha" in want:
+        html_parts.append(_html_dasha_section(dasha_timeline, active_dasha, birth_dt, raman_analysis))
+
+    # --- Section: nakshatra_reading ---
+    if "nakshatra_reading" in want:
+        html_parts.append(_html_nakshatra_section(lagna_nak, moon_nak, planet_map))
+
+    # --- Section: karmic_indications ---
+    if "karmic_indications" in want:
+        if ashtakvarga:
+            html_parts.append(_html_ashtakvarga(ashtakvarga))
+        html_parts.append(_html_karmic(planet_map, lagna_sign_idx, house_lord_map))
+
+    # --- Section: gochara_transits ---
+    if "gochara_transits" in want:
+        transit_html = _generate_transit_chart_html(positions, name)
+        if transit_html:
+            html_parts.append(transit_html)
+
+    # --- AI Consultation Narrative (if requested and available) ---
+    if ai_narratives and HAS_AI_LAYER and any(ai_narratives.values()):
+        html_parts.append(ai_interpreter.render_ai_narrative_html(ai_narratives))
+
+    # --- Section: jyotish_nirnaya ---
+    if "jyotish_nirnaya" in want:
+        html_parts.append(_html_synthesis(
+            lagna_sign, lagna_lord, planet_map, yogas, active_dasha,
+            house_lord_map, lagna_sign_idx))
+
+    # --- Section: remedies ---
+    if "remedies" in want:
+        html_parts.append(_html_remedies(lagna_lord, house_lord_map, planet_map, yogas))
+
+    html_parts.append(_html_footer(name))
+    html_parts.append('</div>')
+    html_parts.append('</body></html>')
+
+    return "\n".join(html_parts)
+
+
 # ── HTML sub-builders ─────────────────────────────────────────────────────────
 
 CSS = """

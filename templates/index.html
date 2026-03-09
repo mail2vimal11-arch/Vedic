@@ -83,6 +83,21 @@ input:focus, select:focus { outline: none; border-color: var(--color-saffron); b
 .tab.active { background: var(--color-surface); color: var(--color-saffron-dk); box-shadow: 0 -2px 0 var(--color-saffron) inset; }
 .tab-panel { display: none; } .tab-panel.active { display: block; }
 .tab-panel > .card { border-radius: 0 0 var(--radius-lg) var(--radius-lg); margin-top: 0; border-top: none; }
+/* Deep Consultation Dropdown */
+.consult-dropdown-wrap { vertical-align: bottom; }
+.consult-dropdown { position:absolute; right:0; top:100%; z-index:100; background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); width:380px; max-height:80vh; overflow-y:auto; padding:0; }
+.consult-dropdown-header { padding:14px 18px 10px; border-bottom:1px solid var(--color-border-lt); display:flex; flex-direction:column; gap:2px; }
+.consult-checkbox-list { padding:8px 14px; }
+.consult-check-item { display:flex; align-items:center; gap:8px; padding:7px 6px; font-size:0.85rem; color:var(--color-text); cursor:pointer; border-radius:6px; transition:background 0.15s; }
+.consult-check-item:hover { background:var(--color-saffron-lt); }
+.consult-check-item input[type=checkbox] { width:16px; height:16px; accent-color:var(--color-saffron); flex-shrink:0; }
+.consult-dropdown-divider { height:1px; background:var(--color-border-lt); margin:4px 14px; }
+.consult-ai-toggle { padding:8px 20px; background:var(--color-gold-lt); margin:4px 14px; border-radius:6px; }
+.consult-dropdown-actions { display:flex; gap:8px; padding:12px 14px; border-top:1px solid var(--color-border-lt); }
+.consult-dropdown-actions .btn { flex:1; }
+.btn-generate { background:var(--color-saffron)!important; color:#fff!important; font-weight:600; border:none; }
+.btn-generate:hover { background:var(--color-saffron-dk)!important; }
+@media(max-width:768px){ .consult-dropdown { width:calc(100vw - 32px); right:-60px; } }
 .chart-container { display: flex; justify-content: center; padding: 24px; background: var(--color-bg); min-height: 300px; }
 .chart-container svg { max-width: 100%; height: auto; max-height: 520px; }
 .chart-meta { display: flex; justify-content: center; gap: 32px; padding: 12px 24px; font-size: 0.78rem; color: var(--color-text-3); border-top: 1px solid var(--color-border-lt); }
@@ -356,10 +371,37 @@ body { background: #fff; }
                 <button class="tab active" data-tab="chartTab">Rashi Chart</button>
                 <button class="tab" data-tab="planetsTab">Planets</button>
                 <button class="tab" data-tab="panchaTab">Panchanga</button>
-                <button class="tab" data-tab="interpTab">Interpretations</button>
                 <button class="tab" data-tab="dashaTab">Dasha Timeline</button>
                 <button class="tab" data-tab="currentTab">Current Dasha</button>
-                <button class="tab tab-consult" data-tab="consultTab">&#9654; Deep Consultation</button>
+                <div class="consult-dropdown-wrap" style="position:relative;display:inline-block;">
+                    <button class="tab tab-consult" id="consultDropdownBtn" onclick="toggleConsultDropdown(event)">&#9654; Deep Consultation &#9662;</button>
+                    <div id="consultDropdown" class="consult-dropdown" style="display:none;">
+                        <div class="consult-dropdown-header">
+                            <strong>Select Report Sections</strong>
+                            <span style="font-size:0.75rem;color:var(--color-text-3);">Choose what to include</span>
+                        </div>
+                        <div class="consult-checkbox-list" id="sectionCheckboxes">
+                            <label class="consult-check-item"><input type="checkbox" value="d1_d9_d10_context" checked> Charts, Birth Context & Planetary Data</label>
+                            <label class="consult-check-item"><input type="checkbox" value="bhava_vishleshan" checked> Bhava Vishleshan (All 12 Houses)</label>
+                            <label class="consult-check-item"><input type="checkbox" value="shodasha_varga" checked> Shodasha Varga (Divisional Charts)</label>
+                            <label class="consult-check-item"><input type="checkbox" value="ayurdaya" checked> Ayurdaya (Longevity & Maraka)</label>
+                            <label class="consult-check-item"><input type="checkbox" value="vimshottari_dasha" checked> Vimshottari Dasha (Timeline)</label>
+                            <label class="consult-check-item"><input type="checkbox" value="nakshatra_reading" checked> Star Constellation Reading</label>
+                            <label class="consult-check-item"><input type="checkbox" value="karmic_indications" checked> Karmic Indications (Rahu-Ketu)</label>
+                            <label class="consult-check-item"><input type="checkbox" value="gochara_transits" checked> Gochara Live Transit Positions</label>
+                            <label class="consult-check-item"><input type="checkbox" value="special_yogas_aspects" checked> Special Lagnas, Yogas & Aspects</label>
+                            <label class="consult-check-item"><input type="checkbox" value="remedies" checked> Remedies & Harmonisation</label>
+                            <label class="consult-check-item"><input type="checkbox" value="jyotish_nirnaya" checked> Jyotish Nirnaya (Life Synthesis)</label>
+                        </div>
+                        <div class="consult-dropdown-divider"></div>
+                        <label class="consult-check-item consult-ai-toggle"><input type="checkbox" id="includeAiCheck" checked> <strong>Include AI-Powered Insights</strong></label>
+                        <div class="consult-dropdown-actions">
+                            <button class="btn btn-sm" onclick="toggleAllSections(true)">Select All</button>
+                            <button class="btn btn-sm" onclick="toggleAllSections(false)">Deselect All</button>
+                            <button class="btn btn-sm btn-generate" onclick="generatePartialConsultation()">Generate Report</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Tab: Rashi Chart -->
@@ -459,17 +501,7 @@ body { background: #fff; }
             </div>
 
             <!-- Tab: Interpretations -->
-            <div id="interpTab" class="tab-panel">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>House Interpretations</h2>
-                        <p class="card-subtitle">Classical predictions based on BPHS, Phalita Jyotisha &amp; Saravali — click any house to expand</p>
-                    </div>
-                    <div id="interpContent" style="padding-bottom:12px;">
-                        <!-- Populated by JS -->
-                    </div>
-                </div>
-            </div>
+            <!-- Interpretations tab removed — content moved to Deep Consultation sections -->
 
             <!-- Tab: Dasha Timeline -->
             <div id="dashaTab" class="tab-panel">
@@ -625,7 +657,7 @@ function bindEvents(){
     $("#city").addEventListener("keydown",(e)=>{if(e.key==="Enter"){e.preventDefault();lookupCity();}});
     $("#geolocateBtn").addEventListener("click",geolocate);
     $("#birthForm").addEventListener("submit",handleSubmit);
-    $$(".tab").forEach((tab)=>{tab.addEventListener("click",()=>switchTab(tab.dataset.tab));});
+    $$(".tab").forEach((tab)=>{tab.addEventListener("click",()=>{if(tab.dataset.tab)switchTab(tab.dataset.tab);});});
 }
 
 async function lookupCity(){
@@ -675,17 +707,52 @@ async function handleSubmit(e){
         const data=await resp.json();
         if(!resp.ok||!data.success){throw new Error(data.error||"Chart generation failed.");}
         renderResults(data);
-        // Fire deep consultation in background — non-blocking
-        loadDeepConsultation(payload);
+        // Store payload for later use by Deep Consultation dropdown
+        window._chartPayload=payload;
     }catch(err){showError(err.message||"An error occurred. Please try again.");if(cLoading)cLoading.style.display="none";}
     finally{$("#loadingSection").style.display="none";submitBtn.disabled=false;submitBtn.textContent="Generate Birth Chart";}
 }
 
-async function loadDeepConsultation(payload){
+/* ── Deep Consultation Dropdown Logic ─────────────────────────────── */
+function toggleConsultDropdown(e){
+    e.stopPropagation();
+    const dd=$("#consultDropdown");
+    dd.style.display=dd.style.display==="none"?"block":"none";
+}
+document.addEventListener("click",function(e){
+    const dd=$("#consultDropdown");if(!dd)return;
+    if(!e.target.closest(".consult-dropdown-wrap")){dd.style.display="none";}
+});
+
+function toggleAllSections(checked){
+    $$("#sectionCheckboxes input[type=checkbox]").forEach(cb=>{cb.checked=checked;});
+}
+
+async function generatePartialConsultation(){
+    if(!window._chartPayload){alert("Please generate a birth chart first.");return;}
+    // Collect selected sections
+    const checks=$$("#sectionCheckboxes input[type=checkbox]:checked");
+    const sections=Array.from(checks).map(cb=>cb.value);
+    if(sections.length===0){alert("Please select at least one section.");return;}
+    const includeAi=$("#includeAiCheck").checked;
+
+    // Close dropdown and switch to consultation tab
+    $("#consultDropdown").style.display="none";
+    switchTab("consultTab");
+
+    // Show loading
     const frame=$("#consultFrame");const cLoading=$("#consultLoading");const cError=$("#consultError");
-    const dlBtn=$("#consultDownloadBtn");const topBtn=$("#topConsultBtn");
+    const dlBtn=$("#consultDownloadBtn");
+    if(frame)frame.style.display="none";
+    if(cError)cError.style.display="none";
+    if(cLoading){cLoading.style.display="block";
+        cLoading.querySelector("p").textContent="Generating "+sections.length+" section"+(sections.length>1?"s":"")+"…";}
+    if(dlBtn)dlBtn.disabled=true;
+
+    // Build request
+    const payload=Object.assign({},window._chartPayload,{sections:sections,include_ai:includeAi});
     try{
-        const resp=await fetch("/api/consultation",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+        const resp=await fetch("/api/consultation-partial",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
         if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.error||"Consultation generation failed.");}
         const html=await resp.text();
         const blob=new Blob([html],{type:"text/html"});
@@ -693,12 +760,18 @@ async function loadDeepConsultation(payload){
         window._consultationHtml=html;window._consultationBlobUrl=url;
         if(frame){frame.src=url;frame.style.display="block";}
         if(cLoading)cLoading.style.display="none";
-        if(dlBtn){dlBtn.disabled=false;}
-        if(topBtn){topBtn.disabled=false;topBtn.style.background="#8b4513";topBtn.style.color="#fff";}
+        if(dlBtn)dlBtn.disabled=false;
     }catch(err){
         if(cLoading)cLoading.style.display="none";
-        if(cError){cError.style.display="block";cError.innerHTML='<strong>Could not generate deep consultation.</strong><br>'+err.message+'<br><small style="color:#888;">The chart above is still complete. You can try the Deep Consultation tab again by resubmitting.</small>';}
+        if(cError){cError.style.display="block";cError.innerHTML='<strong>Could not generate consultation.</strong><br>'+err.message+'<br><small style="color:#888;">Try selecting fewer sections, or uncheck AI insights.</small>';}
     }
+}
+
+/* Legacy fallback — still used if old code references it */
+async function loadDeepConsultation(payload){
+    window._chartPayload=payload;
+    toggleAllSections(true);
+    generatePartialConsultation();
 }
 
 function downloadConsultation(){
@@ -711,7 +784,7 @@ function downloadConsultation(){
     document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
 }
 
-function renderResults(data){renderSummary(data);renderChart(data);renderPlanets(data);renderPanchanga(data);renderInterpretations(data);renderDasha(data);renderCurrentDasha(data);$("#resultsSection").style.display="block";switchTab("chartTab");$("#resultsSection").scrollIntoView({behavior:"smooth",block:"start"});}
+function renderResults(data){renderSummary(data);renderChart(data);renderPlanets(data);renderPanchanga(data);renderDasha(data);renderCurrentDasha(data);$("#resultsSection").style.display="block";switchTab("chartTab");$("#resultsSection").scrollIntoView({behavior:"smooth",block:"start"});}
 
 function renderSummary(data){
     const b=data.birth_details;const c=data.chart;

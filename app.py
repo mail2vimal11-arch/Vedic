@@ -32,12 +32,12 @@ from vims_engine import (
     compute_moon_longitude, calc_nakshatra, get_full_dasha_report,
     get_dasha_timeline, find_active_periods
 )
-from deep_interpreter import generate_consultation_html
+from deep_interpreter import generate_consultation_html, generate_consultation_html_partial, SECTION_KEYS, SECTION_LABELS
 from parashari_engine import compute_extended_data
 
 # AI Interpretation Layer (optional — requires ANTHROPIC_API_KEY)
 try:
-    from ai_interpreter import generate_ai_narratives
+    from ai_interpreter import generate_ai_narratives, generate_ai_narratives_parallel
     HAS_AI_LAYER = True
 except ImportError:
     HAS_AI_LAYER = False
@@ -472,6 +472,137 @@ def create_app():
 
         except Exception as e:
             logger.error(f"Consultation generation failed: {traceback.format_exc()}")
+            return jsonify({"error": f"Consultation error: {str(e)}"}), 500
+
+    @app.route("/api/consultation-sections", methods=["GET"])
+    def get_consultation_sections():
+        """Return the list of available consultation sections for the dropdown."""
+        sections = [{"key": k, "label": SECTION_LABELS[k]} for k in SECTION_KEYS]
+        return jsonify({"sections": sections})
+
+    @app.route("/api/consultation-partial", methods=["POST"])
+    def generate_consultation_partial():
+        """
+        Generate a consultation report with only selected sections.
+
+        Accepts same birth data as /api/consultation plus:
+            sections: list of section keys to include (default: all)
+            include_ai: bool — whether to generate AI narrative (default: true)
+        """
+        try:
+            data = request.get_json(force=True)
+            if not data:
+                return jsonify({"error": "No JSON data provided"}), 400
+            birth = validate_birth_data(data)
+        except ValidationError as e:
+            return jsonify({"error": str(e)}), 400
+        except Exception:
+            return jsonify({"error": "Invalid request data"}), 400
+
+        try:
+            sections_list = data.get("sections", None)  # None = all
+            include_ai = data.get("include_ai", True)
+
+            # 1. Planetary positions
+            positions = calculate_positions(
+                year=birth["year"], month=birth["month"], day=birth["day"],
+                hour=birth["hour"], minute=birth["minute"], second=birth["second"],
+                utc_offset=birth["utc_offset"],
+                latitude=birth["latitude"], longitude=birth["longitude"],
+            )
+
+            # 2. Moon longitude & Nakshatra
+            moon_lon = compute_moon_longitude(
+                birth["year"], birth["month"], birth["day"],
+                birth["hour"], birth["minute"], birth["second"],
+                birth["utc_offset"],
+            )
+            nakshatra_info = calc_nakshatra(moon_lon)
+
+            # 3. Dasha
+            birth_dt = datetime(
+                birth["year"], birth["month"], birth["day"],
+                birth["hour"], birth["minute"], birth["second"],
+            )
+            dasha_report = get_full_dasha_report(birth_dt, moon_lon)
+
+            # 4. Active Dasha
+            timeline = get_dasha_timeline(moon_lon, birth_dt)
+            now = datetime.now()
+            active = find_active_periods(timeline, now)
+            current_dasha = None
+            if active:
+                current_dasha = {
+                    "maha":        active["maha"]["dasha_lord"],
+                    "maha_start":  active["maha"]["start_date"].strftime("%d-%b-%Y"),
+                    "maha_end":    active["maha"]["end_date"].strftime("%d-%b-%Y"),
+                    "antar":       active["antar"]["antar_lord"],
+                    "antar_start": active["antar"]["start_date"].strftime("%d-%b-%Y"),
+                    "antar_end":   active["antar"]["end_date"].strftime("%d-%b-%Y"),
+                }
+                if active.get("pratyantar"):
+                    current_dasha["pratyantar"] = active["pratyantar"]["pratyantar_lord"]
+                    current_dasha["pratyantar_start"] = active["pratyantar"]["start_date"].strftime("%d-%b-%Y")
+                    current_dasha["pratyantar_end"]   = active["pratyantar"]["end_date"].strftime("%d-%b-%Y")
+
+            # 5. Extended computations
+            extended_data = compute_extended_data(
+                positions=positions, birth=birth, moon_longitude=moon_lon
+            )
+
+            raman_analysis = None
+            if HAS_RAMAN_RULES:
+                try:
+                    raman_analysis = raman_analyze_chart(positions, birth_dt, moon_lon)
+                except Exception as e:
+                    logger.warning(f"B.V. Raman analysis error: {e}")
+
+            # 6. AI Narratives — parallel generation
+            ai_narratives = None
+            if include_ai and HAS_AI_LAYER and os.environ.get("ANTHROPIC_API_KEY"):
+                try:
+                    ai_narratives = generate_ai_narratives_parallel(
+                        positions=positions,
+                        birth=birth,
+                        raman_analysis=raman_analysis,
+                        extended_data=extended_data,
+                        current_dasha=current_dasha,
+                    )
+                    ai_count = sum(1 for v in ai_narratives.values() if v)
+                    logger.info(f"AI narratives (parallel): {ai_count} sections")
+                except Exception as e:
+                    logger.warning(f"Parallel AI generation failed, trying sequential: {e}")
+                    try:
+                        ai_narratives = generate_ai_narratives(
+                            positions=positions, birth=birth,
+                            raman_analysis=raman_analysis,
+                            extended_data=extended_data,
+                            current_dasha=current_dasha,
+                        )
+                    except Exception:
+                        ai_narratives = None
+
+            # 7. Build partial HTML
+            html_report = generate_consultation_html_partial(
+                birth=birth,
+                positions=positions,
+                moon_longitude=moon_lon,
+                nakshatra_info=nakshatra_info,
+                dasha_report=dasha_report,
+                current_dasha=current_dasha,
+                ashtakvarga=None,
+                extended_data=extended_data,
+                ai_narratives=ai_narratives,
+                sections_list=sections_list,
+            )
+
+            logger.info(f"Partial consultation for {birth['name']} — "
+                        f"sections: {sections_list or 'ALL'}")
+
+            return Response(html_report, mimetype="text/html; charset=utf-8")
+
+        except Exception as e:
+            logger.error(f"Partial consultation failed: {traceback.format_exc()}")
             return jsonify({"error": f"Consultation error: {str(e)}"}), 500
 
     @app.route("/output/<path:filename>")

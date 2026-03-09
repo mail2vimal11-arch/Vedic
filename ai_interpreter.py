@@ -44,6 +44,7 @@ import logging
 import time
 from typing import Dict, List, Optional, Any
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 logger = logging.getLogger("vedic.ai_interpreter")
 
@@ -692,6 +693,76 @@ def generate_ai_narratives(
         except Exception as e:
             logger.error(f"AI narrative generation failed for {section_name}: {e}")
             narratives[section_name] = ""
+
+    return narratives
+
+
+def generate_ai_narratives_parallel(
+    positions: dict,
+    birth: dict,
+    raman_analysis: dict = None,
+    extended_data: dict = None,
+    current_dasha: dict = None,
+    api_key: str = None,
+    model: str = None,
+    sections: List[str] = None,
+    max_workers: int = 4,
+) -> Dict[str, str]:
+    """
+    Generate AI narrative sections in parallel using ThreadPoolExecutor.
+
+    Same interface and output as generate_ai_narratives() but ~4x faster
+    by running multiple Claude API calls concurrently.
+    """
+    api_key = api_key or os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        logger.info("No API key — returning empty AI narratives")
+        return {s: "" for s in SECTION_PROMPTS}
+
+    chart_context = _format_chart_context(positions, birth, raman_analysis, extended_data)
+    dasha_context = _format_current_dasha_context(current_dasha)
+    transit_context = _get_current_transits()
+
+    if sections is None:
+        sections = list(SECTION_PROMPTS.keys())
+
+    def _generate_one(section_name):
+        """Generate a single AI narrative section."""
+        template = SECTION_PROMPTS.get(section_name, "")
+        if not template:
+            return section_name, ""
+        user_prompt = template.format(
+            chart_context=chart_context,
+            dasha_context=dasha_context,
+            transit_context=transit_context,
+        )
+        section_max_tokens = 3000 if section_name in ("year_ahead", "bhava_deep") else MAX_TOKENS_PER_SECTION
+        try:
+            logger.info(f"Generating AI narrative (parallel): {section_name}")
+            start = time.time()
+            raw_text = _call_claude(
+                system_prompt=JYOTISH_SYSTEM_PROMPT,
+                user_prompt=user_prompt,
+                api_key=api_key,
+                model=model,
+                max_tokens=section_max_tokens,
+            )
+            elapsed = time.time() - start
+            logger.info(f"  → {section_name}: {len(raw_text)} chars in {elapsed:.1f}s")
+            if raw_text:
+                paragraphs = [p.strip() for p in raw_text.split("\n\n") if p.strip()]
+                return section_name, "\n".join(f"<p>{p}</p>" for p in paragraphs)
+            return section_name, ""
+        except Exception as e:
+            logger.error(f"AI parallel generation failed for {section_name}: {e}")
+            return section_name, ""
+
+    narratives = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(_generate_one, s): s for s in sections}
+        for future in as_completed(futures):
+            section_name, html_text = future.result()
+            narratives[section_name] = html_text
 
     return narratives
 
