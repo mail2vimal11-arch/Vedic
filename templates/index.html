@@ -84,8 +84,8 @@ input:focus, select:focus { outline: none; border-color: var(--color-saffron); b
 .tab-panel { display: none; } .tab-panel.active { display: block; }
 .tab-panel > .card { border-radius: 0 0 var(--radius-lg) var(--radius-lg); margin-top: 0; border-top: none; }
 /* Deep Consultation Dropdown */
-.consult-dropdown-wrap { vertical-align: bottom; }
-.consult-dropdown { position:absolute; right:0; top:100%; z-index:100; background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); width:380px; max-height:80vh; overflow-y:auto; padding:0; }
+.consult-dropdown-wrap { position: relative; }
+.consult-dropdown { position:absolute; right:0; top: auto; z-index:9999; background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); box-shadow:0 8px 32px rgba(0,0,0,0.28); width:380px; max-height:70vh; overflow-y:auto; padding:0; margin-top: -2px; }
 .consult-dropdown-header { padding:14px 18px 10px; border-bottom:1px solid var(--color-border-lt); display:flex; flex-direction:column; gap:2px; }
 .consult-checkbox-list { padding:8px 14px; }
 .consult-check-item { display:flex; align-items:center; gap:8px; padding:7px 6px; font-size:0.85rem; color:var(--color-text); cursor:pointer; border-radius:6px; transition:background 0.15s; }
@@ -97,7 +97,7 @@ input:focus, select:focus { outline: none; border-color: var(--color-saffron); b
 .consult-dropdown-actions .btn { flex:1; }
 .btn-generate { background:var(--color-saffron)!important; color:#fff!important; font-weight:600; border:none; }
 .btn-generate:hover { background:var(--color-saffron-dk)!important; }
-@media(max-width:768px){ .consult-dropdown { width:calc(100vw - 32px); right:-60px; } }
+@media(max-width:768px){ .consult-dropdown { width:calc(100vw - 32px); right:0; left:0; margin:0 auto; } }
 .chart-container { display: flex; justify-content: center; padding: 24px; background: var(--color-bg); min-height: 300px; }
 .chart-container svg { max-width: 100%; height: auto; max-height: 520px; }
 .chart-meta { display: flex; justify-content: center; gap: 32px; padding: 12px 24px; font-size: 0.78rem; color: var(--color-text-3); border-top: 1px solid var(--color-border-lt); }
@@ -367,39 +367,39 @@ body { background: #fff; }
             </div>
 
             <!-- Tab Navigation -->
-            <div class="tabs">
-                <button class="tab active" data-tab="chartTab">Rashi Chart</button>
-                <button class="tab" data-tab="planetsTab">Planets</button>
-                <button class="tab" data-tab="panchaTab">Panchanga</button>
-                <button class="tab" data-tab="dashaTab">Dasha Timeline</button>
-                <button class="tab" data-tab="currentTab">Current Dasha</button>
-                <div class="consult-dropdown-wrap" style="position:relative;display:inline-block;">
+            <div class="consult-dropdown-wrap">
+                <div class="tabs">
+                    <button class="tab active" data-tab="chartTab">Rashi Chart</button>
+                    <button class="tab" data-tab="planetsTab">Planets</button>
+                    <button class="tab" data-tab="panchaTab">Panchanga</button>
+                    <button class="tab" data-tab="dashaTab">Dasha Timeline</button>
+                    <button class="tab" data-tab="currentTab">Current Dasha</button>
                     <button class="tab tab-consult" id="consultDropdownBtn" onclick="toggleConsultDropdown(event)">&#9654; Deep Consultation &#9662;</button>
-                    <div id="consultDropdown" class="consult-dropdown" style="display:none;">
-                        <div class="consult-dropdown-header">
-                            <strong>Select Report Sections</strong>
-                            <span style="font-size:0.75rem;color:var(--color-text-3);">Choose what to include</span>
-                        </div>
-                        <div class="consult-checkbox-list" id="sectionCheckboxes">
-                            <label class="consult-check-item"><input type="checkbox" value="d1_d9_d10_context" checked> Charts, Birth Context & Planetary Data</label>
-                            <label class="consult-check-item"><input type="checkbox" value="bhava_vishleshan" checked> Bhava Vishleshan (All 12 Houses)</label>
-                            <label class="consult-check-item"><input type="checkbox" value="shodasha_varga" checked> Shodasha Varga (Divisional Charts)</label>
-                            <label class="consult-check-item"><input type="checkbox" value="ayurdaya" checked> Ayurdaya (Longevity & Maraka)</label>
-                            <label class="consult-check-item"><input type="checkbox" value="vimshottari_dasha" checked> Vimshottari Dasha (Timeline)</label>
-                            <label class="consult-check-item"><input type="checkbox" value="nakshatra_reading" checked> Star Constellation Reading</label>
-                            <label class="consult-check-item"><input type="checkbox" value="karmic_indications" checked> Karmic Indications (Rahu-Ketu)</label>
-                            <label class="consult-check-item"><input type="checkbox" value="gochara_transits" checked> Gochara Live Transit Positions</label>
-                            <label class="consult-check-item"><input type="checkbox" value="special_yogas_aspects" checked> Special Lagnas, Yogas & Aspects</label>
-                            <label class="consult-check-item"><input type="checkbox" value="remedies" checked> Remedies & Harmonisation</label>
-                            <label class="consult-check-item"><input type="checkbox" value="jyotish_nirnaya" checked> Jyotish Nirnaya (Life Synthesis)</label>
-                        </div>
-                        <div class="consult-dropdown-divider"></div>
-                        <label class="consult-check-item consult-ai-toggle"><input type="checkbox" id="includeAiCheck" checked> <strong>Include AI-Powered Insights</strong></label>
-                        <div class="consult-dropdown-actions">
-                            <button class="btn btn-sm" onclick="toggleAllSections(true)">Select All</button>
-                            <button class="btn btn-sm" onclick="toggleAllSections(false)">Deselect All</button>
-                            <button class="btn btn-sm btn-generate" onclick="generatePartialConsultation()">Generate Report</button>
-                        </div>
+                </div>
+                <div id="consultDropdown" class="consult-dropdown" style="display:none;">
+                    <div class="consult-dropdown-header">
+                        <strong>Select Report Sections</strong>
+                        <span style="font-size:0.75rem;color:var(--color-text-3);">Choose what to include</span>
+                    </div>
+                    <div class="consult-checkbox-list" id="sectionCheckboxes">
+                        <label class="consult-check-item"><input type="checkbox" value="d1_d9_d10_context" checked> Charts, Birth Context & Planetary Data</label>
+                        <label class="consult-check-item"><input type="checkbox" value="bhava_vishleshan" checked> Bhava Vishleshan (All 12 Houses)</label>
+                        <label class="consult-check-item"><input type="checkbox" value="shodasha_varga" checked> Shodasha Varga (Divisional Charts)</label>
+                        <label class="consult-check-item"><input type="checkbox" value="ayurdaya" checked> Ayurdaya (Longevity & Maraka)</label>
+                        <label class="consult-check-item"><input type="checkbox" value="vimshottari_dasha" checked> Vimshottari Dasha (Timeline)</label>
+                        <label class="consult-check-item"><input type="checkbox" value="nakshatra_reading" checked> Star Constellation Reading</label>
+                        <label class="consult-check-item"><input type="checkbox" value="karmic_indications" checked> Karmic Indications (Rahu-Ketu)</label>
+                        <label class="consult-check-item"><input type="checkbox" value="gochara_transits" checked> Gochara Live Transit Positions</label>
+                        <label class="consult-check-item"><input type="checkbox" value="special_yogas_aspects" checked> Special Lagnas, Yogas & Aspects</label>
+                        <label class="consult-check-item"><input type="checkbox" value="remedies" checked> Remedies & Harmonisation</label>
+                        <label class="consult-check-item"><input type="checkbox" value="jyotish_nirnaya" checked> Jyotish Nirnaya (Life Synthesis)</label>
+                    </div>
+                    <div class="consult-dropdown-divider"></div>
+                    <label class="consult-check-item consult-ai-toggle"><input type="checkbox" id="includeAiCheck" checked> <strong>Include AI-Powered Insights</strong></label>
+                    <div class="consult-dropdown-actions">
+                        <button class="btn btn-sm" onclick="toggleAllSections(true)">Select All</button>
+                        <button class="btn btn-sm" onclick="toggleAllSections(false)">Deselect All</button>
+                        <button class="btn btn-sm btn-generate" onclick="generatePartialConsultation()">Generate Report</button>
                     </div>
                 </div>
             </div>
