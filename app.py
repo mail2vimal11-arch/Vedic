@@ -49,6 +49,13 @@ try:
 except ImportError:
     HAS_RAMAN_RULES = False
 
+# Gochar (Transit) Engine
+try:
+    from gochar_engine import compute_monthly_transits, compute_twelve_month_overview
+    HAS_GOCHAR = True
+except ImportError:
+    HAS_GOCHAR = False
+
 # ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
@@ -604,6 +611,84 @@ def create_app():
         except Exception as e:
             logger.error(f"Partial consultation failed: {traceback.format_exc()}")
             return jsonify({"error": f"Consultation error: {str(e)}"}), 500
+
+    # ── Gochar (Transit Prediction) Endpoints ─────────────────────────────
+    @app.route("/api/gochar", methods=["POST"])
+    def get_gochar():
+        """
+        Compute monthly Gochar (transit) predictions.
+
+        Accepts same birth data as /api/chart plus:
+            year: int — target year (default: current)
+            month: int — target month 1-12 (default: current)
+        """
+        if not HAS_GOCHAR:
+            return jsonify({"error": "Gochar engine not available"}), 500
+
+        try:
+            data = request.get_json(force=True)
+            if not data:
+                return jsonify({"error": "No JSON data provided"}), 400
+            birth = validate_birth_data(data)
+        except ValidationError as e:
+            return jsonify({"error": str(e)}), 400
+        except Exception:
+            return jsonify({"error": "Invalid request data"}), 400
+
+        try:
+            from datetime import datetime as dt
+            now = dt.now()
+            target_year = int(data.get("year", now.year))
+            target_month = int(data.get("month", now.month))
+
+            if target_month < 1 or target_month > 12:
+                return jsonify({"error": "Month must be 1-12"}), 400
+
+            # Calculate natal positions
+            positions = calculate_positions(
+                year=birth["year"], month=birth["month"], day=birth["day"],
+                hour=birth["hour"], minute=birth["minute"], second=birth["second"],
+                utc_offset=birth["utc_offset"],
+                latitude=birth["latitude"], longitude=birth["longitude"],
+            )
+
+            result = compute_monthly_transits(positions, birth, target_year, target_month)
+
+            logger.info(f"Gochar for {birth['name']} — {result['month_label']}: "
+                        f"{result['summary']['overall']}")
+
+            return jsonify(result)
+
+        except Exception as e:
+            logger.error(f"Gochar computation failed: {traceback.format_exc()}")
+            return jsonify({"error": f"Gochar error: {str(e)}"}), 500
+
+    @app.route("/api/gochar/overview", methods=["POST"])
+    def get_gochar_overview():
+        """12-month transit overview (lightweight summaries)."""
+        if not HAS_GOCHAR:
+            return jsonify({"error": "Gochar engine not available"}), 500
+
+        try:
+            data = request.get_json(force=True)
+            birth = validate_birth_data(data)
+        except (ValidationError, Exception) as e:
+            return jsonify({"error": str(e)}), 400
+
+        try:
+            positions = calculate_positions(
+                year=birth["year"], month=birth["month"], day=birth["day"],
+                hour=birth["hour"], minute=birth["minute"], second=birth["second"],
+                utc_offset=birth["utc_offset"],
+                latitude=birth["latitude"], longitude=birth["longitude"],
+            )
+
+            overview = compute_twelve_month_overview(positions, birth)
+            return jsonify({"overview": overview})
+
+        except Exception as e:
+            logger.error(f"Gochar overview failed: {traceback.format_exc()}")
+            return jsonify({"error": f"Overview error: {str(e)}"}), 500
 
     @app.route("/output/<path:filename>")
     def serve_chart(filename):
