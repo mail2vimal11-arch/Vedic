@@ -880,8 +880,8 @@ async function loadGocharData() {
     if (error) error.style.display = "none";
 
     const payload = Object.assign({}, window._chartPayload, {
-        year: window._gocharYear,
-        month: window._gocharMonth
+        transit_year: window._gocharYear,
+        transit_month: window._gocharMonth
     });
 
     try {

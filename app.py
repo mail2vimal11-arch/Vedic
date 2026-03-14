@@ -638,8 +638,8 @@ def create_app():
         try:
             from datetime import datetime as dt
             now = dt.now()
-            target_year = int(data.get("year", now.year))
-            target_month = int(data.get("month", now.month))
+            target_year = int(data.get("transit_year", now.year))
+            target_month = int(data.get("transit_month", now.month))
 
             if target_month < 1 or target_month > 12:
                 return jsonify({"error": "Month must be 1-12"}), 400
