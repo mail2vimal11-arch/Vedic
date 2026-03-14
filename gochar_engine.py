@@ -66,6 +66,89 @@ PLANET_IDS = {
 SLOW_PLANETS = {"Jupiter", "Saturn", "Rahu", "Ketu"}
 MEDIUM_PLANETS = {"Sun", "Mars", "Venus", "Mercury"}
 
+# ── Tamil Panchanga Month Names (Solar — Drikpanchang) ───────────────────────
+# Each Tamil month corresponds to the Sun's sidereal transit through a Rashi.
+# Chithirai = Sun in Mesha (Aries), Vaigasi = Sun in Vrishabha (Taurus), etc.
+TAMIL_MONTHS = [
+    "Chithirai",   # Mesha (Aries)     ~Apr 14 - May 14
+    "Vaigasi",     # Vrishabha (Taurus) ~May 15 - Jun 14
+    "Aani",        # Mithuna (Gemini)   ~Jun 15 - Jul 16
+    "Aadi",        # Karka (Cancer)     ~Jul 17 - Aug 16
+    "Aavani",      # Simha (Leo)        ~Aug 17 - Sep 16
+    "Purattasi",   # Kanya (Virgo)      ~Sep 17 - Oct 17
+    "Aippasi",     # Tula (Libra)       ~Oct 18 - Nov 15
+    "Karthigai",   # Vrischika (Scorpio)~Nov 16 - Dec 15
+    "Margazhi",    # Dhanu (Sagittarius)~Dec 16 - Jan 13
+    "Thai",        # Makara (Capricorn) ~Jan 14 - Feb 12
+    "Maasi",       # Kumbha (Aquarius)  ~Feb 13 - Mar 13
+    "Panguni",     # Meena (Pisces)     ~Mar 14 - Apr 13
+]
+
+TAMIL_MONTH_RASHI = [
+    "Mesha", "Vrishabha", "Mithuna", "Karka", "Simha", "Kanya",
+    "Tula", "Vrischika", "Dhanu", "Makara", "Kumbha", "Meena"
+]
+
+
+def get_tamil_month(jd: float) -> dict:
+    """
+    Determine the Tamil Panchanga month for a given Julian Day.
+    Based on Sun's sidereal sign (Lahiri ayanamsa).
+    Returns dict with tamil_name, rashi, sign_index.
+    """
+    if not HAS_SWE:
+        return {"tamil_name": "Unknown", "rashi": "", "sign_index": 0}
+
+    flags = 2 | 64  # FLG_SWIEPH | FLG_SIDEREAL
+    pos, _ = swe.calc_ut(jd, 0, flags)  # Sun = 0
+    sun_lon = pos[0]
+    sign_idx = int(sun_lon / 30) % 12
+
+    return {
+        "tamil_name": TAMIL_MONTHS[sign_idx],
+        "rashi": TAMIL_MONTH_RASHI[sign_idx],
+        "sign_index": sign_idx,
+        "sun_degree": round(sun_lon - sign_idx * 30, 1),
+    }
+
+
+def compute_tamil_month_dates(year: int) -> List[dict]:
+    """
+    Compute approximate start dates for all 12 Tamil months in a given year.
+    Scans day-by-day for Sun's sign ingress.
+    """
+    if not HAS_SWE:
+        return []
+
+    swe.set_ephe_path(EPHE_PATH)
+    swe.set_sid_mode(1)
+    flags = 2 | 64
+
+    months = []
+    # Scan from Jan 1 to Dec 31
+    jd_start = swe.julday(year, 1, 1, 0.0)
+    prev_sign = -1
+
+    for day_offset in range(366):
+        jd = jd_start + day_offset
+        pos, _ = swe.calc_ut(jd, 0, flags)
+        sign_idx = int(pos[0] / 30) % 12
+
+        if sign_idx != prev_sign:
+            # Sun entered a new sign
+            greg = swe.revjul(jd)
+            months.append({
+                "tamil_name": TAMIL_MONTHS[sign_idx],
+                "rashi": TAMIL_MONTH_RASHI[sign_idx],
+                "sign_index": sign_idx,
+                "start_year": int(greg[0]),
+                "start_month": int(greg[1]),
+                "start_day": int(greg[2]),
+            })
+            prev_sign = sign_idx
+
+    return months
+
 # ── Classical Gochar Effects (BPHS Ch.65 + Phaladeepika Ch.26) ───────────────
 # Transit house effects: house_from_natal → (effect, description)
 # Based on classical principle: Transit results vary by house from natal Moon/Lagna.
@@ -255,6 +338,9 @@ def compute_monthly_transits(
     birth: dict,
     target_year: int,
     target_month: int,
+    current_lat: float = None,
+    current_lon: float = None,
+    current_utc_offset: float = None,
 ) -> dict:
     """
     Compute transit predictions for a given month.
@@ -296,8 +382,10 @@ def compute_monthly_transits(
     moon_sign_idx = int(moon_natal_lon / 30) % 12
 
     # ── Compute transit positions for mid-month ──
-    # Use 15th of the month at noon UTC as representative date
-    jd_mid = swe.julday(target_year, target_month, 15, 12.0)
+    # Use 15th of the month, adjusted for current location's timezone
+    utc_off = current_utc_offset if current_utc_offset is not None else 0.0
+    local_noon_utc = 12.0 - utc_off  # Convert local noon to UTC
+    jd_mid = swe.julday(target_year, target_month, 15, local_noon_utc)
     flags = 2 | 64 | 256  # FLG_SWIEPH | FLG_SIDEREAL | FLG_SPEED
 
     # Also compute for 1st and last day to detect sign changes within month
@@ -486,10 +574,26 @@ def compute_monthly_transits(
         overall = "Challenging (Saturn influence active)"
         summary_text += " Saturn's major transit influence adds weight — patience and remedial measures are essential."
 
+    # ── Tamil Panchanga month ──
+    tamil_month = get_tamil_month(jd_mid)
+
+    # ── Generate transit chart SVG ──
+    transit_svg = _generate_transit_svg(transits, lagna_sign_idx, transit_signs)
+
+    # ── Location info ──
+    location_label = ""
+    if current_lat is not None and current_lon is not None:
+        location_label = f"Transits computed for lat {current_lat:.2f}, lon {current_lon:.2f}"
+        if current_utc_offset is not None:
+            sign = "+" if current_utc_offset >= 0 else ""
+            location_label += f" (UTC{sign}{current_utc_offset})"
+
     return {
         "month_label": month_label,
         "year": target_year,
         "month": target_month,
+        "tamil_month": tamil_month,
+        "location": location_label,
         "natal_lagna": {
             "sign": SIGN_NAMES[lagna_sign_idx],
             "sanskrit": SIGN_SANSKRIT[lagna_sign_idx],
@@ -499,6 +603,7 @@ def compute_monthly_transits(
             "sanskrit": SIGN_SANSKRIT[moon_sign_idx],
         },
         "transits": transits,
+        "transit_svg": transit_svg,
         "aspects": aspects,
         "sade_sati": sade_sati,
         "ashtama_shani": ashtama_shani,
@@ -540,6 +645,102 @@ def _aspect_description(transit_planet: str, natal_planet: str, offset: int, nat
         return f"{transit_planet} casts a challenging {_ordinal(offset)} aspect on natal {natal_planet}"
 
 
+def _generate_transit_svg(transits: list, lagna_sign_idx: int, transit_signs: dict) -> str:
+    """
+    Generate a South Indian style transit chart as inline SVG.
+    Fixed-position rashi boxes (Pisces top-left), planets placed by transit sign.
+    No symbols — uses 2-letter abbreviations only.
+    """
+    W, H = 400, 400
+    # South Indian chart: 4x4 grid, fixed sign positions
+    # Row 0: Pisces(11), Aries(0), Taurus(1), Gemini(2)
+    # Row 1: Aquarius(10), [center], [center], Cancer(3)
+    # Row 2: Capricorn(9), [center], [center], Leo(4)
+    # Row 3: Sagittarius(8), Scorpio(7), Libra(6), Virgo(5)
+    SIGN_POSITIONS = {
+        11: (0, 0), 0: (1, 0), 1: (2, 0), 2: (3, 0),
+        10: (0, 1),                          3: (3, 1),
+        9:  (0, 2),                          4: (3, 2),
+        8:  (0, 3), 7: (1, 3), 6: (2, 3), 5: (3, 3),
+    }
+
+    cell_w = W / 4
+    cell_h = H / 4
+
+    svg_parts = [f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:400px;height:auto;font-family:Georgia,serif;">']
+
+    # Background
+    svg_parts.append(f'<rect x="0" y="0" width="{W}" height="{H}" fill="#faf6ee" stroke="#8B4513" stroke-width="2" rx="4"/>')
+
+    # Draw grid lines
+    for i in range(5):
+        x = i * cell_w
+        svg_parts.append(f'<line x1="{x}" y1="0" x2="{x}" y2="{H}" stroke="#8B4513" stroke-width="1"/>')
+        y = i * cell_h
+        svg_parts.append(f'<line x1="0" y1="{y}" x2="{W}" y2="{y}" stroke="#8B4513" stroke-width="1"/>')
+
+    # Center box (2x2) — label
+    cx, cy = cell_w, cell_h
+    svg_parts.append(f'<rect x="{cx}" y="{cy}" width="{cell_w*2}" height="{cell_h*2}" fill="#f5efe0" stroke="#8B4513" stroke-width="1"/>')
+    svg_parts.append(f'<text x="{W/2}" y="{H/2 - 14}" text-anchor="middle" font-size="13" font-weight="bold" fill="#8B4513">GOCHARA</text>')
+    svg_parts.append(f'<text x="{W/2}" y="{H/2 + 4}" text-anchor="middle" font-size="11" fill="#666">Transit Chart</text>')
+    svg_parts.append(f'<text x="{W/2}" y="{H/2 + 20}" text-anchor="middle" font-size="10" fill="#999">Lagna: {SIGN_NAMES[lagna_sign_idx]}</text>')
+
+    # Draw sign labels and highlight Lagna sign
+    for sign_idx, (col, row) in SIGN_POSITIONS.items():
+        x = col * cell_w
+        y = row * cell_h
+
+        # Highlight natal Lagna sign
+        if sign_idx == lagna_sign_idx:
+            svg_parts.append(f'<rect x="{x+1}" y="{y+1}" width="{cell_w-2}" height="{cell_h-2}" fill="#fff3e0" rx="2"/>')
+
+        # Sign abbreviation (top-left corner of cell)
+        skt = SIGN_SANSKRIT[sign_idx][:3]
+        svg_parts.append(f'<text x="{x+4}" y="{y+13}" font-size="8" fill="#999" font-style="italic">{skt}</text>')
+
+        # Mark Lagna
+        if sign_idx == lagna_sign_idx:
+            svg_parts.append(f'<text x="{x+cell_w-4}" y="{y+13}" text-anchor="end" font-size="7" fill="#d4af37" font-weight="bold">ASC</text>')
+
+    # Place transit planets
+    planet_in_sign = {}
+    for t in transits:
+        s_idx = transit_signs.get(t["planet"])
+        if s_idx is None and t["planet"] == "Ketu":
+            # Ketu isn't in transit_signs dict via PLANET_IDS; use from transits
+            for sn, si in SIGN_POSITIONS.items():
+                if SIGN_NAMES[sn] == t["sign"]:
+                    s_idx = sn
+                    break
+        if s_idx is None:
+            continue
+        if s_idx not in planet_in_sign:
+            planet_in_sign[s_idx] = []
+        retro = "(R)" if t["retrograde"] else ""
+        abbr = t["planet"][:2]
+        color = "#2d7a2d" if t["effect"] == "Favourable" else "#a83232" if t["effect"] == "Adverse" else "#333"
+        planet_in_sign[s_idx].append((abbr, retro, color, t["degree"]))
+
+    for sign_idx, planets in planet_in_sign.items():
+        if sign_idx not in SIGN_POSITIONS:
+            continue
+        col, row = SIGN_POSITIONS[sign_idx]
+        x_base = col * cell_w + 6
+        y_base = row * cell_h + 28
+
+        for i, (abbr, retro, color, deg) in enumerate(planets):
+            px = x_base + (i % 3) * 32
+            py = y_base + (i // 3) * 22
+            label = f"{abbr} {deg:.0f}°"
+            if retro:
+                label += "R"
+            svg_parts.append(f'<text x="{px}" y="{py}" font-size="10" font-weight="600" fill="{color}">{label}</text>')
+
+    svg_parts.append('</svg>')
+    return "\n".join(svg_parts)
+
+
 def compute_twelve_month_overview(
     natal_positions: dict,
     birth: dict,
@@ -565,6 +766,7 @@ def compute_twelve_month_overview(
             "month_label": result["month_label"],
             "year": result["year"],
             "month": result["month"],
+            "tamil_month": result.get("tamil_month", {}).get("tamil_name", ""),
             "overall": result["summary"]["overall"],
             "favourable": result["summary"]["favourable_count"],
             "adverse": result["summary"]["adverse_count"],

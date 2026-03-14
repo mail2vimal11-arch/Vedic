@@ -608,12 +608,12 @@ body { background: #fff; }
                 <div class="card">
                     <div class="card-header" style="background:linear-gradient(135deg,#1a0a00,#4a2800);color:#fff;border-radius:0;">
                         <div>
-                            <h2 style="color:#d4af37;font-family:Georgia,serif;">Monthly Gochar (Transit) Predictions</h2>
-                            <p style="color:rgba(255,255,255,0.7);font-size:0.85rem;">Real-time planetary transits • Aspects to natal chart • Classical BPHS Gochara Phala</p>
+                            <h2 style="color:#d4af37;font-family:Georgia,serif;">Gochara Phala — Transit Predictions</h2>
+                            <p id="gocharTamilLabel" style="color:rgba(255,255,255,0.7);font-size:0.85rem;">Tamil Panchanga • Swiss Ephemeris • BPHS Gochara Rules</p>
                         </div>
                         <div class="card-actions" style="display:flex;gap:8px;align-items:center;">
                             <button class="btn btn-sm" onclick="changeGocharMonth(-1)" style="background:#d4af37;color:#1a0a00;border:none;font-weight:700;padding:6px 14px;">&#9664; Prev</button>
-                            <span id="gocharMonthLabel" style="font-weight:600;color:#d4af37;min-width:140px;text-align:center;">—</span>
+                            <span id="gocharMonthLabel" style="font-weight:600;color:#d4af37;min-width:200px;text-align:center;">—</span>
                             <button class="btn btn-sm" onclick="changeGocharMonth(1)" style="background:#d4af37;color:#1a0a00;border:none;font-weight:700;padding:6px 14px;">Next &#9654;</button>
                         </div>
                     </div>
@@ -631,36 +631,45 @@ body { background: #fff; }
                     <div id="gocharContent" style="display:none;">
 
                         <!-- Monthly Summary Bar -->
-                        <div id="gocharSummary" style="padding:16px 24px;background:linear-gradient(135deg,#f9f3e3,#fff8e7);border-bottom:2px solid #d4af37;">
-                        </div>
+                        <div id="gocharSummary" style="padding:16px 24px;background:linear-gradient(135deg,#f9f3e3,#fff8e7);border-bottom:2px solid #d4af37;"></div>
 
                         <!-- Special Alerts -->
                         <div id="gocharAlerts" style="padding:0;"></div>
 
-                        <!-- 12-Month Overview Bar -->
+                        <!-- Tamil Panchanga 12-Month Overview -->
                         <div id="gocharOverview" style="padding:16px 24px;border-bottom:1px solid var(--color-border-lt);">
-                            <h3 style="font-family:Georgia,serif;font-size:0.95rem;color:var(--color-saffron-dk);margin-bottom:10px;">12-Month Overview</h3>
+                            <h3 style="font-family:Georgia,serif;font-size:0.95rem;color:var(--color-saffron-dk);margin-bottom:10px;">Tamil Panchanga — 12-Month Overview</h3>
                             <div id="gocharOverviewGrid" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
                         </div>
 
-                        <!-- Transit Table -->
-                        <div style="padding:16px 24px;">
-                            <h3 style="font-family:Georgia,serif;font-size:1rem;color:var(--color-saffron-dk);margin-bottom:12px;">Planetary Transit Positions</h3>
-                            <div class="table-wrap">
-                                <table class="data-table" id="gocharTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Planet</th>
-                                            <th>Transit Sign</th>
-                                            <th>Degree</th>
-                                            <th>House (Lagna)</th>
-                                            <th>House (Moon)</th>
-                                            <th>Effect</th>
-                                            <th>Prediction</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="gocharTableBody"></tbody>
-                                </table>
+                        <!-- Chart + Table Side by Side -->
+                        <div style="padding:16px 24px;display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;">
+                            <!-- South Indian Transit Chart -->
+                            <div style="flex:0 0 auto;min-width:280px;max-width:420px;">
+                                <h3 style="font-family:Georgia,serif;font-size:1rem;color:var(--color-saffron-dk);margin-bottom:12px;">Gochara Chart (South Indian)</h3>
+                                <div id="gocharChartSVG" style="border:1px solid #ddd;border-radius:8px;padding:8px;background:#faf6ee;"></div>
+                                <div id="gocharLocation" style="font-size:0.72rem;color:#999;margin-top:6px;text-align:center;"></div>
+                            </div>
+
+                            <!-- Transit Table -->
+                            <div style="flex:1;min-width:340px;">
+                                <h3 style="font-family:Georgia,serif;font-size:1rem;color:var(--color-saffron-dk);margin-bottom:12px;">Planetary Transit Positions</h3>
+                                <div class="table-wrap">
+                                    <table class="data-table" id="gocharTable" style="font-size:0.82rem;">
+                                        <thead>
+                                            <tr>
+                                                <th>Planet</th>
+                                                <th>Sign</th>
+                                                <th>Deg</th>
+                                                <th>H(L)</th>
+                                                <th>H(M)</th>
+                                                <th>Effect</th>
+                                                <th>Prediction</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="gocharTableBody"></tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
 
@@ -879,13 +888,16 @@ async function loadGocharData() {
     if (content) content.style.display = "none";
     if (error) error.style.display = "none";
 
+    // Detect user's current timezone offset for location-based transit
+    const localUtcOffset = -(new Date().getTimezoneOffset() / 60);
+
     const payload = Object.assign({}, window._chartPayload, {
         transit_year: window._gocharYear,
-        transit_month: window._gocharMonth
+        transit_month: window._gocharMonth,
+        current_utc_offset: localUtcOffset
     });
 
     try {
-        // Fetch monthly data
         const resp = await fetch("/api/gochar", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -926,9 +938,16 @@ async function loadGocharData() {
 }
 
 function renderGochar(data) {
-    // Month label
+    // Month label — show Tamil month + Gregorian
     const label = $("#gocharMonthLabel");
-    if (label) label.textContent = data.month_label;
+    const tamilLabel = $("#gocharTamilLabel");
+    const tm = data.tamil_month || {};
+    if (label) {
+        label.innerHTML = `<div>${tm.tamil_name || ""} (${tm.rashi || ""})</div><div style="font-size:0.75rem;opacity:0.8;">${data.month_label}</div>`;
+    }
+    if (tamilLabel) {
+        tamilLabel.textContent = `Tamil Panchanga \u2022 ${tm.tamil_name || ""} \u2013 Sun in ${tm.rashi || ""} ${tm.sun_degree || 0}\u00b0 \u2022 Swiss Ephemeris (Lahiri)`;
+    }
 
     // Summary bar
     const sumDiv = $("#gocharSummary");
@@ -954,8 +973,8 @@ function renderGochar(data) {
                 </div>
             </div>
             <div style="margin-top:8px;font-size:0.8rem;color:#777;">
-                Lagna: <strong>${data.natal_lagna.sign} (${data.natal_lagna.sanskrit})</strong> &nbsp;|&nbsp;
-                Moon: <strong>${data.natal_moon.sign} (${data.natal_moon.sanskrit})</strong>
+                Natal Lagna: <strong>${data.natal_lagna.sign} (${data.natal_lagna.sanskrit})</strong> &nbsp;|&nbsp;
+                Natal Moon: <strong>${data.natal_moon.sign} (${data.natal_moon.sanskrit})</strong>
             </div>`;
     }
 
@@ -978,7 +997,7 @@ function renderGochar(data) {
         }
     }
 
-    // 12-Month Overview Grid
+    // Tamil Panchanga 12-Month Overview Grid
     const overviewGrid = $("#gocharOverviewGrid");
     if (overviewGrid && window._gocharOverviewCache) {
         overviewGrid.innerHTML = window._gocharOverviewCache.map(m => {
@@ -986,17 +1005,30 @@ function renderGochar(data) {
             const bg = m.overall.includes("Favourable") ? "#e8f5e9" :
                        m.overall.includes("Challenging") ? "#fce4ec" : "#fff8e1";
             const border = isActive ? "2px solid #d4af37" : "1px solid #ddd";
-            const shortMonth = m.month_label.split(" ")[0].substring(0, 3);
+            const tamilName = m.tamil_month || m.month_label.split(" ")[0].substring(0, 3);
+            const shortGreg = m.month_label.split(" ")[0].substring(0, 3);
             const sadeIcon = m.sade_sati ? '<span title="Sade Sati active" style="color:#e65100;">&#9679;</span>' : "";
-            return `<div onclick="window._gocharYear=${m.year};window._gocharMonth=${m.month};loadGocharData();"
+            return `<div onclick="window._gocharYear=${m.year};window._gocharMonth=${m.month};window._gocharOverviewCache=null;loadGocharData();"
                 style="cursor:pointer;padding:6px 8px;background:${bg};border:${border};border-radius:6px;
-                text-align:center;min-width:55px;transition:all 0.2s;"
+                text-align:center;min-width:62px;transition:all 0.2s;"
                 onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                <div style="font-size:0.7rem;font-weight:600;color:#333;">${shortMonth}</div>
-                <div style="font-size:0.65rem;color:#777;">${m.year}</div>
-                <div style="font-size:0.6rem;margin-top:2px;">${m.favourable}&#9650; ${m.adverse}&#9660; ${sadeIcon}</div>
+                <div style="font-size:0.68rem;font-weight:700;color:#8B4513;">${tamilName}</div>
+                <div style="font-size:0.6rem;color:#777;">${shortGreg} ${m.year}</div>
+                <div style="font-size:0.58rem;margin-top:2px;">${m.favourable}&#9650; ${m.adverse}&#9660; ${sadeIcon}</div>
             </div>`;
         }).join("");
+    }
+
+    // Transit Chart SVG
+    const chartDiv = $("#gocharChartSVG");
+    if (chartDiv && data.transit_svg) {
+        chartDiv.innerHTML = data.transit_svg;
+    }
+
+    // Location label
+    const locDiv = $("#gocharLocation");
+    if (locDiv && data.location) {
+        locDiv.textContent = data.location;
     }
 
     // Transit Table
@@ -1005,17 +1037,17 @@ function renderGochar(data) {
         tbody.innerHTML = data.transits.map(t => {
             const effectClass = t.effect === "Favourable" ? "color:#2d7a2d;font-weight:600;" :
                                t.effect === "Adverse" ? "color:#a83232;font-weight:600;" : "color:#666;";
-            const retro = t.retrograde ? ' <span style="color:#c0392b;font-weight:700;font-size:0.75rem;">R</span>' : "";
-            const signChange = t.sign_change ? `<div style="font-size:0.7rem;color:#8a6d3b;margin-top:2px;">&#8594; ${t.sign_change}</div>` : "";
-            const slowBadge = t.is_slow ? '<span style="font-size:0.6rem;background:#e8eaf6;color:#3949ab;padding:1px 5px;border-radius:3px;margin-left:4px;">Slow</span>' : "";
+            const retro = t.retrograde ? ' <span style="color:#c0392b;font-weight:700;font-size:0.7rem;">R</span>' : "";
+            const signChange = t.sign_change ? `<div style="font-size:0.65rem;color:#8a6d3b;">&#8594; ${t.sign_change}</div>` : "";
+            const slowBadge = t.is_slow ? '<span style="font-size:0.55rem;background:#e8eaf6;color:#3949ab;padding:1px 4px;border-radius:3px;margin-left:3px;">Slow</span>' : "";
             return `<tr>
                 <td><strong>${t.planet}</strong>${slowBadge}${retro}</td>
-                <td>${t.sign} (${t.sign_sanskrit})${signChange}</td>
-                <td>${t.degree}°</td>
+                <td>${t.sign_sanskrit}${signChange}</td>
+                <td>${t.degree}\u00b0</td>
                 <td style="text-align:center;font-weight:600;">${t.house_from_lagna}</td>
                 <td style="text-align:center;">${t.house_from_moon}</td>
                 <td style="${effectClass}">${t.effect}</td>
-                <td style="font-size:0.82rem;max-width:260px;">${t.description}</td>
+                <td style="font-size:0.78rem;max-width:220px;">${t.description}</td>
             </tr>`;
         }).join("");
     }
@@ -1029,7 +1061,7 @@ function renderGochar(data) {
                 const border = a.nature === "Benefic" ? "#66bb6a" : "#ef5350";
                 const icon = a.nature === "Benefic" ? "&#10003;" : "&#9888;";
                 return `<div style="padding:10px 14px;background:${bg};border-left:3px solid ${border};border-radius:6px;font-size:0.85rem;">
-                    <div style="font-weight:600;color:#333;">${icon} ${a.transit_planet} → ${a.natal_planet} <span style="color:#888;font-weight:400;">(${a.aspect_type})</span></div>
+                    <div style="font-weight:600;color:#333;">${icon} ${a.transit_planet} \u2192 ${a.natal_planet} <span style="color:#888;font-weight:400;">(${a.aspect_type})</span></div>
                     <div style="color:#555;margin-top:3px;">${a.description}</div>
                 </div>`;
             }).join("");

@@ -652,7 +652,17 @@ def create_app():
                 latitude=birth["latitude"], longitude=birth["longitude"],
             )
 
-            result = compute_monthly_transits(positions, birth, target_year, target_month)
+            # Current location for transit timing (user's present location)
+            current_lat = data.get("current_lat", birth.get("latitude"))
+            current_lon = data.get("current_lon", birth.get("longitude"))
+            current_utc = data.get("current_utc_offset", birth.get("utc_offset", 0))
+
+            result = compute_monthly_transits(
+                positions, birth, target_year, target_month,
+                current_lat=current_lat,
+                current_lon=current_lon,
+                current_utc_offset=current_utc,
+            )
 
             logger.info(f"Gochar for {birth['name']} — {result['month_label']}: "
                         f"{result['summary']['overall']}")
