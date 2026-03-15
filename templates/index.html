@@ -898,8 +898,9 @@ async function handleSubmit(e){
         const data=await resp.json();
         if(!resp.ok||!data.success){throw new Error(data.error||"Chart generation failed.");}
         renderResults(data);
-        // Store payload for later use by Deep Consultation dropdown
+        // Store payload for later use by Deep Consultation, Gochar, Varshaphal
         window._chartPayload=payload;
+        window._varshaYearOverridden=false;  // reset so Varshaphal defaults to active year
     }catch(err){showError(err.message||"An error occurred. Please try again.");if(cLoading)cLoading.style.display="none";}
     finally{$("#loadingSection").style.display="none";submitBtn.disabled=false;submitBtn.textContent="Generate Birth Chart";}
 }
@@ -1405,15 +1406,31 @@ function renderPanchanga(data) {
 /* ═══════════════════════════════════════════════════════════════
    VARSHAPHAL (ANNUAL HOROSCOPE)
    ═══════════════════════════════════════════════════════════════ */
-window._varshaYear = new Date().getFullYear();
+// Default Varsha year = year of MOST RECENT solar return (birth-month aware).
+// If today is before the birthday in this calendar year, the active Varsha
+// started on last year's birthday — so use (currentYear - 1).
+function _defaultVarshaYear(payload) {
+    const today = new Date();
+    const bMonth = parseInt(payload.month || 1, 10);
+    const bDay   = parseInt(payload.day   || 1, 10);
+    const cy = today.getFullYear();
+    const thisBirthday = new Date(cy, bMonth - 1, bDay);
+    return today >= thisBirthday ? cy : cy - 1;
+}
+window._varshaYear = new Date().getFullYear(); // updated when chart loads
 
 function changeVarshaYear(delta) {
+    window._varshaYearOverridden = true;  // user is manually navigating
     window._varshaYear += delta;
     if (window._chartPayload) loadVarshaphalData();
 }
 
 async function loadVarshaphalData() {
     if (!window._chartPayload) return;
+    // Ensure we're showing the CURRENT active Varsha on first open
+    if (!window._varshaYearOverridden) {
+        window._varshaYear = _defaultVarshaYear(window._chartPayload);
+    }
     const loading = $("#varshaLoading");
     const content = $("#varshaContent");
     const errDiv  = $("#varshaError");

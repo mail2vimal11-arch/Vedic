@@ -1258,14 +1258,16 @@ def _general_estimate(annual_positions: dict, muntha: dict,
     "If the ascendant or the 10th house is favourably aspected in the
      Progressed Horoscope by the Sun, Moon, Jupiter or Mars, the
      year will be a prosperous one."
+
+    Muntha house classification per B.V. Raman (Art. 56):
+      Favourable houses: 1, 2, 3, 4, 5, 10, 11
+      Unfavourable houses: 6, 7, 8, 9, 12
     """
-    asc_sign_idx = annual_positions["ascendant"]["sign_idx"]
-    tenth_sign_idx = (asc_sign_idx + 9) % 12
     planets = annual_positions["planets"]
 
+    # Benefics and malefics on 1st / 10th house of annual chart (Art. 55)
     benefics_on_angles = []
     malefics_on_angles = []
-
     for p in planets:
         if p["house"] in (1, 10):
             if p["name"] in ("Jupiter", "Venus", "Moon"):
@@ -1276,32 +1278,66 @@ def _general_estimate(annual_positions: dict, muntha: dict,
     vl = varsheshwara["lord"]
     vl_data = next((p for p in planets if p["name"] == vl), None)
     vl_house = vl_data["house"] if vl_data else 0
+    # Varsheshwara is strong in Kendra (1,4,7,10) or Trikona (5,9); house 8/12 is weak
     vl_strong = vl_house in (1, 4, 5, 7, 9, 10)
+    vl_weak   = vl_house in (6, 8, 12)
 
+    # Muntha: favourable in 1,2,3,4,5,10,11 per B.V. Raman Art. 56
     muntha_h = muntha.get("house_in_annual", 0)
-    muntha_good = muntha_h in (1, 2, 3, 4, 5, 9, 10, 11)
+    muntha_good = muntha_h in (1, 2, 3, 4, 5, 10, 11)
 
-    # Build estimate text
+    # Build a coherent, non-contradictory estimate
     parts = []
+
+    # 1. Overall prosperity signal
     if benefics_on_angles:
-        parts.append(f"Benefic planets ({', '.join(benefics_on_angles)}) on the Ascendant or "
-                     f"10th house indicate a prosperous and favourable year.")
-    if malefics_on_angles:
-        parts.append(f"Malefic planets ({', '.join(malefics_on_angles)}) on angular houses "
-                     f"bring challenges that require careful navigation.")
-
-    if vl_strong:
-        parts.append(f"The Varsheshwara {vl} is well-placed in house {vl_house}, "
-                     f"strengthening the overall fortune for the year.")
+        parts.append(
+            f"Benefic planets ({', '.join(benefics_on_angles)}) occupy the Ascendant or "
+            f"10th house of the annual chart — a clear sign of prosperity and success "
+            f"during this Varsha year."
+        )
+    elif malefics_on_angles:
+        # Only mention malefics on angles if there are NO benefics there
+        parts.append(
+            f"Malefics ({', '.join(malefics_on_angles)}) occupy the 1st or 10th house "
+            f"of the annual chart — this Varsha calls for careful and measured effort."
+        )
     else:
-        parts.append(f"The Varsheshwara {vl} in house {vl_house} suggests "
-                     f"moderate results that improve with effort.")
+        parts.append("The annual chart shows a mixed disposition for the year ahead.")
 
+    # 2. Varsheshwara assessment
+    if vl_strong and vl not in malefics_on_angles:
+        parts.append(
+            f"The Varsheshwara {vl} is well-placed in house {vl_house}, "
+            f"conferring its significations strongly through this year."
+        )
+    elif vl_strong and vl in malefics_on_angles:
+        parts.append(
+            f"The Varsheshwara {vl} is placed in house {vl_house} — "
+            f"its angular position brings prominence but also demands discipline, "
+            f"as it is a natural malefic."
+        )
+    elif vl_weak:
+        parts.append(
+            f"The Varsheshwara {vl} in house {vl_house} is in a dusthana (6th/8th/12th), "
+            f"indicating that results may come through delays and extra effort."
+        )
+    else:
+        parts.append(
+            f"The Varsheshwara {vl} in house {vl_house} gives moderate results; "
+            f"consistent effort will improve outcomes."
+        )
+
+    # 3. Muntha assessment
     if muntha_good:
-        parts.append(f"Muntha in house {muntha_h} ({muntha['sign']}) is favourable — "
-                     f"{muntha.get('house_result', '')}")
+        parts.append(
+            f"Muntha in house {muntha_h} ({muntha['sign']}) is favourable — "
+            f"{muntha.get('house_result', 'indicating general good fortune for this area of life.')}"
+        )
     else:
-        parts.append(f"Muntha in house {muntha_h} ({muntha['sign']}) requires caution — "
-                     f"{muntha.get('house_result', '')}")
+        parts.append(
+            f"Muntha in house {muntha_h} ({muntha['sign']}) is in an unfavourable position — "
+            f"{muntha.get('house_result', 'caution advised in matters of this house.')}"
+        )
 
     return " ".join(parts)

@@ -431,8 +431,9 @@ def compute_monthly_transits(
         house_from_moon = ((sign_idx - moon_sign_idx) % 12) + 1
 
         # Get classical effect (from Lagna)
+        # BPHS Gochara Phala (Ch. 65): effects are ALWAYS from natal Moon (Chandra Lagna)
         effects = TRANSIT_EFFECTS.get(planet_name, {})
-        effect_data = effects.get(house_from_lagna, ("Neutral", ""))
+        effect_data = effects.get(house_from_moon, ("Neutral", ""))
 
         transit_signs[planet_name] = sign_idx
 
@@ -458,8 +459,9 @@ def compute_monthly_transits(
     ketu_deg = ketu_lon - ketu_sign_idx * 30
     ketu_house_lagna = ((ketu_sign_idx - lagna_sign_idx) % 12) + 1
     ketu_house_moon = ((ketu_sign_idx - moon_sign_idx) % 12) + 1
+    # Ketu effect also from Moon (BPHS standard)
     ketu_effects = TRANSIT_EFFECTS.get("Ketu", {})
-    ketu_effect_data = ketu_effects.get(ketu_house_lagna, ("Neutral", ""))
+    ketu_effect_data = ketu_effects.get(ketu_house_moon, ("Neutral", ""))
 
     transit_signs["Ketu"] = ketu_sign_idx
 
