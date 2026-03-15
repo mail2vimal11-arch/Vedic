@@ -375,6 +375,7 @@ body { background: #fff; }
                     <button class="tab" data-tab="dashaTab">Dasha Timeline</button>
                     <button class="tab" data-tab="currentTab">Current Dasha</button>
                     <button class="tab" data-tab="gocharTab" style="color:#d4af37;font-weight:600;">Gochar Predictions</button>
+                    <button class="tab" data-tab="varshaphalTab" style="color:#c0944a;font-weight:600;">Varshaphal</button>
                     <button class="tab tab-consult" id="consultDropdownBtn" onclick="toggleConsultDropdown(event)">&#9654; Deep Consultation &#9662;</button>
                 </div>
                 <div id="consultDropdown" class="consult-dropdown" style="display:none;">
@@ -679,6 +680,116 @@ body { background: #fff; }
                             <div id="gocharAspects" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;"></div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Tab: Varshaphal (Annual Horoscope) -->
+            <div id="varshaphalTab" class="tab-panel">
+                <div class="card">
+                    <div class="card-header" style="background:linear-gradient(135deg,#0d1a00,#2a4a00);color:#fff;border-radius:0;">
+                        <div>
+                            <h2 style="color:#c0944a;font-family:Georgia,serif;">&#2384; Varshaphal — Annual Horoscope</h2>
+                            <p id="varshaphalSubtitle" style="color:rgba(255,255,255,0.7);font-size:0.85rem;">Tajaka System · B.V. Raman · Solar Return Chart</p>
+                        </div>
+                        <div class="card-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <button class="btn btn-sm" onclick="changeVarshaYear(-1)" style="background:#c0944a;color:#0d1a00;border:none;font-weight:700;padding:6px 14px;">&#9664; Prev Year</button>
+                            <span id="varshaYearLabel" style="font-weight:600;color:#c0944a;min-width:80px;text-align:center;font-size:1.1rem;">—</span>
+                            <button class="btn btn-sm" onclick="changeVarshaYear(1)" style="background:#c0944a;color:#0d1a00;border:none;font-weight:700;padding:6px 14px;">Next Year &#9654;</button>
+                        </div>
+                    </div>
+
+                    <!-- Loading -->
+                    <div id="varshaLoading" style="display:none;text-align:center;padding:48px 24px;">
+                        <div class="spinner" style="border-top-color:#c0944a;"></div>
+                        <p style="font-family:Georgia,serif;color:#5c3d8f;margin-top:8px;">Computing Solar Return via Swiss Ephemeris…</p>
+                    </div>
+
+                    <!-- Error -->
+                    <div id="varshaError" style="display:none;padding:24px;color:#c0392b;font-size:0.9rem;"></div>
+
+                    <!-- Content -->
+                    <div id="varshaContent" style="display:none;">
+
+                        <!-- General Estimate Banner -->
+                        <div id="varshaEstimate" style="padding:16px 24px;background:linear-gradient(135deg,#f4ffe8,#fffbe8);border-bottom:2px solid #c0944a;font-family:Georgia,serif;color:#3a2800;line-height:1.7;font-size:0.92rem;"></div>
+
+                        <!-- Solar Return + Key Info -->
+                        <div style="padding:16px 24px;display:flex;gap:20px;flex-wrap:wrap;border-bottom:1px solid var(--color-border-lt);">
+                            <div style="flex:1;min-width:200px;">
+                                <h3 style="font-family:Georgia,serif;font-size:0.9rem;color:#5c3d1a;margin-bottom:8px;">Solar Return Moment</h3>
+                                <div id="varshaSolarReturn" style="font-size:0.88rem;color:#444;line-height:1.8;"></div>
+                            </div>
+                            <div style="flex:1;min-width:200px;">
+                                <h3 style="font-family:Georgia,serif;font-size:0.9rem;color:#5c3d1a;margin-bottom:8px;">Varsheshwara (Lord of Year)</h3>
+                                <div id="varshaVarsheshwara" style="font-size:0.88rem;color:#444;line-height:1.8;"></div>
+                            </div>
+                            <div style="flex:1;min-width:200px;">
+                                <h3 style="font-family:Georgia,serif;font-size:0.9rem;color:#5c3d1a;margin-bottom:8px;">Muntha</h3>
+                                <div id="varshaMuntha" style="font-size:0.88rem;color:#444;line-height:1.8;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Chart + Dasa Side by Side -->
+                        <div style="padding:16px 24px;display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;border-bottom:1px solid var(--color-border-lt);">
+                            <!-- Annual South Indian Chart -->
+                            <div style="flex:0 0 auto;min-width:280px;max-width:420px;">
+                                <h3 style="font-family:Georgia,serif;font-size:1rem;color:#5c3d1a;margin-bottom:12px;">Annual Chart (South Indian)</h3>
+                                <div id="varshaChartSVG" style="border:1px solid #ddd;border-radius:8px;padding:8px;background:#fdf9ee;"></div>
+                                <p style="font-size:0.72rem;color:#999;margin-top:6px;text-align:center;">Green = Benefic · Red = Malefic · Mu = Muntha</p>
+                            </div>
+
+                            <!-- Varsha Dasa Table -->
+                            <div style="flex:1;min-width:320px;">
+                                <h3 style="font-family:Georgia,serif;font-size:1rem;color:#5c3d1a;margin-bottom:12px;">Varsha Dasa — Annual Sub-Periods</h3>
+                                <div class="table-wrap">
+                                    <table class="data-table" style="font-size:0.82rem;">
+                                        <thead>
+                                            <tr>
+                                                <th>Planet</th>
+                                                <th>Krisamsas</th>
+                                                <th>Duration</th>
+                                                <th>Strength</th>
+                                                <th>Result</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="varshaDasaBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tajaka Yogas -->
+                        <div style="padding:16px 24px;border-bottom:1px solid var(--color-border-lt);">
+                            <h3 style="font-family:Georgia,serif;font-size:1rem;color:#5c3d1a;margin-bottom:12px;">Tajaka Yogas</h3>
+                            <div id="varshaTajakaYogas" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;"></div>
+                        </div>
+
+                        <!-- Sahams -->
+                        <div style="padding:16px 24px;border-bottom:1px solid var(--color-border-lt);">
+                            <h3 style="font-family:Georgia,serif;font-size:1rem;color:#5c3d1a;margin-bottom:12px;">Sahams — Sensitive Points</h3>
+                            <div class="table-wrap">
+                                <table class="data-table" style="font-size:0.82rem;">
+                                    <thead>
+                                        <tr>
+                                            <th>Saham</th>
+                                            <th>Sign</th>
+                                            <th>Degree</th>
+                                            <th>Lord</th>
+                                            <th>Signification</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="varshaSahamBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- House Interpretations -->
+                        <div style="padding:16px 24px;">
+                            <h3 style="font-family:Georgia,serif;font-size:1rem;color:#5c3d1a;margin-bottom:12px;">Bhava Results — Annual Chart Houses</h3>
+                            <div id="varshaHouseGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;"></div>
+                        </div>
+
+                    </div><!-- end varshaContent -->
                 </div>
             </div>
 
@@ -1290,6 +1401,177 @@ function renderPanchanga(data) {
     ].filter(r => r.data && r.data.start);
     if (muhurtas) muhurtas.innerHTML = mRows.length ? mRows.map(r => '<div class="pancha-time-row"><span class="pancha-time-label">' + r.label + '</span><span class="pancha-time-value">' + r.data.start + ' \u2014 ' + r.data.end + '</span></div>').join('') : '<p style="color:#999;font-size:0.85rem;">Data not available.</p>';
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   VARSHAPHAL (ANNUAL HOROSCOPE)
+   ═══════════════════════════════════════════════════════════════ */
+window._varshaYear = new Date().getFullYear();
+
+function changeVarshaYear(delta) {
+    window._varshaYear += delta;
+    if (window._chartPayload) loadVarshaphalData();
+}
+
+async function loadVarshaphalData() {
+    if (!window._chartPayload) return;
+    const loading = $("#varshaLoading");
+    const content = $("#varshaContent");
+    const errDiv  = $("#varshaError");
+    const yearLbl = $("#varshaYearLabel");
+    if (loading) loading.style.display = "block";
+    if (content) content.style.display = "none";
+    if (errDiv)  errDiv.style.display  = "none";
+    if (yearLbl) yearLbl.textContent = window._varshaYear;
+
+    const payload = Object.assign({}, window._chartPayload, {
+        varsha_year: window._varshaYear
+    });
+
+    try {
+        const resp = await fetch("/api/varshaphal", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.error || "Varshaphal computation failed.");
+        }
+        const data = await resp.json();
+        if (loading) loading.style.display = "none";
+        if (content) content.style.display = "block";
+        renderVarshaphal(data);
+    } catch (err) {
+        if (loading) loading.style.display = "none";
+        if (errDiv) {
+            errDiv.style.display = "block";
+            errDiv.innerHTML = "<strong>Could not compute Varshaphal.</strong><br>" + err.message;
+        }
+    }
+}
+
+function renderVarshaphal(data) {
+    const sr = data.solar_return || {};
+    const vl = data.varsheshwara || {};
+    const mu = data.muntha || {};
+
+    // Subtitle
+    const sub = $("#varshaphalSubtitle");
+    if (sub) sub.textContent = `Year ${data.target_year} (Age ${data.age}) · Solar Return: ${sr.utc_date || "—"} · ${data.is_day_chart ? "Day Chart" : "Night Chart"}`;
+
+    // General estimate banner
+    const est = $("#varshaEstimate");
+    if (est) est.textContent = data.general_estimate || "";
+
+    // Solar return info
+    const srDiv = $("#varshaSolarReturn");
+    if (srDiv) srDiv.innerHTML =
+        `<div><strong>Date:</strong> ${sr.utc_date || "—"}</div>
+         <div><strong>UTC Time:</strong> ${sr.utc_time || "—"}</div>
+         <div><strong>Local Time:</strong> ${sr.local_time || "—"}</div>`;
+
+    // Varsheshwara
+    const vlDiv = $("#varshaVarsheshwara");
+    if (vlDiv) {
+        const apps = vl.applicants || {};
+        const rows = Object.entries(apps).map(([role, planet]) =>
+            `<div style="display:flex;justify-content:space-between;gap:12px;">
+                <span style="color:#888;">${role}:</span>
+                <strong style="${planet===vl.lord?'color:#c0944a;':''}">${planet}</strong>
+             </div>`
+        ).join("");
+        vlDiv.innerHTML =
+            `<div style="font-size:1.05rem;font-weight:700;color:#c0944a;margin-bottom:8px;">&#9670; ${vl.lord || "—"}</div>` + rows;
+    }
+
+    // Muntha
+    const muDiv = $("#varshaMuntha");
+    if (muDiv) muDiv.innerHTML =
+        `<div><strong>Sign:</strong> ${mu.sign_sanskrit || mu.sign || "—"} (${mu.sign || ""})</div>
+         <div><strong>House:</strong> ${mu.house_in_annual || "—"}</div>
+         <div><strong>Lord:</strong> ${mu.lord || "—"}</div>
+         <div style="margin-top:6px;color:#666;font-style:italic;font-size:0.83rem;">${mu.house_result || ""}</div>`;
+
+    // Chart SVG
+    const svgDiv = $("#varshaChartSVG");
+    if (svgDiv && data.annual_svg) svgDiv.innerHTML = data.annual_svg;
+
+    // Varsha Dasa table
+    const dasaBody = $("#varshaDasaBody");
+    if (dasaBody) {
+        dasaBody.innerHTML = (data.varsha_dasa || []).map((d, i) => {
+            const strengthColor = d.strength === "strong" ? "#2e7d32" : d.strength === "weak" ? "#c62828" : "#5c3d1a";
+            return `<tr>
+                <td><strong>${d.name}</strong></td>
+                <td>${d.krisamsas}°</td>
+                <td>${d.days}d ${d.hours}h</td>
+                <td style="color:${strengthColor};font-weight:600;">${d.strength}</td>
+                <td style="font-size:0.79rem;color:#555;">${d.result}</td>
+            </tr>`;
+        }).join("");
+    }
+
+    // Tajaka Yogas
+    const yogaDiv = $("#varshaTajakaYogas");
+    if (yogaDiv) {
+        const yogas = data.tajaka_yogas || [];
+        if (yogas.length === 0) {
+            yogaDiv.innerHTML = '<p style="color:#999;font-size:0.85rem;">No special Tajaka Yogas detected in this annual chart.</p>';
+        } else {
+            yogaDiv.innerHTML = yogas.map(y => {
+                const borderColor = y.type === "Benefic" ? "#2e7d32" : y.type === "Malefic" ? "#c62828" : "#c0944a";
+                const bgColor = y.type === "Benefic" ? "#f1f8e9" : y.type === "Malefic" ? "#fff5f5" : "#fffbe8";
+                return `<div style="border-left:4px solid ${borderColor};background:${bgColor};padding:12px 16px;border-radius:4px;">
+                    <div style="font-weight:700;color:${borderColor};font-family:Georgia,serif;margin-bottom:4px;">${y.name}</div>
+                    <div style="font-size:0.78rem;color:#777;margin-bottom:6px;">${(y.planets||[]).join(", ")}</div>
+                    <div style="font-size:0.84rem;color:#444;line-height:1.6;">${y.description}</div>
+                </div>`;
+            }).join("");
+        }
+    }
+
+    // Sahams table
+    const sahamBody = $("#varshaSahamBody");
+    if (sahamBody) {
+        sahamBody.innerHTML = (data.sahams || []).map(s =>
+            `<tr>
+                <td><strong>${s.name}</strong></td>
+                <td>${s.sign_sanskrit || s.sign}</td>
+                <td>${s.degree}°</td>
+                <td>${s.lord}</td>
+                <td style="font-size:0.79rem;color:#555;">${s.meaning}</td>
+            </tr>`
+        ).join("");
+    }
+
+    // House Interpretations
+    const houseGrid = $("#varshaHouseGrid");
+    if (houseGrid) {
+        houseGrid.innerHTML = (data.house_interpretations || []).map(h => {
+            const hasMuntha = !!h.muntha_note;
+            return `<div style="background:#fdf9ee;border:1px solid #e8d9b0;border-radius:8px;padding:14px;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                    <span style="background:#c0944a;color:#fff;font-weight:700;font-size:0.85rem;padding:3px 9px;border-radius:12px;">House ${h.house}</span>
+                    <span style="font-family:Georgia,serif;font-weight:600;font-size:0.9rem;">${h.sign_sanskrit || h.sign}</span>
+                    <span style="font-size:0.78rem;color:#999;">Lord: ${h.lord}</span>
+                    ${hasMuntha ? '<span style="background:#1565c0;color:#fff;font-size:0.72rem;padding:2px 7px;border-radius:8px;">Muntha</span>' : ''}
+                </div>
+                ${h.occupants && h.occupants.length > 0 ? `<div style="font-size:0.79rem;color:#5c3d1a;margin-bottom:6px;"><strong>Occupants:</strong> ${h.occupant_details.join(" · ")}</div>` : ''}
+                <div style="font-size:0.83rem;color:#555;line-height:1.6;margin-bottom:6px;">${h.base_interpretation}</div>
+                ${h.muntha_note ? `<div style="font-size:0.81rem;color:#1565c0;font-style:italic;margin-bottom:4px;">${h.muntha_note}</div>` : ''}
+                ${h.varsheshwara_note ? `<div style="font-size:0.81rem;color:#c0944a;font-style:italic;">${h.varsheshwara_note}</div>` : ''}
+            </div>`;
+        }).join("");
+    }
+}
+
+// Trigger Varshaphal load when tab is clicked
+document.addEventListener("click", function(e) {
+    const tab = e.target.closest('.tab[data-tab="varshaphalTab"]');
+    if (tab && window._chartPayload) {
+        setTimeout(function() { loadVarshaphalData(); }, 50);
+    }
+});
 
 function switchTab(tabId){$$(".tab").forEach((t)=>t.classList.remove("active"));$$(".tab-panel").forEach((p)=>p.classList.remove("active"));const btn=document.querySelector(`.tab[data-tab="${tabId}"]`);const panel=$(`#${tabId}`);if(btn)btn.classList.add("active");if(panel)panel.classList.add("active");}
 

@@ -56,6 +56,13 @@ try:
 except ImportError:
     HAS_GOCHAR = False
 
+# Varshaphal (Annual Horoscope) Engine
+try:
+    from varshaphal_engine import compute_varshaphal
+    HAS_VARSHAPHAL = True
+except ImportError:
+    HAS_VARSHAPHAL = False
+
 # ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
@@ -699,6 +706,58 @@ def create_app():
         except Exception as e:
             logger.error(f"Gochar overview failed: {traceback.format_exc()}")
             return jsonify({"error": f"Overview error: {str(e)}"}), 500
+
+    # ── Varshaphal (Annual Horoscope) Endpoint ────────────────────────────────
+    @app.route("/api/varshaphal", methods=["POST"])
+    def get_varshaphal():
+        """
+        Compute the Varshaphal (Annual / Progressed Horoscope) for a given year.
+
+        Based on B.V. Raman's 'Varshaphal or The Hindu Progressed Horoscope'
+        (Tajaka system of annual horoscopy).
+
+        Accepts same birth data as /api/chart plus:
+            varsha_year: int — the target year (default: current year)
+        """
+        if not HAS_VARSHAPHAL:
+            return jsonify({"error": "Varshaphal engine not available"}), 500
+
+        try:
+            data = request.get_json(force=True)
+            if not data:
+                return jsonify({"error": "No JSON data provided"}), 400
+            birth = validate_birth_data(data)
+        except ValidationError as e:
+            return jsonify({"error": str(e)}), 400
+        except Exception:
+            return jsonify({"error": "Invalid request data"}), 400
+
+        try:
+            from datetime import datetime as dt
+            now = dt.now()
+            target_year = int(data.get("varsha_year", now.year))
+
+            if target_year < birth["year"]:
+                return jsonify({"error": "Target year must be >= birth year"}), 400
+
+            # Compute natal positions (needed for Varsheshwara calculation)
+            natal_positions = calculate_positions(
+                year=birth["year"], month=birth["month"], day=birth["day"],
+                hour=birth["hour"], minute=birth["minute"], second=birth["second"],
+                utc_offset=birth["utc_offset"],
+                latitude=birth["latitude"], longitude=birth["longitude"],
+            )
+
+            result = compute_varshaphal(birth, natal_positions, target_year)
+
+            logger.info(f"Varshaphal for {birth['name']} — Year {target_year}, "
+                        f"Varsheshwara: {result.get('varsheshwara', {}).get('lord', '?')}")
+
+            return jsonify(result)
+
+        except Exception as e:
+            logger.error(f"Varshaphal computation failed: {traceback.format_exc()}")
+            return jsonify({"error": f"Varshaphal error: {str(e)}"}), 500
 
     @app.route("/output/<path:filename>")
     def serve_chart(filename):
