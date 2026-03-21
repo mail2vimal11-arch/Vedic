@@ -99,7 +99,7 @@ def get_tamil_month(jd: float) -> dict:
     if not HAS_SWE:
         return {"tamil_name": "Unknown", "rashi": "", "sign_index": 0}
 
-    flags = 2 | 64  # FLG_SWIEPH | FLG_SIDEREAL
+    flags = swe.FLG_SWIEPH | swe.FLG_SIDEREAL  # correct numeric values from swisseph
     pos, _ = swe.calc_ut(jd, 0, flags)  # Sun = 0
     sun_lon = pos[0]
     sign_idx = int(sun_lon / 30) % 12
@@ -122,7 +122,7 @@ def compute_tamil_month_dates(year: int) -> List[dict]:
 
     swe.set_ephe_path(EPHE_PATH)
     swe.set_sid_mode(1)
-    flags = 2 | 64
+    flags = swe.FLG_SWIEPH | swe.FLG_SIDEREAL  # correct numeric values from swisseph
 
     months = []
     # Scan from Jan 1 to Dec 31
@@ -386,7 +386,7 @@ def compute_monthly_transits(
     utc_off = current_utc_offset if current_utc_offset is not None else 0.0
     local_noon_utc = 12.0 - utc_off  # Convert local noon to UTC
     jd_mid = swe.julday(target_year, target_month, 15, local_noon_utc)
-    flags = 2 | 64 | 256  # FLG_SWIEPH | FLG_SIDEREAL | FLG_SPEED
+    flags = swe.FLG_SWIEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED  # correct numeric values from swisseph
 
     # Also compute for 1st and last day to detect sign changes within month
     days_in_month = 28
@@ -579,8 +579,11 @@ def compute_monthly_transits(
     # ── Tamil Panchanga month ──
     tamil_month = get_tamil_month(jd_mid)
 
-    # ── Generate transit chart SVG ──
-    transit_svg = _generate_transit_svg(transits, lagna_sign_idx, transit_signs)
+    # ── Generate transit chart SVG (dark navy/gold theme) ──
+    transit_svg = _generate_transit_svg(transits, lagna_sign_idx, moon_sign_idx, transit_signs)
+
+    # ── Generate natal chart SVG ──
+    natal_svg = _generate_natal_svg(natal_positions, lagna_sign_idx, moon_sign_idx)
 
     # ── Location info ──
     location_label = ""
@@ -606,6 +609,7 @@ def compute_monthly_transits(
         },
         "transits": transits,
         "transit_svg": transit_svg,
+        "natal_svg": natal_svg,
         "aspects": aspects,
         "sade_sati": sade_sati,
         "ashtama_shani": ashtama_shani,
@@ -647,100 +651,214 @@ def _aspect_description(transit_planet: str, natal_planet: str, offset: int, nat
         return f"{transit_planet} casts a challenging {_ordinal(offset)} aspect on natal {natal_planet}"
 
 
-def _generate_transit_svg(transits: list, lagna_sign_idx: int, transit_signs: dict) -> str:
+def _si_svg_base(W: int, H: int, lagna_sign_idx: int, moon_sign_idx: int,
+                  center_lines: list, planet_in_sign: dict) -> str:
     """
-    Generate a South Indian style transit chart as inline SVG.
-    Fixed-position rashi boxes (Pisces top-left), planets placed by transit sign.
-    No symbols — uses 2-letter abbreviations only.
+    Shared South Indian chart SVG builder — deep navy/gold theme.
+    center_lines: list of (text, font_size, fill, font_weight) tuples for center box.
+    planet_in_sign: dict of sign_idx -> list of (abbr, degree, retro, color).
     """
-    W, H = 400, 400
-    # South Indian chart: 4x4 grid, fixed sign positions
-    # Row 0: Pisces(11), Aries(0), Taurus(1), Gemini(2)
-    # Row 1: Aquarius(10), [center], [center], Cancer(3)
-    # Row 2: Capricorn(9), [center], [center], Leo(4)
-    # Row 3: Sagittarius(8), Scorpio(7), Libra(6), Virgo(5)
+    # Deep consultation colour palette
+    NAVY       = "#0F1628"
+    NAVY_DARK  = "#0A0E1A"
+    NAVY_MID   = "#16213E"
+    GOLD       = "#C9A84C"
+    GOLD_DIM   = "rgba(201,168,76,0.45)"
+    GOLD_FAINT = "rgba(201,168,76,0.12)"
+    BLUE_DIM   = "rgba(107,174,214,0.12)"
+
+    # South Indian fixed grid: sign_idx -> (col, row)  col=0 is left, row=0 is top
     SIGN_POSITIONS = {
         11: (0, 0), 0: (1, 0), 1: (2, 0), 2: (3, 0),
         10: (0, 1),                          3: (3, 1),
-        9:  (0, 2),                          4: (3, 2),
-        8:  (0, 3), 7: (1, 3), 6: (2, 3), 5: (3, 3),
+         9: (0, 2),                          4: (3, 2),
+         8: (0, 3), 7: (1, 3), 6: (2, 3),  5: (3, 3),
     }
 
-    cell_w = W / 4
-    cell_h = H / 4
+    cw = W / 4   # cell width
+    ch = H / 4   # cell height
 
-    svg_parts = [f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:400px;height:auto;font-family:Georgia,serif;">']
+    p = []
+    p.append(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" '
+             f'style="width:100%;max-width:{W}px;height:auto;font-family:Georgia,serif;display:block;">')
 
-    # Background
-    svg_parts.append(f'<rect x="0" y="0" width="{W}" height="{H}" fill="#faf6ee" stroke="#8B4513" stroke-width="2" rx="4"/>')
+    # Outer background
+    p.append(f'<rect width="{W}" height="{H}" fill="{NAVY}" rx="4" '
+             f'stroke="{GOLD}" stroke-width="1.5"/>')
 
-    # Draw grid lines
-    for i in range(5):
-        x = i * cell_w
-        svg_parts.append(f'<line x1="{x}" y1="0" x2="{x}" y2="{H}" stroke="#8B4513" stroke-width="1"/>')
-        y = i * cell_h
-        svg_parts.append(f'<line x1="0" y1="{y}" x2="{W}" y2="{y}" stroke="#8B4513" stroke-width="1"/>')
+    # Grid lines
+    for i in range(1, 4):
+        p.append(f'<line x1="{i*cw}" y1="0" x2="{i*cw}" y2="{H}" '
+                 f'stroke="{GOLD}" stroke-width="0.7" opacity="0.45"/>')
+        p.append(f'<line x1="0" y1="{i*ch}" x2="{W}" y2="{i*ch}" '
+                 f'stroke="{GOLD}" stroke-width="0.7" opacity="0.45"/>')
 
-    # Center box (2x2) — label
-    cx, cy = cell_w, cell_h
-    svg_parts.append(f'<rect x="{cx}" y="{cy}" width="{cell_w*2}" height="{cell_h*2}" fill="#f5efe0" stroke="#8B4513" stroke-width="1"/>')
-    svg_parts.append(f'<text x="{W/2}" y="{H/2 - 14}" text-anchor="middle" font-size="13" font-weight="bold" fill="#8B4513">GOCHARA</text>')
-    svg_parts.append(f'<text x="{W/2}" y="{H/2 + 4}" text-anchor="middle" font-size="11" fill="#666">Transit Chart</text>')
-    svg_parts.append(f'<text x="{W/2}" y="{H/2 + 20}" text-anchor="middle" font-size="10" fill="#999">Lagna: {SIGN_NAMES[lagna_sign_idx]}</text>')
+    # Lagna cell highlight
+    if lagna_sign_idx in SIGN_POSITIONS:
+        col, row = SIGN_POSITIONS[lagna_sign_idx]
+        p.append(f'<rect x="{col*cw+1}" y="{row*ch+1}" '
+                 f'width="{cw-2}" height="{ch-2}" fill="{GOLD_FAINT}" rx="2"/>')
 
-    # Draw sign labels and highlight Lagna sign
+    # Moon cell highlight
+    if moon_sign_idx in SIGN_POSITIONS and moon_sign_idx != lagna_sign_idx:
+        col, row = SIGN_POSITIONS[moon_sign_idx]
+        p.append(f'<rect x="{col*cw+1}" y="{row*ch+1}" '
+                 f'width="{cw-2}" height="{ch-2}" fill="{BLUE_DIM}" rx="2"/>')
+
+    # Center 2×2 box
+    p.append(f'<rect x="{cw}" y="{ch}" width="{cw*2}" height="{ch*2}" '
+             f'fill="{NAVY_DARK}" stroke="{GOLD}" stroke-width="0.8" opacity="0.85"/>')
+
+    # Center text lines
+    n = len(center_lines)
+    total_h = n * 17
+    y0 = H / 2 - total_h / 2 + 13
+    for i, (text, fsize, fill, fweight) in enumerate(center_lines):
+        p.append(f'<text x="{W/2}" y="{y0 + i*17}" text-anchor="middle" '
+                 f'font-size="{fsize}" fill="{fill}" font-weight="{fweight}" '
+                 f'font-family="Georgia,serif">{text}</text>')
+
+    # Sign labels + ASC / NatMoon badges
     for sign_idx, (col, row) in SIGN_POSITIONS.items():
-        x = col * cell_w
-        y = row * cell_h
-
-        # Highlight natal Lagna sign
-        if sign_idx == lagna_sign_idx:
-            svg_parts.append(f'<rect x="{x+1}" y="{y+1}" width="{cell_w-2}" height="{cell_h-2}" fill="#fff3e0" rx="2"/>')
-
-        # Sign abbreviation (top-left corner of cell)
+        x = col * cw
+        y = row * ch
         skt = SIGN_SANSKRIT[sign_idx][:3]
-        svg_parts.append(f'<text x="{x+4}" y="{y+13}" font-size="8" fill="#999" font-style="italic">{skt}</text>')
+        p.append(f'<text x="{x+4}" y="{y+13}" font-size="8" '
+                 f'fill="{GOLD_DIM}" font-style="italic" font-family="Georgia,serif">{skt}</text>')
 
-        # Mark Lagna
         if sign_idx == lagna_sign_idx:
-            svg_parts.append(f'<text x="{x+cell_w-4}" y="{y+13}" text-anchor="end" font-size="7" fill="#d4af37" font-weight="bold">ASC</text>')
+            p.append(f'<rect x="{x + cw - 30}" y="{y+2}" width="28" height="12" '
+                     f'fill="rgba(201,168,76,0.22)" rx="2"/>')
+            p.append(f'<text x="{x + cw - 16}" y="{y+11}" text-anchor="middle" '
+                     f'font-size="7" fill="{GOLD}" font-weight="700" '
+                     f'font-family="Georgia,serif">ASC</text>')
 
-    # Place transit planets
-    planet_in_sign = {}
+        if sign_idx == moon_sign_idx and moon_sign_idx != lagna_sign_idx:
+            p.append(f'<rect x="{x + cw - 36}" y="{y+2}" width="34" height="12" '
+                     f'fill="rgba(107,174,214,0.18)" rx="2"/>')
+            p.append(f'<text x="{x + cw - 19}" y="{y+11}" text-anchor="middle" '
+                     f'font-size="7" fill="#6BAED6" font-weight="700" '
+                     f'font-family="Georgia,serif">Nat☽</text>')
+
+    # Planets
+    for sign_idx, planets in planet_in_sign.items():
+        if sign_idx not in SIGN_POSITIONS:
+            continue
+        col, row = SIGN_POSITIONS[sign_idx]
+        x_base = col * cw + 5
+        y_base = row * ch + 28
+        for i, (abbr, deg, retro, color) in enumerate(planets):
+            px = x_base + (i % 2) * 44
+            py = y_base + (i // 2) * 18
+            label = f"{abbr} {int(deg)}°{'R' if retro else ''}"
+            p.append(f'<text x="{px}" y="{py}" font-size="10.5" font-weight="700" '
+                     f'fill="{color}" font-family="Georgia,serif">{label}</text>')
+
+    p.append('</svg>')
+    return "\n".join(p)
+
+
+# Planet display colours (deep consultation palette)
+_PLANET_COLORS = {
+    "Sun":     "#E8843A",
+    "Moon":    "#6BAED6",
+    "Mars":    "#E05252",
+    "Mercury": "#52B452",
+    "Jupiter": "#C9A84C",
+    "Venus":   "#C07AE0",
+    "Saturn":  "#9E9E9E",
+    "Rahu":    "#E03080",
+    "Ketu":    "#52B452",
+}
+
+_EFFECT_COLOR = {
+    "Favourable": "#52C87A",
+    "Adverse":    "#E05555",
+    "Neutral":    "#9E9E9E",
+}
+
+
+def _generate_transit_svg(transits: list, lagna_sign_idx: int,
+                           moon_sign_idx: int, transit_signs: dict) -> str:
+    """
+    South Indian Gochara transit chart — deep navy/gold theme.
+    Planets are coloured by their classical effect (Favourable/Adverse).
+    Natal Lagna and Natal Moon cells are highlighted.
+    """
+    W, H = 400, 400
+
+    SIGN_POSITIONS = {
+        11: (0, 0), 0: (1, 0), 1: (2, 0), 2: (3, 0),
+        10: (0, 1),                          3: (3, 1),
+         9: (0, 2),                          4: (3, 2),
+         8: (0, 3), 7: (1, 3), 6: (2, 3),  5: (3, 3),
+    }
+
+    planet_in_sign: dict = {}
     for t in transits:
         s_idx = transit_signs.get(t["planet"])
         if s_idx is None and t["planet"] == "Ketu":
-            # Ketu isn't in transit_signs dict via PLANET_IDS; use from transits
-            for sn, si in SIGN_POSITIONS.items():
+            for sn in SIGN_POSITIONS:
                 if SIGN_NAMES[sn] == t["sign"]:
                     s_idx = sn
                     break
         if s_idx is None:
             continue
-        if s_idx not in planet_in_sign:
-            planet_in_sign[s_idx] = []
-        retro = "(R)" if t["retrograde"] else ""
-        abbr = t["planet"][:2]
-        color = "#2d7a2d" if t["effect"] == "Favourable" else "#a83232" if t["effect"] == "Adverse" else "#333"
-        planet_in_sign[s_idx].append((abbr, retro, color, t["degree"]))
+        planet_in_sign.setdefault(s_idx, [])
+        color = _EFFECT_COLOR.get(t["effect"], "#9E9E9E")
+        planet_in_sign[s_idx].append((
+            t["planet"][:2], t["degree"], t["retrograde"], color
+        ))
 
-    for sign_idx, planets in planet_in_sign.items():
-        if sign_idx not in SIGN_POSITIONS:
-            continue
-        col, row = SIGN_POSITIONS[sign_idx]
-        x_base = col * cell_w + 6
-        y_base = row * cell_h + 28
+    center_lines = [
+        ("GOCHARA",        13, "#C9A84C", "700"),
+        ("Transit Chart",  10, "rgba(201,168,76,0.6)", "400"),
+        ("",                9, "transparent",           "400"),
+        (f"Lagna: {SIGN_NAMES[lagna_sign_idx]}",  9, "rgba(201,168,76,0.45)", "400"),
+        (f"Moon:  {SIGN_NAMES[moon_sign_idx]}",   9, "rgba(107,174,214,0.6)", "400"),
+        ("Swiss Eph · Lahiri", 8, "rgba(201,168,76,0.3)", "400"),
+    ]
 
-        for i, (abbr, retro, color, deg) in enumerate(planets):
-            px = x_base + (i % 3) * 32
-            py = y_base + (i // 3) * 22
-            label = f"{abbr} {deg:.0f}°"
-            if retro:
-                label += "R"
-            svg_parts.append(f'<text x="{px}" y="{py}" font-size="10" font-weight="600" fill="{color}">{label}</text>')
+    return _si_svg_base(W, H, lagna_sign_idx, moon_sign_idx, center_lines, planet_in_sign)
 
-    svg_parts.append('</svg>')
-    return "\n".join(svg_parts)
+
+def _generate_natal_svg(natal_positions: dict, lagna_sign_idx: int,
+                         moon_sign_idx: int) -> str:
+    """
+    South Indian natal (Rasi) chart — deep navy/gold theme.
+    Uses the natal planet list from calculate_positions() output.
+    """
+    W, H = 400, 400
+
+    planet_in_sign: dict = {}
+    for p in natal_positions.get("planets", []):
+        name  = p.get("name", "")
+        lon   = p.get("longitude", 0)
+        retro = p.get("retrograde", False)
+        sn    = int(lon / 30) % 12
+        deg   = lon % 30
+        color = _PLANET_COLORS.get(name, "#FAF6EE")
+        planet_in_sign.setdefault(sn, [])
+        planet_in_sign[sn].append((name[:2], deg, retro, color))
+
+    # Add Ketu (always 180° from Rahu)
+    rahu = next((p for p in natal_positions.get("planets", []) if p.get("name") == "Rahu"), None)
+    if rahu:
+        ketu_lon = (rahu.get("longitude", 0) + 180) % 360
+        ks = int(ketu_lon / 30) % 12
+        kd = ketu_lon % 30
+        planet_in_sign.setdefault(ks, [])
+        planet_in_sign[ks].append(("Ke", kd, True, _PLANET_COLORS["Ketu"]))
+
+    center_lines = [
+        ("NATAL",          13, "#C9A84C", "700"),
+        ("Birth Chart",    10, "rgba(201,168,76,0.6)", "400"),
+        ("",                9, "transparent",           "400"),
+        (f"Lagna: {SIGN_NAMES[lagna_sign_idx]}", 9, "rgba(201,168,76,0.45)", "400"),
+        (f"Moon:  {SIGN_NAMES[moon_sign_idx]}",  9, "rgba(107,174,214,0.6)", "400"),
+    ]
+
+    return _si_svg_base(W, H, lagna_sign_idx, moon_sign_idx, center_lines, planet_in_sign)
 
 
 def compute_twelve_month_overview(

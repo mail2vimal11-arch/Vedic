@@ -250,7 +250,7 @@ def get_sidereal_positions(jd, latitude, longitude):
     _, ascmc = swe.houses_ex(
         jd, latitude, longitude,
         b'P',  # house system (Placidus); only ascmc[0] is used here
-        flags=swe.FLG_SIDEREAL,
+        swe.FLG_SIDEREAL,
     )
     asc_lon = ascmc[0]
     asc_rashi = longitude_to_rashi(asc_lon)
@@ -316,7 +316,7 @@ def calculate_positions(year, month, day, hour, minute, second,
     _, ascmc = swe.houses_ex(
         jd, latitude, longitude,
         b'P',
-        flags=swe.FLG_SIDEREAL,
+        swe.FLG_SIDEREAL,
     )
     asc_lon = ascmc[0]
     asc_rashi = longitude_to_rashi(asc_lon)
