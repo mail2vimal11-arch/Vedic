@@ -3,7 +3,7 @@ services:
     name: vedic-astrology
     runtime: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "python3 -m gunicorn wsgi:app --bind 0.0.0.0:$PORT --timeout 180 --workers 1 --threads 2"
+    startCommand: "python3 -m gunicorn wsgi:app --bind 0.0.0.0:$PORT --timeout 60 --workers 2 --worker-class sync"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0

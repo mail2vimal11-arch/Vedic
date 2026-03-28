@@ -18,7 +18,13 @@ Provides:
   - Ritu (season) and Samvatsara (Vedic year)
 """
 
+import socket
 import swisseph as swe
+
+# Hard cap any geocoding/HTTP calls made by PyJHora at 5 seconds
+# (prevents gunicorn worker from hanging indefinitely on Render)
+socket.setdefaulttimeout(5)
+
 import jhora.panchanga.drik as drik
 from jhora import const
 

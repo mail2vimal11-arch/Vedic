@@ -18,6 +18,7 @@ import logging
 import traceback
 from datetime import datetime
 from functools import wraps
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 
 from flask import (
     Flask, render_template, request, jsonify, send_from_directory, Response
@@ -318,14 +319,22 @@ def create_app():
                     house["bphs_house_summary"] = bphs_interpretations[i].get("house_summary", "")
                     house["bphs_planet_notes"] = bphs_interpretations[i].get("planet_notes", [])
 
-            # 9. Panchanga via PyJHora
-            panchanga = compute_panchanga(
-                year=birth["year"], month=birth["month"], day=birth["day"],
-                hour=birth["hour"], minute=birth["minute"], second=birth["second"],
-                utc_offset=birth["utc_offset"],
-                latitude=birth["latitude"], longitude=birth["longitude"],
-                city=birth["city"], country=birth["country"],
-            )
+            # 9. Panchanga via PyJHora — run in thread with timeout to prevent
+            #    blocking the gunicorn worker if geocoding/drik calls hang.
+            try:
+                with ThreadPoolExecutor(max_workers=1) as _pex:
+                    _fut = _pex.submit(
+                        compute_panchanga,
+                        year=birth["year"], month=birth["month"], day=birth["day"],
+                        hour=birth["hour"], minute=birth["minute"], second=birth["second"],
+                        utc_offset=birth["utc_offset"],
+                        latitude=birth["latitude"], longitude=birth["longitude"],
+                        city=birth["city"], country=birth["country"],
+                    )
+                    panchanga = _fut.result(timeout=8)
+            except (FutureTimeoutError, Exception) as _pe:
+                logger.warning(f"Panchanga computation skipped: {_pe}")
+                panchanga = {"error": "Panchanga unavailable", "tithi": {}, "nakshatra": {}}
 
             response = {
                 "success": True,
